@@ -1975,41 +1975,67 @@ const SFX=(()=>{
     lose(){const t=T();[330,294,262,196].forEach((f,i)=>tone(f,t+i*.22,.7,{type:'triangle',vol:.11}));drum(t+.8,55,.8,1)},
     deny(){const t=T();tone(180,t,.12,{type:'square',vol:.06})},
   };
-  /* ----- lo-fi music: boom-bap drums, Rhodes chords, koto melody, vinyl crackle ----- */
+  /* ----- samurai war music: taiko ensemble, shamisen, shakuhachi, drone ----- */
   let musicOn=true;try{musicOn=localStorage.getItem('wotb-music')!=='off'}catch(e){}
   const M={bus:null,timer:null,step:0,next:0,bar:0,crackle:null};
-  const BPM=76,SIX=60/BPM/4;
-  const PROG=[[53,57,60,64,67],[52,56,59,62,65],[57,60,64,67,71],[55,58,62,65,69,  48]];/* Fmaj9, E7b9, Am9, Gm9->C */
-  const PENTA=[69,72,74,76,79,81,84];
+  const BPM=104,SIX=60/BPM/4;
+  /* Japanese "in" scale on D: D Eb G A Bb */
+  const IN=[50,51,55,57,58,62,63,67,69,70,74];
   const mf=n=>440*Math.pow(2,(n-69)/12);
   function mbus(){
     if(M.bus)return M.bus;
-    const g=ctx.createGain();g.gain.value=0;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2400;lp.Q.value=.5;
-    g.connect(lp);lp.connect(master);M.bus=g;M.lp=lp;return g;
+    const g=ctx.createGain();g.gain.value=0;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=6000;lp.Q.value=.3;
+    /* simple hall: two feedback delays */
+    const rv=ctx.createGain();rv.gain.value=.22;[.113,.171].forEach(d=>{const dl=ctx.createDelay(1),fb=ctx.createGain(),lf=ctx.createBiquadFilter();dl.delayTime.value=d;fb.gain.value=.42;lf.type='lowpass';lf.frequency.value=2500;
+      g.connect(dl);dl.connect(lf);lf.connect(fb);fb.connect(dl);lf.connect(rv)});
+    g.connect(lp);rv.connect(lp);lp.connect(master);M.bus=g;return g;
   }
-  function mtone(f,t,dur,vol,type='sine',a=.01){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=f;o.detune.value=(Math.random()-.5)*14;
+  function mtone(f,t,dur,vol,type='sine',a=.01,slide=0){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(f*slide,t+dur);
     env(g,t,a,vol,dur);o.connect(g);g.connect(M.bus);o.start(t);o.stop(t+a+dur+.05)}
   function mnoise(t,dur,vol,type,f,q=1){const s=ctx.createBufferSource(),fl=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=noiseBuf;fl.type=type;fl.frequency.value=f;fl.Q.value=q;
     env(g,t,.002,vol,dur);s.connect(fl);fl.connect(g);g.connect(M.bus);s.start(t,Math.random());s.stop(t+dur+.05)}
-  const kick=t=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+.18);env(g,t,.003,.75,.3);o.connect(g);g.connect(M.bus);o.start(t);o.stop(t+.4)};
-  const snare=t=>{mnoise(t,.22,.28,'bandpass',1800,.8);mtone(190,t,.1,.12,'triangle',.002)};
-  const hat=(t,v)=>mnoise(t,.05,v,'highpass',7500);
-  function rhodes(notes,t,dur,vol=.055){notes.forEach((n,i)=>{const f=mf(n+(i===5?0:0));mtone(f,t+i*.012,dur,vol);mtone(f*2,t+i*.012,dur*.4,vol*.25)})}
-  function crackle(){if(M.crackle)return;const s=ctx.createBufferSource(),fl=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=noiseBuf;s.loop=true;fl.type='bandpass';fl.frequency.value=3000;fl.Q.value=.6;g.gain.value=.012;s.connect(fl);fl.connect(g);g.connect(M.bus);s.start();M.crackle=s}
-  let phrase=null;
+  /* taiko ensemble */
+  const odaiko=(t,v=1)=>{mtone(62,t,.9,.9*v,'sine',.003,.7);mtone(124,t,.25,.25*v,'sine',.002,.6);mnoise(t,.12,.35*v,'lowpass',500)};
+  const nagado=(t,v=1)=>{mtone(150,t,.35,.5*v,'sine',.002,.62);mnoise(t,.06,.25*v,'bandpass',900,1.2)};
+  const kaeshi=(t,v=1)=>{mnoise(t,.025,.22*v,'highpass',3500);mtone(1400,t,.03,.05*v,'square',.001)};/* rim / bachi click */
+  const shime=(t,v=1)=>{mtone(520,t,.07,.22*v,'triangle',.001,.8);mnoise(t,.04,.18*v,'bandpass',2600,2)};
+  const kane=(t,v=1)=>{[1,2.4,3.9,5.3].forEach((m,i)=>mtone(1250*m,t,.18-i*.03,.05*v/(i+1),'square',.001))};/* chanchiki bell */
+  /* shamisen pluck: bright, snappy */
+  const sham=(n,t,v=1)=>{const f=mf(n);mtone(f,t,.45,.11*v,'sawtooth',.001,.995);mtone(f*2,t,.18,.04*v,'square',.001);mnoise(t,.015,.12*v,'highpass',3000)};
+  /* shakuhachi: breathy, vibrato, slow attack */
+  function flute(n,t,dur,v=1){const f=mf(n),o=ctx.createOscillator(),g=ctx.createGain(),lfo=ctx.createOscillator(),lg=ctx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(f*.97,t);o.frequency.linearRampToValueAtTime(f,t+.12);lfo.frequency.value=5.2;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(f*.012,t+dur*.6);
+    lfo.connect(lg);lg.connect(o.frequency);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.12*v,t+.09);g.gain.setValueAtTime(.12*v,t+dur*.7);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);g.connect(M.bus);o.start(t);lfo.start(t);o.stop(t+dur+.05);lfo.stop(t+dur+.05);
+    mnoise(t,dur*.9,.035*v,'bandpass',f*2,3)}
+  const drone=(t,dur)=>{mtone(mf(38),t,dur,.12,'sawtooth',.4);mtone(mf(45),t,dur,.06,'sawtooth',.4)};
+  /* 8-bar loop: bars 0-1 sparse intro, 2-5 full drive, 6 break, 7 roll into loop */
+  const OST=[62,null,62,63,null,62,57,null,58,null,57,55,null,57,null,null];
+  const MEL=[[74,4],[null,2],[70,2],[69,6],[null,2],[67,4],[69,4],[70,8],[69,4],[67,2],[63,2],[62,8],[null,8]];
+  let melAt=0,melIdx=0,section=0;
   function schedStep(st,t){
-    const s16=st%16,bar=Math.floor(st/16)%4,sw=(s16%2)?SIX*.18:0,tt=t+sw;
-    if(s16===0||s16===10||(s16===7&&bar%2))kick(tt);
-    if(s16===4||s16===12)snare(tt);
-    if(s16%2===0||Math.random()<.15)hat(tt,s16%4===0?.05:.028+Math.random()*.02);
-    if(Math.random()<.04)mnoise(tt,.01,.08,'highpass',2000);/* vinyl pop */
-    const ch=PROG[bar];
-    if(s16===0){rhodes(ch.slice(0,5),tt,SIX*9);mtone(mf(ch[0]-12),tt,SIX*6,.16,'sine',.02)}
-    if(s16===8&&bar===3){rhodes([48,52,55,58,62],tt,SIX*8,.05);mtone(mf(36),tt,SIX*6,.16,'sine',.02)}
-    else if(s16===10)mtone(mf(ch[0]-12),tt,SIX*3,.12,'sine',.02);
-    if(s16===14&&Math.random()<.5)rhodes(ch.slice(1,4),tt,SIX*2,.035);
-    if(s16===0&&bar%2===0)phrase=Math.random()<.7?Array.from({length:16},()=>Math.random()<.22?PENTA[Math.floor(Math.random()*PENTA.length)]:null):null;
-    if(phrase&&phrase[s16]){const f=mf(phrase[s16]);mtone(f,tt,.7,.06,'triangle',.002);mtone(f*2.01,tt,.25,.02,'sine',.002)}
+    const s16=st%16,bar=Math.floor(st/16)%8,loop=Math.floor(st/128);
+    const sw=(s16%2)?SIX*.06:0,tt=t+sw,full=bar>=2&&bar<=5,brk=bar===6,roll=bar===7;
+    if(s16===0&&bar%4===0)drone(tt,SIX*64);
+    /* o-daiko: heavy downbeats */
+    if(s16===0)odaiko(tt,bar===0?1.1:1);
+    if(full&&(s16===6||s16===10))odaiko(tt,.75);
+    if(brk&&(s16===0||s16===8))odaiko(tt,1.1);
+    /* nagado mid drums: don-don ka-ka pattern */
+    if(full&&[0,3,4,8,11,12].includes(s16))nagado(tt,s16%4===0?1:.7);
+    if(bar===1&&s16%4===0)nagado(tt,.6);
+    if(full&&(s16===2||s16===14))kaeshi(tt);
+    /* shime-daiko: driving 16ths in full sections, roll at the end */
+    if(full)shime(tt,s16%4===0?1:.45+Math.random()*.15);
+    if(roll){shime(tt,.4+s16/16);if(s16%2===0)nagado(tt,.3+s16/20);if(s16===15)odaiko(tt+SIX*.5,.6)}
+    if(full&&s16%8===4)kane(tt,.8);
+    /* shamisen ostinato */
+    if(bar>=1&&!brk&&OST[s16]!=null)sham(OST[s16]+(bar===4||bar===5?5:0),tt,full?1:.6);
+    if(brk&&s16%4===0)sham(50,tt,.9);
+    /* shakuhachi melody over bars 2-7, varies each loop */
+    if(bar===2&&s16===0){melAt=st;melIdx=0;section=loop}
+    if(bar>=2&&melIdx<MEL.length&&st===melAt){const [n,len]=MEL[melIdx];
+      if(n)flute(n+(section%2&&n>=69?-2:0),tt,SIX*len*.95,.9);melAt+=len;melIdx++}
   }
   function tick(){
     if(!ctx||!M.bus)return;
@@ -2017,8 +2043,8 @@ const SFX=(()=>{
   }
   function startMusic(){
     const c=init();if(!c||c.state!=='running'||M.timer||!musicOn||document.hidden)return;
-    mbus();crackle();M.next=c.currentTime+.1;M.step=0;
-    M.bus.gain.cancelScheduledValues(c.currentTime);M.bus.gain.setValueAtTime(M.bus.gain.value,c.currentTime);M.bus.gain.linearRampToValueAtTime(.45,c.currentTime+1.5);
+    mbus();M.next=c.currentTime+.1;M.step=0;
+    M.bus.gain.cancelScheduledValues(c.currentTime);M.bus.gain.setValueAtTime(M.bus.gain.value,c.currentTime);M.bus.gain.linearRampToValueAtTime(.3,c.currentTime+1.5);
     M.timer=setInterval(tick,40);
   }
   function stopMusic(){
