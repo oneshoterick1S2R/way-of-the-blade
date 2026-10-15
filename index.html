@@ -2818,7 +2818,7 @@ function dojoHTML(){
         <h1>${esc(a.name)}</h1>
         ${pathTag(a.path)}
         <div class="rec"><span class="duelrec"><em>Duels</em> <b>${(a.pvp||{}).w||0}</b> wins <b>${(a.pvp||{}).l||0}</b> losses<button class="info" data-a="pvpinfo" aria-label="What is this?" aria-expanded="${!!S.pvpInfo}">i</button></span><span><b>${a.unlocked.length}</b>/${ORDER.length} cards</span></div>
-        ${S.pvpInfo?'<p class="infotip">Your record in <b>online duels against other players</b>. Games against the computer and same-phone duels don\u2019t count.</p>':''}
+        ${S.pvpInfo?'<p class="infotip">Your record in <b>online duels against other players</b>.</p>':''}
         ${xpBar(a.xp)}
         <button class="btn sm armory" data-a="editprofile"><span class="mk">鎧</span>Armory &amp; samurai</button>
       </div>
