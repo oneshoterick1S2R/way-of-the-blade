@@ -1996,23 +1996,46 @@ const SFX=(()=>{
   const bell=(f,t,vol=.18,dur=1.2)=>{[1,2.76,5.4].forEach((m,i)=>tone(f*m,t,dur/(i+1),{vol:vol/(i*1.6+1)}))};
   const pluck=(f,t,vol=.12,dest=master)=>{tone(f,t,.9,{type:'triangle',vol,a:.002,dest});tone(f*2.01,t,.35,{vol:vol*.35,a:.002,dest});noise(t,.02,{vol:vol*.6,type:'highpass',f:4000})};
   const drum=(t,f=90,vol=.7,dur=.35)=>{tone(f,t,dur,{vol,slide:.45});noise(t,.08,{vol:vol*.35,type:'lowpass',f:600})};
+  /* steel on steel: sharp transient + inharmonic ringing partials */
+  function clang(t,v=1){
+    const base=1100+Math.random()*350;
+    noise(t,.05,{vol:.7*v,type:'highpass',f:2500});
+    noise(t,.5,{vol:.22*v,type:'bandpass',f:base*3.1,q:14});
+    [1,1.47,2.09,2.56,3.18,4.22].forEach((m,i)=>tone(base*m*(.99+Math.random()*.02),t,.9-i*.11,{type:i%3?'sine':'triangle',vol:.13*v/(i*.55+1),a:.001}));
+    tone(base*1.003,t+.004,.7,{vol:.05*v,a:.001});
+  }
+  /* pained groan: buzzy voice through vowel formants, pitch sagging */
+  function groan(t,v=1,pitch=1){
+    const dur=.75,f0=(118+Math.random()*12)*pitch;
+    const o=ctx.createOscillator(),o2=ctx.createOscillator(),g=ctx.createGain();o.type='sawtooth';o2.type='sawtooth';o2.detune.value=12;
+    o.frequency.setValueAtTime(f0*1.25,t);o.frequency.linearRampToValueAtTime(f0,t+.12);o.frequency.exponentialRampToValueAtTime(f0*.72,t+dur);
+    o2.frequency.setValueAtTime(f0*1.25,t);o2.frequency.linearRampToValueAtTime(f0,t+.12);o2.frequency.exponentialRampToValueAtTime(f0*.72,t+dur);
+    const vib=ctx.createOscillator(),vg=ctx.createGain();vib.frequency.value=7;vg.gain.value=f0*.03;vib.connect(vg);vg.connect(o.frequency);vg.connect(o2.frequency);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.5*v,t+.05);g.gain.setValueAtTime(.5*v,t+dur*.45);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);o2.connect(g);
+    const out=ctx.createGain();out.gain.value=1;
+    [[560,6,1],[950,9,.55],[2400,12,.18]].forEach(([f,q,a])=>{const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.setValueAtTime(f*1.15,t);bp.frequency.linearRampToValueAtTime(f*.9,t+dur);bp.Q.value=q;const ga=ctx.createGain();ga.gain.value=a;g.connect(bp);bp.connect(ga);ga.connect(out)});
+    const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3200;out.connect(lp);lp.connect(master);
+    noise(t,dur*.8,{vol:.06*v,type:'bandpass',f:1200,q:1.5,a:.03});
+    [o,o2,vib].forEach(x=>{x.start(t);x.stop(t+dur+.05)});
+  }
   const S={
-    tap(){const t=T();tone(1200,t,.04,{type:'triangle',vol:.06});noise(t,.025,{vol:.05,f:3000,q:2})},
+    tap(){},
     card(){const t=T();noise(t,.18,{vol:.18,f:900,f2:3800,q:.8})},
     draw(){const t=T();noise(t,.12,{vol:.12,f:2500,f2:1200,q:.9})},
-    summon(){const t=T();drum(t,85,.6);noise(t,.2,{vol:.12,f:700,f2:2400,q:.7})},
+    summon(){const t=T();noise(t,.22,{vol:.22,type:'bandpass',f:2600,q:3});for(let i=0;i<5;i++)noise(t+.02+i*.035,.04,{vol:.12,type:'bandpass',f:3200+Math.random()*1500,q:8});tone(110,t,.2,{vol:.25,slide:.6})},
     slash(){const t=T();noise(t,.32,{vol:.55,type:'bandpass',f:500,f2:3200,q:2.2,a:.12});noise(t+.12,.18,{vol:.35,type:'bandpass',f:3200,f2:900,q:1.6,a:.02})},
-    hit(){const t=T();noise(t,.12,{vol:.4,type:'lowpass',f:1400,f2:300});tone(160,t,.15,{type:'square',vol:.12,slide:.5})},
-    death(){const t=T();drum(t,70,.75,.6);tone(220,t+.05,.7,{type:'sawtooth',vol:.08,slide:.4})},
-    honor(){const t=T();noise(t,.06,{vol:.6,type:'highpass',f:3000});[1870,2450,3110,4230,5380].forEach((f,i)=>tone(f*(0.98+Math.random()*.04),t,.55-i*.06,{type:i%2?'square':'triangle',vol:.07/(i*.5+1)}));noise(t+.01,.4,{vol:.18,type:'bandpass',f:4200,q:6});tone(140,t,.25,{vol:.35,slide:.6})},
+    hit(){const t=T();clang(t,1)},
+    death(){const t=T();clang(t,.6);groan(t+.12,.8,.75);tone(80,t+.1,.5,{vol:.35,slide:.5})},
+    honor(){const t=T();groan(t,1.9);tone(90,t,.25,{vol:.3,slide:.6})},
     heal(){const t=T();[784,988,1175].forEach((f,i)=>bell(f,t+i*.07,.07,.8))},
     buff(){const t=T();tone(1568,t,.5,{type:'triangle',vol:.08});tone(2350,t+.03,.45,{vol:.05});noise(t,.15,{vol:.1,type:'highpass',f:6000})},
     equip(){const t=T();noise(t,.3,{vol:.25,type:'highpass',f:3500,f2:7000});[1760,2637,3520].forEach((f,i)=>tone(f,t+.04,.6-i*.15,{vol:.06/(i+1)}))},
     ambush(){const t=T();[392,370,294].forEach((f,i)=>tone(f,t+i*.06,.35,{type:'sawtooth',vol:.09,slide:.98}));drum(t+.2,110,.6)},
     power(){const t=T();noise(t,.35,{vol:.15,f:500,f2:4000,q:1.5});bell(659,t+.15,.1,1)},
     yourTurn(){const t=T();drum(t,90,.45,.25);drum(t+.16,90,.5,.25);drum(t+.34,70,.85,.6);[440,523,659,784].forEach((f,i)=>pluck(f,t+.36+i*.045,.12))},
-    theirTurn(){const t=T();drum(t,95,.45,.3);drum(t+.18,95,.35,.3)},
-    endTurn(){const t=T();tone(700,t,.06,{type:'triangle',vol:.12});tone(520,t+.09,.08,{type:'triangle',vol:.12})},
+    theirTurn(){const t=T();noise(t,.35,{vol:.1,f:400,f2:1500,q:.8})},
+    endTurn(){const t=T();noise(t,.25,{vol:.12,f:600,f2:1800,q:.8})},
     dice(){const t=T();for(let i=0;i<12;i++)tone(900+Math.random()*900,t+i*.09+Math.random()*.04,.04,{type:'triangle',vol:.12});noise(t,1.1,{vol:.05,f:2000,q:.5})},
     diceLand(){const t=T();tone(1100,t,.06,{type:'triangle',vol:.15});tone(800,t+.07,.06,{type:'triangle',vol:.15})},
     win(){const t=T();[392,440,523,587,659,784].forEach((f,i)=>{tone(f,t+i*.11,.6,{type:'triangle',vol:.12});tone(f*2,t+i*.11,.3,{vol:.03})});bell(392,t+.75,.15,2.5);drum(t,80,.6);drum(t+.66,80,.7,.6)},
