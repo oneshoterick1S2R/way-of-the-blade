@@ -454,6 +454,44 @@ body.artbg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 .tuttile{grid-column:1/-1;position:relative}
 .tuttile.new{border-color:var(--gold,#c9a24e);box-shadow:0 0 0 1px rgba(201,162,78,.4),0 0 16px rgba(201,162,78,.25)}
 .tuttile em{position:absolute;top:10px;right:10px;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--gold,#c9a24e);color:#1a1210;padding:3px 8px;border-radius:99px}
+/* ===== Story Mode ===== */
+.pm-quest.open{border-style:solid;border-color:var(--gold,#c9a24e)}
+.pm-quest.open em{background:var(--gold,#c9a24e);color:#1a1210}
+.sthero{padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--grain),linear-gradient(135deg,rgba(178,58,39,.32),rgba(20,8,5,.6))}
+.sthero small{text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:var(--gold,#c9a24e)}
+.sthero h2{margin:2px 0 8px;font-family:var(--f-head);font-size:24px}
+.sthero p{margin:0 0 8px;font-size:14px;line-height:1.45;color:var(--mist)}
+.stprog{height:8px;border-radius:4px;background:rgba(0,0,0,.4);border:1px solid var(--line);overflow:hidden;margin:6px 0}.stprog span{display:block;height:100%;background:var(--gold,#c9a24e)}
+.stch{padding:12px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.3)}
+.stch.locked{opacity:.7}
+.stch-h{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.stch-h .mk{font-size:30px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.4);border:1.5px solid currentColor}
+.stch.p-banner .stch-h .mk{color:#e0806a}.stch.p-steel .stch-h .mk{color:#8fb3e6}.stch.p-shadow .stch-h .mk{color:#b9a3e0}.stch.p-temple .stch-h .mk{color:#9cc27a}
+.stch-h small{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mist)}
+.stch-h h2{margin:0;font-family:var(--f-head);font-size:20px}
+.stx{margin:0 0 10px;font-size:14px;line-height:1.45;color:var(--mist)}
+.stbosses{display:flex;flex-direction:column;gap:6px}
+.stboss{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px;border-radius:8px;border:1.5px solid var(--line);background:rgba(0,0,0,.25);text-align:left}
+.stboss .sbart{position:relative;flex:none;width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid #4a3a2c}
+.stboss .sbart img,.stboss .sbart svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%}
+.stboss .sbtx{flex:1;min-width:0}.stboss small{display:block;font-size:11px;color:var(--mist)}.stboss b{display:block;font-family:var(--f-card);font-size:16px}.stboss em{font-size:12.5px;color:var(--mist)}
+.stboss .sbst{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800}
+.stboss.open{border-color:#b23a27;background:rgba(178,58,39,.18)}.stboss.open .sbst{background:#b23a27;color:#fff4dc}.stboss.open .sbart{border-color:#e8604a}
+.stboss.won .sbst{background:var(--gold,#c9a24e);color:#1a1210}.stboss.won .sbart{border-color:var(--gold,#c9a24e)}
+.stboss.lock{opacity:.55}.stboss.lock .sbart{filter:grayscale(1) brightness(.6)}
+.bosshead{display:flex;gap:14px;align-items:center}
+.bossart{position:relative;flex:none;width:96px;height:96px;border-radius:50%;overflow:hidden;border:3px solid #b23a27;box-shadow:0 0 0 4px rgba(178,58,39,.25),0 6px 18px rgba(0,0,0,.5)}
+.bossart img,.bossart svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%}
+.bossart.sm{width:84px;height:84px;margin:4px auto 8px}
+.bosshead small{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mist)}
+.bosshead h2{margin:2px 0;font-family:var(--f-head);font-size:24px}.bosshead em{color:var(--gold,#c9a24e)}
+.bossrule{display:flex;gap:12px;padding:12px;border-radius:10px;border:1.5px solid #b23a27;background:linear-gradient(160deg,rgba(80,20,12,.6),rgba(20,8,5,.6))}
+.bossrule .mk{font-size:28px;color:#e8604a}
+.bossrule small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#f0a090}.bossrule b{display:block;font-family:var(--f-card);font-size:18px;margin:2px 0}
+.bossrule p{margin:0;font-size:14px;line-height:1.45;color:var(--cream)}
+.breward{display:flex;gap:12px;align-items:center}.breward .bcard{width:96px;flex:none}
+.srule{font-size:13.5px;line-height:1.4;padding:8px 10px;border-radius:8px;background:rgba(178,58,39,.12);border:1px solid rgba(178,58,39,.4);margin:6px 0 10px;text-align:left}
+.squote{font-style:italic}.sepi{font-size:13.5px;line-height:1.5;text-align:left}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -830,6 +868,11 @@ button.tface{cursor:pointer}
 .tut-btns .btn{min-height:40px}
 @media (prefers-reduced-motion:reduce){.tut-hole{animation:none;transition:none}.tut-tip{transition:none}}
 .tut-btns .btn{white-space:nowrap;padding-inline:14px}.tut-end{display:flex;gap:8px}
+.sideextra{display:flex;gap:6px;flex-wrap:wrap;margin:3px 0}
+.brule{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;border:1px solid #b23a27;background:rgba(178,58,39,.25);color:#f0c0b0;font-size:11px;font-weight:700;letter-spacing:.04em}
+.brule .mk{font-size:12px}
+.stance-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;border:1px solid var(--line);background:rgba(0,0,0,.35)}
+.st-wind{color:#a8d8e8}.st-forest{color:#9cc27a}.st-fire{color:#f08a5a}.st-mountain{color:#c9b38a}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -1221,6 +1264,23 @@ A_('mist','temple',3,'E','Mountain Mist','山霧','When an enemy strikes, the st
 S_('levy','banner',1,'C','Levy','Token — Conscript','徴兵',1,1,{tok:1,fl:'Answer the call.'});
 S_('straw','n',0,'C','Straw Dummy','Token — Decoy','藁',0,3,{tok:1,kw:['guard'],fl:'It never flinches.'});
 
+/* ---------- Story Mode Legends (earned by defeating each boss) ---------- */
+S_('st_chiyome','shadow',3,'L','Mochizuki Chiyome','Shadow — Mistress of Eyes','望月',2,3,{story:1,arr:{k:'discardAW'},x:'Arrival: look at the enemy’s hand and discard an Ambush or weapon from it.',fl:'I have watched you since the fire.'});
+S_('st_fuma','shadow',5,'L','Fūma Kotarō','Shadow — Night Raider','風魔',4,3,{story:1,kw:['sneak','fumaRaid'],x:'Strikes past Guardians. When he damages enemy Honor, one enemy weapon returns to its owner’s hand.',fl:'The night belongs to me.'});
+S_('st_hanzo','shadow',5,'L','Hattori Hanzō','Shadow — Demon of Iga','服部',3,3,{story:1,kw:['sneakAmbush'],aura:'hanzo',x:'Your Shuriken deals 2 damage instead of 1. Strikes past Guardians while you have an Ambush set.',fl:'Iga never forgets.'});
+S_('st_kojiro','steel',4,'L','Sasaki Kojirō','Steel — Swallow Cutter','佐々木',4,2,{story:1,kw:['killNoCounter','swallow'],x:'Strikes first: takes no damage back from a samurai he destroys. Swallow Cut: the first time each turn he destroys a samurai, he may strike again.',fl:'The Drying Pole never misses.'});
+S_('st_tadakatsu','steel',5,'L','Honda Tadakatsu','Steel — The Unwounded','本多',3,5,{story:1,kw:['guard','firstShield'],arr:{k:'addCard',id:'st_tonbokiri'},x:'On the enemy’s turn, prevent the first damage dealt to him. Arrival: add Tonbokiri (+2 Strength weapon) to your hand.',fl:'Fifty battles. Not one wound.'});
+S_('st_musashi','steel',7,'L','Miyamoto Musashi','Steel — The Two Heavens','宮本',5,5,{story:1,kw:['growKill'],arr:{k:'equipTwo'},x:'Arrival: equip two random swords. Each time he destroys a samurai in combat, he gains +1 Strength permanently.',fl:'Today is victory over yourself of yesterday.'});
+S_('st_naotora','temple',4,'L','Ii Naotora','Temple — The Nun Who Ruled','井伊',2,5,{story:1,aura:'naotora',x:'Whenever you restore Honor, also summon a 1/1 Levy.',fl:'A clan is held together by patience.'});
+S_('st_kenshin','temple',6,'L','Uesugi Kenshin','Temple — Dragon of Echigo','上杉',4,5,{story:1,aura:'templeStr',arr:{k:'healAll',v:99},x:'Your other Temple samurai have +1 Strength. Arrival: fully heal all your samurai.',fl:'I fight with arms, not with salt.'});
+S_('st_kennyo','temple',5,'L','Kennyo of Hongan-ji','Temple — The Ten-Year Fortress','顕如',3,4,{story:1,aura:'ikko',x:'At the start of your turn, summon a 1/1 Ikkō Monk. Your Prayer also restores 1 Vitality to all your samurai.',fl:'Ten years, and the gates still stand.'});
+S_('st_shingen','banner',7,'L','Takeda Shingen','Banner — Tiger of Kai','武田',5,6,{story:1,aura:'furinkazan',x:'Furinkazan: each of your turns your army takes the next stance. Wind: strike past Guardians. Forest: can’t be targeted by abilities. Fire: +2 Strength. Mountain: Guardians +3 Vitality.',fl:'Swift as wind, silent as forest, fierce as fire, unmoving as the mountain.'});
+S_('st_hideyoshi','banner',4,'L','Toyotomi Hideyoshi','Banner — The Monkey Lord','豊臣',2,3,{story:1,aura:'levyBuff',x:'Your Levies have +1/+1. When a Levy survives combat, it is promoted: +1/+1 permanently.',fl:'I was born with nothing. So were you.'});
+S_('st_nobunaga','banner',8,'L','Oda Nobunaga','Banner — Demon King','織田',6,6,{story:1,aura:'nobunaga',arr:{k:'burnTemple'},x:'Arrival — Burn the Temple: deal 2 damage to every other samurai. At the end of your turn, deal 1 damage to a random enemy samurai for each Levy or archer you control (max 3).',fl:'Only fire can forge one Japan.'});
+W_('st_tonbokiri','steel',2,'L','Tonbokiri','Weapon — Dragonfly Spear','蜻蛉切',2,0,{tok:1,story:1,fl:'A dragonfly that lands on its blade is cut in two.'});
+S_('st_ikko','temple',1,'C','Ikkō Monk','Token — Peasant Monk','一向',1,1,{tok:1,fl:'Paradise for those who fall.'});
+S_('st_fortress','banner',0,'C','One-Night Castle','Token — Fortress','一夜城',0,8,{tok:1,kw:['guard'],fl:'Built between dusk and dawn.'});
+
 /* drawn fallback art for cards that don't have a painted image yet */
 const DRAW={karo:'gendo',master10k:'tomoe',bokken:'tanto',chokuto:'tachi',heirloom:'katana',alarm:'smoke',pit:'makibishi',decoy:'smoke',
   recruit:'ashi',vetashi:'ashi',mantlet:'benkei',cook:'soen',kashira:'gendo',yabusame:'tomoe',teppo:'kenji',lancer:'haru',volley:'tomoe',firearrow:'tomoe',bugyo:'gendo',joshu:'gendo',levy:'ashi',
@@ -1228,7 +1288,10 @@ const DRAW={karo:'gendo',master10k:'tomoe',bokken:'tanto',chokuto:'tachi',heirlo
   soke:'soen',kodachi:'waki',uchigatana:'katana',daisho:'waki',dragon:'nodachi',ancestral:'tachi',quickdraw:'hidden',counter:'hidden',disarm:'hunt',parry:'smoke',challenge:'hunt',
   raider:'kage',thousand:'kage',kunai:'tanto',fukiya:'tanto',firearrows:'tanto',kusarigama:'waki',ninjato:'katana',tripwire:'makibishi',trapdoor:'smoke',mirage:'smoke',falseretreat:'hidden',
   templearcher:'tomoe',sensei:'soen',yamabushi:'benkei',abbot:'soen',thousandsteps:'benkei',juzu:'tessen',shakujo:'yari',tessen:'tessen',naginata:'haru',kanabo:'kanabo',
-  templebell:'smoke',ofuda:'hunt',sanctuary:'smoke',mist:'smoke',straw:'ashi'};
+  templebell:'smoke',ofuda:'hunt',sanctuary:'smoke',mist:'smoke',straw:'ashi',
+  st_chiyome:'kenji',st_fuma:'kage',st_hanzo:'kage',st_kojiro:'katana',st_tadakatsu:'yari',st_musashi:'tachi',st_naotora:'soen',st_kenshin:'benkei',st_kennyo:'soen',st_shingen:'haru',st_hideyoshi:'gendo',st_nobunaga:'tomoe',st_tonbokiri:'yari',st_ikko:'soen',st_fortress:'gendo'};
+/* painted art reused for the story Legends until their own art arrives */
+[['st_chiyome','kunoichi'],['st_fuma','raider'],['st_hanzo','jonin'],['st_kojiro','wduelist'],['st_tadakatsu','gateguard'],['st_musashi','undefeated'],['st_naotora','miko'],['st_kenshin','enlightened'],['st_kennyo','thousandsteps'],['st_shingen','general'],['st_hideyoshi','ashi'],['st_nobunaga','shogun'],['st_tonbokiri','nagae'],['st_ikko','sohei'],['st_fortress','irongate']].forEach(([a,b])=>{if(!IMG[a]&&IMG[b])IMG[a]=IMG[b]});
 /* painted kanji already in these artworks, or none to hide */
 ['recruit','cook','mantlet','vetashi','kashira','yabusame','templearcher','yamabushi','abbot'].forEach(id=>C[id].own=1);
 ['templebell','ofuda','mist','sanctuary'].forEach(id=>C[id].own=0);
@@ -1249,7 +1312,7 @@ const NEUTRAL_SWORDS=['tanto','bokken','waki','katana','chokuto','tachi','nodach
 /* ---------- decks ---------- */
 const STARTER_NEUTRALS={katana:1,waki:1,tanto:1,smoke:1,makibishi:1,teamaster:1,gatekeeper:1};
 function starterDeck(path,legends){
-  const d={};ORDER.forEach(id=>{const c=C[id];if(c.p===path&&(c.rar!=='L'||legends))d[id]=1});
+  const d={};ORDER.forEach(id=>{const c=C[id];if(c.p===path&&!c.story&&(c.rar!=='L'||legends))d[id]=1});
   Object.assign(d,STARTER_NEUTRALS);
   if(legends){delete d.teamaster;delete d.gatekeeper}
   return d;
@@ -1295,10 +1358,23 @@ function auraStr(u){
     if(o!==u&&C[o.c].aura==='otherStr')n++;
     if(o!==u)o.w.forEach(w=>{if(C[w].aura==='otherStr')n++});
     if(C[o.c].aura==='guardStr'&&isGuard(u))n++;
+    if(o!==u&&C[o.c].aura==='templeStr'&&C[u.c].p==='temple')n++;
+    if(C[o.c].aura==='levyBuff'&&u.c==='levy')n++;
   }
+  if(stanceOf(u.owner)==='fire')n+=2;
+  if(G.boss)n+=bossStr(u);
   return n;
 }
-function auraVit(u){let n=0;if(isGuard(u))for(const o of units(u.owner))if(o!==u&&C[o.c].aura==='guardVit')n+=2;return n}
+const STANCES=['wind','forest','fire','mountain'];
+const stanceOf=p=>G&&G.pl[p]&&G.pl[p].stance||null;
+function bossStr(u){
+  if(G.boss==='kenshin'&&u.owner===1)return 1;
+  if(G.boss==='musashi'&&u.owner===0&&!G.bossArrived)return -1;
+  return 0;
+}
+function auraVit(u){let n=0;if(isGuard(u))for(const o of units(u.owner))if(o!==u&&C[o.c].aura==='guardVit')n+=2;
+  if(u.c==='levy')for(const o of units(u.owner))if(C[o.c].aura==='levyBuff')n++;
+  if(isGuard(u)&&stanceOf(u.owner)==='mountain')n+=3;return n}
 const str=u=>Math.max(0,C[u.c].a+u.buff+u.w.reduce((s,w)=>s+C[w].a,0)+auraStr(u));
 const maxHp=u=>C[u.c].h+u.hb+u.w.reduce((s,w)=>s+C[w].h,0)+auraVit(u);
 const hp=u=>u.dead?0:maxHp(u)-u.dmg;
@@ -1309,7 +1385,7 @@ const canAct=u=>!!u&&!u.dead&&hp(u)>0&&(!u.sick||kw(u,'swift'))&&u.acts<maxActs(
 const techReady=u=>canAct(u)&&!!C[u.c].ab&&weaponCount(u)>=techNeed(u);
 const myTurn=()=>!!G&&G.phase==='play'&&G.turn===0&&!G.busy&&!G.over;
 const hasGuard=p=>units(p).some(u=>isGuard(u)&&hp(u)>0);
-function cost(p,c){const d=C[c];let k=d.ki;if(d.t==='w')k-=units(p).filter(u=>C[u.c].aura==='weaponCost').length;return Math.max(0,k)}
+function cost(p,c){const d=C[c];let k=d.ki;if(d.t==='w')k-=units(p).filter(u=>C[u.c].aura==='weaponCost').length;if(G&&G.boss==='chiyome'&&p===1&&d.t==='a')k--;return Math.max(0,k)}
 function strongest(p){let b=null;for(const u of units(p))if(hp(u)>0&&(!b||str(u)>str(b)))b=u;return b}
 const slotOf=u=>G.pl[u.owner].board.indexOf(u);
 
@@ -1337,10 +1413,13 @@ function hurtHonor(o,n,fatigue){
   const floor=!fatigue&&units(o).some(u=>C[u.c].aura==='honorFloor'&&hp(u)>0)?1:0;
   P.honor=Math.max(floor,P.honor-n);fx('h'+o,'-'+n,'dmg');
 }
-function healHonor(p,n){const P=G.pl[p];const g=Math.min(n,HONOR_MAX-P.honor);if(g>0){P.honor+=g;fx('h'+p,'+'+g,'heal')}}
+function healHonor(p,n){const P=G.pl[p];const g=Math.min(n,HONOR_MAX-P.honor);if(g>0){P.honor+=g;fx('h'+p,'+'+g,'heal');
+  units(p).forEach(o=>{if(C[o.c].aura==='naotora')summon(p,'levy',true)});
+  if(G.boss==='naotora'&&p===1){const l=units(1).filter(u=>hp(u)>0);if(l.length){const u=pick(l);buff(u,0,1);log(`The clan endures: ${C[u.c].n} gains +1 Vitality.`)}}}}
 function dmg(u,n){
   if(!u||u.dead||n<=0)return;
   if(kw(u,'ironwill')&&u.w.length>0)n=Math.min(n,Math.max(0,hp(u)-1));
+  if(kw(u,'firstShield')&&G.turn!==u.owner&&u.shR!==G.round){u.shR=G.round;fx(u.uid,'Blocked','buff');log(`${C[u.c].n} shrugs off the blow.`);return}
   if(n<=0)return;u.dmg+=n;fx(u.uid,'-'+n,'dmg');
 }
 function heal(u,n){const g=Math.min(n,u.dmg);if(g>0){u.dmg-=g;fx(u.uid,'+'+g,'heal')}}
@@ -1376,7 +1455,8 @@ function deathPoem(p,dp){
 const T=(s,i)=>({s,i});
 function targetsFor(p,tg,src){
   const o=1-p,out=[];
-  const enemyUnits=()=>G.pl[o].board.forEach((u,i)=>{if(u&&hp(u)>0&&!kw(u,'untarget'))out.push(T(o,i))});
+  const hid=stanceOf(o)==='forest'||(G.boss==='fuma'&&o===1&&!G.dawn);
+  const enemyUnits=()=>G.pl[o].board.forEach((u,i)=>{if(u&&hp(u)>0&&!kw(u,'untarget')&&!hid)out.push(T(o,i))});
   switch(tg){
     case 'enemy':enemyUnits();break;
     case 'enemyAny':case 'enemyAnyFree':enemyUnits();out.push(T(o,'h'));break;
@@ -1388,7 +1468,7 @@ function targetsFor(p,tg,src){
 }
 function strikeTargets(p,s){
   const u=G.pl[p].board[s],o=1-p,out=[];if(!u)return out;
-  const sneak=kw(u,'sneak'),guarded=hasGuard(o)&&!sneak;
+  const sneak=kw(u,'sneak')||(kw(u,'sneakAmbush')&&G.pl[p].traps.length>0)||stanceOf(p)==='wind',guarded=hasGuard(o)&&!sneak;
   G.pl[o].board.forEach((f,i)=>{if(f&&hp(f)>0&&(!guarded||isGuard(f)))out.push(T(o,i))});
   if(!guarded)out.push(T(o,'h'));
   return out;
@@ -1426,6 +1506,11 @@ function arrival(p,src,ar,t){
     case 'drawIfAmbush':if(G.pl[p].traps.length)draw(p,1);break;
     case 'drawHonor':draw(p,1);healHonor(p,1);break;
     case 'sap':if(tu)buff(tu,-ar.v,0);break;
+    case 'discardAW':{const h=G.pl[o].hand;let bi=-1;h.forEach((c,i)=>{if((C[c].t==='a'||C[c].t==='w')&&(bi<0||C[c].ki>C[h[bi]].ki))bi=i});
+      if(bi>=0){const c=h.splice(bi,1)[0];log(`${C[src.c].n} reads the enemy’s hand and discards ${o===0?C[c].n:'a card'}.`)}else log(`${C[src.c].n} finds no Ambush or weapon to discard.`);break}
+    case 'addCard':addHand(p,ar.id);break;
+    case 'equipTwo':src.w.push(pick(NEUTRAL_SWORDS),pick(NEUTRAL_SWORDS));break;
+    case 'burnTemple':G.pl.forEach((P,q)=>units(q).forEach(u=>{if(u!==src)dmg(u,2)}));log('The temple burns!');break;
   }
 }
 const arrTargets=(p,c,src)=>{const ar=C[c].arr;return ar&&ar.tg?targetsFor(p,ar.tg,src):[]};
@@ -1448,6 +1533,7 @@ function playCard(p,i,o={}){
   if(d.t==='s'){
     const u=summon(p,c);
     if(d.arr){const tl=arrTargets(p,c,u);if(!d.arr.tg||validT(tl,o.target))arrival(p,u,d.arr,o.target)}
+    if(G.boss&&typeof bossHook==='function')bossHook('summon',p,u);
   }else if(d.t==='w'){
     const u=P.board[o.slot];u.w.push(c);P.wPlayed++;
     if(kw(u,'growEquip'))buff(u,1,1);else fx(u.uid,d.a?'+'+d.a:'+'+d.h,d.a?'buff':'heal');
@@ -1469,8 +1555,8 @@ function usePower(p,t){
   switch(P.path){
     case 'banner':summon(p,'levy',true);break;
     case 'steel':buff(tu,1,0);break;
-    case 'shadow':if(t.i==='h')hurtHonor(t.s,1);else dmg(tu,1);break;
-    case 'temple':if(t.i==='h')healHonor(p,2);else heal(tu,2);break;
+    case 'shadow':{const v=units(p).some(u=>C[u.c].aura==='hanzo')?2:1;if(t.i==='h')hurtHonor(t.s,v);else dmg(tu,v);break}
+    case 'temple':if(t.i==='h')healHonor(p,2);else heal(tu,2);if(units(p).some(u=>C[u.c].aura==='ikko'))units(p).forEach(u=>heal(u,1));break;
   }
   log(`${nm(p)} ${G.duel||p?'uses':'use'} ${pw.n}.`);cleanup();return true;
 }
@@ -1541,14 +1627,20 @@ function strike(p,s,t){
     if(r.retarget)t=r.retarget;
     if(r.cancel||hp(u)<=0||slotOf(u)<0){cleanup();return true}
   }
-  if(t.i==='h')hurtHonor(o,str(u));
+  if(t.i==='h'){const a=str(u);hurtHonor(o,a);
+    if(a>0&&kw(u,'fumaRaid')){const w=units(o).find(x=>x.w.length);if(w){const c=w.w.pop();addHand(o,c);log(`${C[u.c].n} steals ${C[c].n} back to its owner’s hand.`)}}}
   else{
     const f=O.board[t.i];
     if(f&&hp(f)>0){
       const a=str(u),b=str(f),kills=a>=hp(f);
-      dmg(f,a);
-      if(!(kw(u,'killNoCounter')&&kills))dmg(u,b);
+      if(G.boss==='kojiro'&&u.owner===0){dmg(u,b);if(hp(u)>0)dmg(f,a)}
+      else{dmg(f,a);if(!(kw(u,'killNoCounter')&&kills))dmg(u,b)}
       if(kw(f,'thorns'))dmg(u,1);
+      if(hp(f)<=0&&hp(u)>0){
+        if(kw(u,'growKill')){buff(u,1,0);log(`${C[u.c].n} grows stronger.`)}
+        if(kw(u,'swallow')&&u.swR!==G.round){u.swR=G.round;u.acts=Math.max(0,u.acts-1);log(`Swallow Cut! ${C[u.c].n} may strike again.`)}
+      }
+      [u,f].forEach(x=>{if(x.c==='levy'&&hp(x)>0&&units(x.owner).some(o2=>C[o2.c].aura==='levyBuff')){buff(x,1,1);log('A Levy is promoted.')}});
     }
   }
   if(kw(u,'juzu')&&hp(u)>0)heal(u,2);
@@ -1561,10 +1653,20 @@ function startTurn(p,first){
   if(!first)draw(p,1,true);
   units(p).forEach(u=>{u.sick=false;u.acts=0;if(u.frz){u.acts=99;u.frz=0}});
   units(p).forEach(u=>{if(C[u.c].aura==='chant')units(p).forEach(x=>heal(x,1))});
+  turnAuras(p);
   log(G.duel?`— ${P.who.name}’s turn —`:p===0?`— Your turn · ${P.ki} Ki —`:'— Rival’s turn —');
   checkOver();
 }
 
+function turnAuras(p){
+  const P=G.pl[p],o=1-p;
+  if(units(p).some(u=>C[u.c].aura==='furinkazan')||(G.boss==='shingen'&&p===1)){P.stI=((P.stI??-1)+1)%4;P.stance=STANCES[P.stI];log(`${p?'Their':'Your'} army takes the ${P.stance[0].toUpperCase()+P.stance.slice(1)} stance.`)}else P.stance=null;
+  units(p).forEach(u=>{if(C[u.c].aura==='ikko')summon(p,'st_ikko',true)});
+  units(o).forEach(u=>{if(C[u.c].aura==='nobunaga'){const n=Math.min(3,units(o).filter(x=>x.c==='levy'||/Archer/.test(C[x.c].ty)).length);
+    for(let i=0;i<n;i++){const l=units(p).filter(x=>hp(x)>0);if(l.length)dmg(pick(l),1)}}});
+  if(G.boss&&typeof bossHook==='function')bossHook('start',p);
+  cleanup();
+}
 /* ===== Computer opponent (also plays both sides in the simulator) ===== */
 const uval=u=>str(u)+hp(u)*0.8+(isGuard(u)?1:0)+(C[u.c].aura?1.5:0)+(C[u.c].ab?0.6:0)+C[u.c].ki*0.3;
 function bestTarget(p,list,ar,src){
@@ -2180,12 +2282,13 @@ function sideHTML(p){
   const pips=Array.from({length:HONOR_MAX},(_,i)=>`<i class="${i<P.honor?'on':''}"></i>`).join('');
   const backs=foe?`<span class="minibacks">${Array.from({length:Math.min(P.hand.length,8)},()=>`<span class="back">${BACK}</span>`).join('')}</span>`:'';
   const tgt=modeHas(p,'h');
+  const extra=(foe&&G.boss?`<button class="brule" data-act="bossrule"><span class="mk">掟</span>Boss Rule</button>`:'')+(P.stance?`<span class="stance-chip st-${P.stance}">${{wind:'風 Wind',forest:'林 Forest',fire:'火 Fire',mountain:'山 Mountain'}[P.stance]}</span>`:'');
   const powerBtn=foe?`<span class="pwr foe" title="${pw.n}: ${pw.x}"><span class="mk">${PI.k}</span>${pw.n}</span>`:
     `<button class="pwr ${canPower(0)&&myTurn()&&!G.mode?'ready':''}" data-act="power" ${canPower(0)&&myTurn()?'':'disabled'} title="${pw.x}"><span class="mk">${PI.k}</span>${pw.n}<em>${POWER_COST}</em></button>`;
   return `<section class="side ${foe?'foe':'me'} ${tgt?'target':''}" data-fx="h${p}" ${tgt?`data-act="honor" data-side="${p}" role="button" tabindex="0"`:''} aria-label="${P.name}">
     <div class="mon">${P.who?P.who.mon:(foe?'闇':ACC.mon)}</div>
     <div class="who"><b>${P.name}</b>
-      <div class="meta">${backs}<span>${PI.n} · Hand ${P.hand.length} · Deck ${P.deck.length}</span></div>
+      <div class="meta">${backs}<span>${PI.n} · Hand ${P.hand.length} · Deck ${P.deck.length}</span></div>${extra?`<div class="sideextra">${extra}</div>`:''}
       <div class="ki" aria-label="Ki ${P.ki} of ${P.maxKi}"><b>気 ${P.ki}/${P.maxKi}</b>${Array.from({length:Math.max(P.maxKi,P.ki)},(_,i)=>`<i class="${i<P.ki?'on':''}"></i>`).join('')}</div>
       <div class="pips">${pips}</div></div>
     <div class="honor"><div class="v">${P.honor}</div><div class="l">誉 Honor</div>${powerBtn}</div>
@@ -2305,6 +2408,7 @@ function introHTML(){
   </div></div>`;
 }
 function overHTML(){
+  if(G.story)return storyOverHTML();
   if(G.duel){const W=G.over==='win'?G.pl[0].who:G.pl[1].who,Lz=G.over==='win'?G.pl[1].who:G.pl[0].who;
     return `<div class="modal"><div class="scroll" role="dialog"><div class="big">勝</div><h2>${esc(W.name)} wins</h2>
       <div class="mfig solo">${figureHTML(W.look,W.accent,W.mon,{bg:false})}</div>
@@ -2327,6 +2431,7 @@ function overHTML(){
 }
 function renderBattle(){
   if(G.over&&!G.rec){G.rec=true;if(!G.duel)recordResult(G.over)}
+  if(G.over&&G.story)storyResult();
   const root=$('#root');const h=$('#hand');const sl=h?h.scrollLeft:0;
   const bar=barHTML();
   root.className='battle-root '+(bar?'bar-open':'');
@@ -2492,6 +2597,9 @@ document.addEventListener('click',e=>{
     case 'rules':showIntro=true;render();return;
     case 'again':if(G&&G.online){stopOnline();G=null;S.on={step:'menu'};go('online');return}startBattle(active().id);return;
     case 'tutagain':startTutorial();return;
+    case 'storyretry':startStoryBattle(G.boss);return;
+    case 'storymap':G=null;go('story');return;
+    case 'bossrule':{const b=bossById(G.boss);showToast('掟','Boss Rule · '+b.rule,b.rx);return}
     case 'dojo':if(G&&G.online){stopOnline();clearMatch()}G=null;go('dojo');return;
     case 'yield':if(!G.over){G.yieldAsk=true;render()}return;
     case 'yieldno':G.yieldAsk=false;render();return;
@@ -2533,6 +2641,7 @@ const die=v=>`<span class="die">${Array.from({length:9},(_,i)=>`<i class="${PIPS
 function phaseHTML(){
   if(!G||G.phase==='play')return '';
   const me=G.pl[0];
+  if(G.phase==='intro'&&G.boss)return bossIntroHTML();
   if(G.phase==='intro'&&G.duel){const A=G.pl[0].who,B=G.pl[1].who;
     return `<div class="stage">${scrollHTML(`
       <div class="kanji-title">決闘</div><h2 class="ttl">A Duel of Honor</h2>
@@ -2567,7 +2676,7 @@ function phaseHTML(){
         G.duel?`<p class="sub"><b>${esc(G.pl[1].who.name)}</b> wins the call. ${esc(G.pl[1].who.name)}, choose your stance:</p>
         <div class="stances"><button class="stance" data-act="order" data-v="p2attack"><span class="mk">攻</span><b>Attack</b><small>Strike first.</small></button>
         <button class="stance" data-act="order" data-v="p2defend"><span class="mk">守</span><b>Defend</b><small>Go second: 1 extra card and +1 Ki on your first turn.</small></button></div>`:
-        `<p class="sub">The Unoshotto Clan wins the call and chooses to <b>${t.aiFirst===1?'attack':'defend'}</b>. ${t.aiFirst===1?'You defend: 1 extra card and +1 Ki on your first turn.':'You attack first.'}</p>
+        `<p class="sub">${G.boss?esc(G.pl[1].name):'The Unoshotto Clan'} wins the call and chooses to <b>${t.aiFirst===1?'attack':'defend'}</b>. ${t.aiFirst===1?'You defend: 1 extra card and +1 Ki on your first turn.':'You attack first.'}</p>
         <div class="btns"><button class="btn pri" data-act="tossnext">Continue</button></div>`);
     }
     return `<div class="stage"><div class="panel-scroll toss"><h2 class="ttl">Who strikes first?</h2>
@@ -3034,12 +3143,194 @@ document.addEventListener('click',e=>{
   e.stopPropagation();e.preventDefault();
 },true);
 
+/* ===== Story Mode: The Road to Honnō-ji (12 bosses, 4 chapters) ===== */
+const STORY_PW='Password1!';
+const CHAPTERS=[
+  {id:1,path:'shadow',k:'影',t:'The Whispering Web',x:'You want to know who ordered your village burned. The only people who know such things are the ones nobody sees. The trail leads through three masters of the hidden war and ends with a name: Nobunaga.'},
+  {id:2,path:'steel',k:'鋼',t:'The Road of a Hundred Duels',x:'No ronin reaches the Demon King with a rusted blade. You walk the duelists’ road, where reputation is earned one fight at a time. Three masters stand between you and a sword worthy of the final battle.'},
+  {id:3,path:'temple',k:'寺',t:'Ashes on the Mountain',x:'Hatred alone will not defeat the Demon King; it will only make you another one. You seek the temples Nobunaga has not yet burned, to learn why the faithful still resist him and what it costs to endure.'},
+  {id:4,path:'banner',k:'旗',t:'The Unifier’s Road',x:'With the Shadow, Steel and Temple behind you, you are no longer a lone ronin but the head of a small army. Now you face the warlords who move nations. The road ends at Nobunaga’s side, inside a temple called Honnō-ji.'},
+];
+const BOSSES=[
+  {id:'chiyome',ch:1,n:'Mochizuki Chiyome',ti:'Mistress of Eyes',card:'st_chiyome',
+    story:'A traveling shrine maiden offers you shelter. She is really the head of a network of kunoichi spies, and she has been watching you since the fire. She tests whether you can be trusted with what she knows.',
+    rule:'Web of Eyes',rx:'She sees every card in your hand, and her Ambushes cost 1 less Ki.',
+    win:'“You fight like someone with nothing left to hide. Follow the raiders into the mountains. Your answer is there.”'},
+  {id:'fuma',ch:1,n:'Fūma Kotarō',ti:'Demon of the Night Raid',card:'st_fuma',
+    story:'Chiyome’s intel points to a raiding band in the mountains. Their giant leader strikes camps in the dark, and your only lead was taken by him. You must survive a night of raids to get it back.',
+    rule:'Night Raid',rx:'Until dawn (his first 3 turns), his samurai can’t be targeted by your abilities or Path Power. Then dawn breaks and the protection ends.',
+    win:'“Ha! You lasted till sunrise. Take your scroll. The man who wrote it hides in Iga.”'},
+  {id:'hanzo',ch:1,n:'Hattori Hanzō',ti:'the Demon of Iga',card:'st_hanzo',
+    story:'The trail ends in the ruins of Iga, a ninja province razed by Nobunaga’s armies. Hanzō thinks you are an Oda assassin. After the duel he learns the truth: the same man destroyed both your homes.',
+    rule:'Iga Never Forgets',rx:'Every time you summon a samurai, Hanzō’s Shuriken hits it for 1 damage.',
+    win:'“Nobunaga burned Iga too. Go to Azuchi Castle. Make him remember us.”'},
+  {id:'kojiro',ch:2,n:'Sasaki Kojirō',ti:'the Swallow Cutter',card:'st_kojiro',
+    story:'A proud young swordsman guards a river crossing with an impossibly long blade nicknamed the Drying Pole. He has never lost a duel. He only lets through those who can survive his returning cut.',
+    rule:'The Long Reach',rx:'When your samurai strike his, his strike first. Yours only deal damage if they survive the first blow.',
+    win:'“…So this is what losing feels like. Cross, then. The Unwounded waits at the pass.”'},
+  {id:'tadakatsu',ch:2,n:'Honda Tadakatsu',ti:'the Unwounded',card:'st_tadakatsu',
+    story:'The legendary spearman is said to have fought over fifty battles without a scratch. He blocks the mountain pass with his dragonfly-cutting spear. Beating him means proving that even legends can bleed.',
+    rule:'Fifty Battles, No Wound',rx:'Tadakatsu takes the field for free on his 4th turn, a Guardian. On your turn, the first damage dealt to him is ignored, so hit him twice.',
+    win:'“A scratch. My first. Take Tonbokiri’s brother with my blessing.”'},
+  {id:'musashi',ch:2,n:'Miyamoto Musashi',ti:'the Two Heavens',card:'st_musashi',
+    story:'A wandering swordsman who fights with two blades and wins by unsettling his opponents. He is late to the duel, on purpose. When he finally arrives, he fights you only to find out what your sword is made of.',
+    rule:'The Late Arrival',rx:'Musashi arrives for free on his 4th turn. Until he does, your samurai have −1 Strength from the waiting.',
+    win:'“Your sword is honest. Here, take my second blade. You will need two hands for the Demon King.”'},
+  {id:'naotora',ch:3,n:'Ii Naotora',ti:'the Nun Who Ruled',card:'st_naotora',
+    story:'A Buddhist nun was forced to lead her clan after its men were killed. She holds her small domain together through patience, not swords. She tests whether you can protect others instead of only seeking revenge.',
+    rule:'The Clan Endures',rx:'Each time she restores Honor, one of her samurai gains +1 Vitality permanently.',
+    win:'“You struck to protect, not to destroy. My clan’s banner rides with you.”'},
+  {id:'kenshin',ch:3,n:'Uesugi Kenshin',ti:'Dragon of Echigo',card:'st_kenshin',
+    story:'The warrior-monk believes he fights for Bishamonten, the god of war. When his rival’s people were starving, he sent them salt rather than win by starvation. He agrees to fight you, but only fairly.',
+    rule:'Salt to the Enemy',rx:'At the start of your turn, Kenshin restores 1 Vitality to your most damaged samurai. In return, his samurai have +1 Strength.',
+    win:'“A fair fight, fairly lost. Bishamonten smiles on you today.”'},
+  {id:'kennyo',ch:3,n:'Kennyo of Hongan-ji',ti:'the Ten-Year Fortress',card:'st_kennyo',
+    story:'The abbot of a fortified temple has held out against Nobunaga’s sieges for a decade, defended by armies of peasant monks. He does not trust a ronin with a grudge.',
+    rule:'The Long Siege',rx:'Kennyo starts with 30 Honor and summons a 1/1 Ikkō Monk at the start of each of his turns. An endurance fight.',
+    win:'“You fight to end the wars, not to continue them. Go to the Unifier with our blessing.”'},
+  {id:'shingen',ch:4,n:'Takeda Shingen',ti:'Tiger of Kai',card:'st_shingen',
+    story:'The greatest field general of the age marches under a banner reading Wind, Forest, Fire, Mountain. He is the one lord Nobunaga truly fears. He wants to know if your army can stand against his cavalry.',
+    rule:'Furinkazan',rx:'His army changes stance every turn in order. Wind: strike past Guardians. Forest: can’t be targeted by abilities. Fire: +2 Strength. Mountain: Guardians +3 Vitality.',
+    win:'“Your army moved like one body. The Tiger of Kai stands aside.”'},
+  {id:'hideyoshi',ch:4,n:'Toyotomi Hideyoshi',ti:'the Monkey Who Became Lord',card:'st_hideyoshi',
+    story:'Nobunaga’s most loyal general was born a peasant and rose by wits alone. Legend says he built a castle overnight. He likes you, since you also started from nothing, but loyalty demands he stop you.',
+    rule:'The One-Night Castle',rx:'He starts with a 0/8 Guardian fortress in play. At the start of each of his turns, his Levies gain +1/+1.',
+    win:'“Two peasants, one road. Go. My lord waits at Honnō-ji.”'},
+  {id:'nobunaga',ch:4,n:'Oda Nobunaga',ti:'Demon King of the Sixth Heaven',card:'st_nobunaga',final:1,
+    story:'You finally reach Nobunaga at Honnō-ji in Kyoto. He is not the monster you imagined; he is a ruthless visionary who believes only fire can forge one Japan. He accepts your challenge personally. Midway through, smoke rises: one of his own generals has set the temple ablaze.',
+    rule:'Three Ranks of Fire · Honnō-ji Burns',rx:'Each of his turns, an arquebus volley hits one of your samurai, rotating through three ranks: 1, 1, then 2 damage. At 10 Honor or less the temple burns: every turn, 1 damage to all samurai, and his Nobunaga card gains +1 Strength.',
+    win:'“Perhaps unity needed more than fire.”'},
+];
+const EPILOGUE='As Honnō-ji collapses, the wounded Nobunaga lowers his blade. He admits you fought with every Path he tried to destroy, and that perhaps unity needed more than fire. He hands you his war banner and walks back into the flames. You escape with eleven pledged legends and the Demon King’s own banner. The betrayer’s army is already marching…';
+const bossById=id=>BOSSES.find(b=>b.id===id);
+const storyBeaten=id=>!!(ACC&&ACC.story&&ACC.story.beaten&&ACC.story.beaten[id]);
+const storyCount=()=>BOSSES.filter(b=>storyBeaten(b.id)).length;
+function bossOpen(b){
+  if(b.ch===4&&BOSSES.filter(x=>x.ch<4).some(x=>!storyBeaten(x.id)))return false;
+  const prev=BOSSES.filter(x=>x.ch===b.ch);const i=prev.indexOf(b);return i===0||storyBeaten(prev[i-1].id);
+}
+function bossDeck(b){
+  const ch=CHAPTERS.find(c=>c.id===b.ch),d=starterDeck(ch.path,b.ch>=3);
+  if(b.id==='musashi'||b.id==='tadakatsu')return d;
+  d[b.card]=b.final?1:2;return d;
+}
+
+/* ----- boss rules (called from the engine) ----- */
+function bossHook(ev,p,u){
+  const B=G.boss;
+  if(ev==='summon'){
+    if(B==='hanzo'&&p===0&&u&&hp(u)>0){log('Iga never forgets: a shuriken finds your samurai.');dmg(u,1);cleanup()}
+    return;
+  }
+  if(ev!=='start')return;
+  if(p===1)G.bossTurns=(G.bossTurns||0)+1;
+  switch(B){
+    case 'fuma':if(p===0&&!G.dawn&&G.bossTurns>=3){G.dawn=true;log('Dawn breaks. The raiders can be targeted.');UI.toast('暁','Dawn breaks','Fūma’s samurai lose their night protection.')}break;
+    case 'tadakatsu':if(p===1&&!G.bossArrived&&G.bossTurns>=4){G.bossArrived=true;const m=summon(1,'st_tadakatsu',true);if(m)log('Honda Tadakatsu takes the pass!');UI.toast('本','Tadakatsu arrives','The Unwounded holds the pass.')}break;
+    case 'musashi':if(p===1&&!G.bossArrived&&G.bossTurns>=4){G.bossArrived=true;const m=summon(1,'st_musashi',true);if(m)log('Musashi finally arrives!');UI.toast('宮','Musashi arrives','Your samurai are no longer held back.')}break;
+    case 'kenshin':if(p===0){let w=null;units(0).forEach(x=>{if(x.dmg>0&&(!w||x.dmg>w.dmg))w=x});if(w){heal(w,1);log(`Kenshin sends salt: ${C[w.c].n} recovers 1 Vitality.`)}}break;
+    case 'kennyo':if(p===1){summon(1,'st_ikko',true);log('An Ikkō Monk joins the siege.')}break;
+    case 'hideyoshi':if(p===1)units(1).forEach(x=>{if(x.c==='levy')buff(x,1,1)});break;
+    case 'nobunaga':{
+      const P=G.pl[1];
+      if(!G.burning&&P.honor<=10){G.burning=true;log('Smoke rises. Honnō-ji burns!');UI.toast('炎','Honnō-ji burns','Every turn, fire deals 1 damage to all samurai.')}
+      if(G.burning){G.pl.forEach((Q,q)=>units(q).forEach(x=>dmg(x,1)));if(p===1)units(1).forEach(x=>{if(x.c==='st_nobunaga')buff(x,1,0)})}
+      else if(p===1){const r=(G.volley=(G.volley||0)+1)%3;const B0=G.pl[0].board;const tgt=B0[r]&&hp(B0[r])>0?B0[r]:units(0).find(x=>hp(x)>0);
+        if(tgt){log(`Three ranks of fire! A volley hits ${C[tgt.c].n}.`);dmg(tgt,r===0?2:1)}}
+      break}
+  }
+}
+
+/* ----- starting a boss battle ----- */
+function startStoryBattle(id){
+  const b=bossById(id),d=active();if(!b||!validate(d).ok){S.storyErr='Your active deck isn’t valid. Fix it in Decks first.';render();return}
+  const ch=CHAPTERS.find(c=>c.id===b.ch);
+  newGame(clone(d.cards),d.path,bossDeck(b),ch.path,[ACC.clan||'Your Clan',b.n]);
+  G.boss=id;G.story=true;G.rec=true;
+  if(id==='kennyo')G.pl[1].honor=30;
+  if(id==='hideyoshi'){const u=summon(1,'st_fortress',true);if(u)u.sick=false}
+  S.deckId=d.id;S.screen='battle';showIntro=false;window.scrollTo(0,0);render();
+}
+function storyResult(){
+  if(!G||!G.story||G.storyDone||!G.over)return;G.storyDone=true;
+  const b=bossById(G.boss);G.storyNew=false;
+  if(G.over==='win'){
+    if(!ACC.story)ACC.story={unlocked:true,beaten:{}};
+    if(!ACC.story.beaten[b.id]){ACC.story.beaten[b.id]=true;G.storyNew=true;if(!ACC.unlocked.includes(b.card))ACC.unlocked.push(b.card)}
+    save();
+  }
+}
+function storyOverHTML(){
+  const b=bossById(G.boss),win=G.over==='win';
+  if(!win)return `<div class="modal"><div class="scroll" role="dialog"><div class="big">敗</div><h2>${esc(b.n)} stands</h2>
+    <p class="sub">Your clan’s Honor is spent. Study the Boss Rule, adjust your deck and return.</p>
+    <p class="srule"><b>${b.rule}:</b> ${b.rx}</p>
+    <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="storyretry">Try again</button><button class="btn ghost-dark" data-act="storymap">Story map</button></div></div></div>`;
+  return `<div class="modal"><div class="scroll" role="dialog"><div class="big">勝</div><h2>${esc(b.n)} is defeated</h2>
+    <p class="sub squote">${b.win}</p>
+    ${G.storyNew?`<p class="sub" style="margin-top:6px"><b>${esc(b.n)} pledges their banner to you.</b> New Legend card:</p><div class="fan">${card(b.card,{mini:true})}</div>`:'<p class="sub">You already hold this Legend’s banner.</p>'}
+    ${b.final?`<p class="sub sepi">${EPILOGUE}</p>`:''}
+    <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="storymap">Continue the story</button><button class="btn ghost-dark" data-act="dojo">Dojo</button></div></div></div>`;
+}
+
+/* ----- screens ----- */
+function storyHTML(){
+  const n=storyCount();
+  const chs=CHAPTERS.map(ch=>{
+    const bs=BOSSES.filter(b=>b.ch===ch.id),locked=ch.id===4&&!bossOpen(bs[0])&&!storyBeaten(bs[0].id);
+    return `<section class="stch p-${ch.path} ${locked?'locked':''}"><div class="stch-h"><span class="mk">${ch.k}</span><div><small>Chapter ${ch.id} · ${PATH_INFO[ch.path].n}</small><h2>${ch.t}</h2></div></div>
+      ${locked?'<p class="muted">\u{1F512} Unlocks after you defeat all 9 bosses in Chapters 1–3.</p>':`<p class="stx">${ch.x}</p>`}
+      <div class="stbosses">${bs.map((b,i)=>{const won=storyBeaten(b.id),open=bossOpen(b);
+        return `<button class="stboss ${won?'won':open?'open':'lock'}" data-a="boss" data-v="${b.id}" ${open||won?'':'disabled'}>
+          <span class="sbart">${art(b.card)}</span><span class="sbtx"><small>Boss ${BOSSES.indexOf(b)+1}${b.final?' · Final':''}</small><b>${b.n}</b><em>${b.ti}</em></span>
+          <span class="sbst">${won?'✓':open?'▶':'\u{1F512}'}</span></button>`}).join('')}</div></section>`}).join('');
+  return `<div class="screen">
+    <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Story Mode</h1></header>
+    <div class="sthero"><small>A tale of legend, not history</small><h2>The Road to Honnō-ji</h2>
+      <p>You are a nameless ronin in 1570s Japan, the last survivor of a village burned in Oda Nobunaga’s wars. To reach the Demon King, you must prove yourself to the twelve greatest warriors of the age. Each one you defeat pledges their banner to you, and you win their Legend card.</p>
+      <div class="stprog"><span style="width:${n/12*100}%"></span></div><p class="lrec"><b>${n}</b> of 12 legends pledged · Chapters 1–3 can be played in any order</p></div>
+    ${chs}
+  </div>`;
+}
+function bossHTML(){
+  const b=bossById(S.boss);if(!b)return storyHTML();
+  const ch=CHAPTERS.find(c=>c.id===b.ch),won=storyBeaten(b.id),d=active(),v=validate(d);
+  return `<div class="screen">
+    <header class="topbar"><button class="back" data-a="nav" data-v="story">← Story</button><h1>Boss ${BOSSES.indexOf(b)+1}</h1></header>
+    <div class="bosshead p-${ch.path}"><div class="bossart">${art(b.card)}</div>
+      <div><small>Chapter ${ch.id} · ${ch.t}</small><h2>${b.n}</h2><em>${b.ti}</em></div></div>
+    <section class="sect"><h2>The story</h2><p class="stx">${b.story}</p></section>
+    <section class="bossrule"><span class="mk">掟</span><div><small>Boss Rule</small><b>${b.rule}</b><p>${b.rx}</p></div></section>
+    <section class="sect"><h2>Reward</h2><div class="breward"><button class="bcard" data-a="peek" data-v="${b.card}">${card(b.card,{mini:true})}</button>
+      <p class="muted">${won?'✓ Earned. You can fight again for practice.':'Defeat '+esc(b.n)+' to win this Legend card (1 copy per deck).'}</p></div></section>
+    <div class="activedeck"><span class="mk dp-k p-${d.path}">${PATH_INFO[d.path].k}</span><div><b>${esc(d.name)}</b><small>Your active deck · ${PATH_INFO[d.path].n} · change it in Decks</small></div><span class="pill ${v.ok?'ok':'bad'}">${v.ok?'Valid':'Invalid'}</span></div>
+    ${S.storyErr?`<p class="why" style="color:#f0a090">${S.storyErr}</p>`:''}
+    <button class="battle" data-a="bossgo" data-v="${b.id}" ${v.ok?'':'disabled'}><span class="mk">戦</span><span><b>${won?'Fight again':'Face '+esc(b.n.split(' ').slice(-1)[0])}</b><small>Win to ${won?'test yourself':'earn their Legend'}</small></span></button>
+  </div>`;
+}
+function storyLockHTML(){
+  return `<div class="modal"><div class="scroll" role="dialog" aria-label="Story Mode locked"><div class="big">旅</div><h2>Story Mode is locked</h2>
+    <p class="sub">Story Mode is in testing. Enter the password to unlock it.</p>
+    <label class="field"><span>Password</span><input id="f-story" type="password" autocomplete="off"></label>
+    ${S.storyPwErr?'<p class="why" style="color:#8d2b1b">Wrong password. Try again.</p>':''}
+    <div class="btns left"><button class="btn pri" data-a="storyok">Unlock Story Mode</button><button class="btn ghost-dark" data-a="delno">Cancel</button></div></div></div>`;
+}
+function bossIntroHTML(){
+  const b=bossById(G.boss),ch=CHAPTERS.find(c=>c.id===b.ch);
+  return `<div class="stage">${scrollHTML(`
+    <div class="kanji-title">${ch.k}</div><h2 class="ttl">${esc(b.n)}</h2><p class="sub"><i>${b.ti}</i></p>
+    <div class="bossart sm">${art(b.card)}</div>
+    <p class="sub">${b.story}</p>
+    <p class="srule"><b>Boss Rule · ${b.rule}:</b> ${b.rx}</p>
+    <button class="btn pri" data-act="intronext">Toss the dice</button>`)}</div>`;
+}
+
 /* ===== Account, collection, decks ===== */
 const DECK_SIZE=30, MIN_SAMURAI=12, MAX_DECKS=6;
 const limitOf=id=>C[id].rar==='L'?1:2;
 /* Commons, Rares and Path Epics are open from the start. Legendaries and Neutral Epics unlock through victories. */
-const LOCKABLE=ORDER.filter(id=>C[id].rar==='L'||(C[id].p==='n'&&C[id].rar==='E'));
-const BASE_UNLOCKED=ORDER.filter(id=>!LOCKABLE.includes(id));
+const LOCKABLE=ORDER.filter(id=>!C[id].story&&(C[id].rar==='L'||(C[id].p==='n'&&C[id].rar==='E')));
+const BASE_UNLOCKED=ORDER.filter(id=>!LOCKABLE.includes(id)&&!C[id].story);
 const UNLOCK_RULE='Each victory unlocks a random Epic or Legendary card.';
 const MONS=['桜','竜','虎','月','鷹','波','炎','雷'];
 const COLORS={shu:['Vermilion','#d0513a'],ai:['Indigo','#5f86c4'],kin:['Gold','#c9a24e'],matsu:['Pine','#7fa05a'],fuji:['Wisteria','#9b7fc9'],yuki:['Snow','#d8d0bf']};
@@ -3070,7 +3361,7 @@ const starterFor=path=>({id:uid(),name:PATH_INFO[path].n,path,cards:starterDeck(
 function newAccount(dr){
   const decks=[starterFor(dr.path)];
   return {v:2,name:dr.name.trim()||'Nameless',clan:dr.clan.trim()||'House of the Blade',look:clone(dr.look),xp:0,mon:dr.mon,color:dr.color,path:dr.path,
-    stats:{wins:0,losses:0,played:0},unlocked:[...BASE_UNLOCKED],decks,active:decks.find(d=>d.path===dr.path).id,seenRules:false,created:Date.now(),updated:Date.now()};
+    stats:{wins:0,losses:0,played:0},unlocked:[...BASE_UNLOCKED],decks,active:decks.find(d=>d.path===dr.path).id,seenRules:false,story:{unlocked:false,beaten:{}},created:Date.now(),updated:Date.now()};
 }
 function recordResult(r){
   const st=ACC.stats;st.played++;if(r==='win')st.wins++;else st.losses++;
@@ -3094,6 +3385,7 @@ function migrate(a){
     a.decks=PATHS4.map(starterFor);a.active=a.decks.find(d=>d.path===a.path).id;a.v=2;a.seenRules=false;
   }
   if(!Array.isArray(a.unlocked))a.unlocked=[];
+  if(!a.story||typeof a.story!=='object')a.story={unlocked:false,beaten:{}};if(!a.story.beaten)a.story.beaten={};
   if(!a.pvp||typeof a.pvp!=='object')a.pvp={w:0,l:0};
   if(!Array.isArray(a.decks)||!a.decks.length){a.decks=PATHS4.map(starterFor);a.active=a.decks[0].id}
   if(!a.stats)a.stats={wins:0,losses:0,played:0};
@@ -3245,7 +3537,7 @@ function dojoHTML(){
       </div>
     </section>
     <div class="playmodes">
-      <button class="pm-quest" data-a="nav" data-v="quest"><span class="mk">旅</span><span><b>Quest</b><small>Story mode \u00B7 coming soon</small></span><em>Soon</em></button>
+      <button class="pm-quest ${a.story&&a.story.unlocked?'open':''}" data-a="quest"><span class="mk">旅</span><span><b>Story Mode</b><small>${a.story&&a.story.unlocked?`The Road to Honnō-ji \u00B7 ${storyCount()}/12 legends`:'The Road to Honnō-ji \u00B7 locked for testing'}</small></span><em>${a.story&&a.story.unlocked?'Play':'\u{1F512}'}</em></button>
       <button class="battle" data-a="skirmish"><span class="mk">戦</span><span><b>Clan Feud</b><small>vs the Unoshotto Clan \u00B7 ${esc(d.name)} \u00B7 ${v.ok?'ready':'needs fixing'}</small><small class="feudrank"><span class="mk">${a.mon}</span> Rank: <b>${titleOf(a.stats.wins)}</b> \u00B7 ${nt?`${nt[0]-a.stats.wins} more win${nt[0]-a.stats.wins>1?'s':''} to ${nt[1]}`:'highest rank reached'}</small></span></button>
     </div>
     <div class="tiles">
@@ -3376,21 +3668,15 @@ function ladderHTML(){
     <button class="battle" data-a="ladgo"><span class="mk">戦</span><span><b>Choose your deck</b><small>Then begin the feud</small></span></button>
   </div>`;
 }
-function questHTML(){
-  return `<div class="screen">
-    <header class="topbar"><button class="back" data-a="nav" data-v="dojo">\u2190 Dojo</button><h1>Quest</h1></header>
-    <div class="questph">${scrollHTML(`<div class="kanji-title">旅</div><h2 class="ttl">The Quest</h2>
-      <p class="sub">A story campaign is being forged. Journey across the provinces, face named rivals and earn rewards along the road.</p>
-      <p class="sub"><b>Coming soon.</b></p><button class="btn pri" data-a="nav" data-v="dojo">Return to the dojo</button>`)}</div></div>`;
-}
 function peekHTML(){
   const id=S.peek;if(!id)return '';
   const lock=!ACC.unlocked.includes(id);
   let note=`<div class="live">${C[id].p==='n'?'Neutral':PATH_INFO[C[id].p].n} · ${RAR[C[id].rar]}${C[id].rar==='L'?' · 1 copy per deck':''}</div>`;
-  if(lock)note+=`<p class="why">\u{1F512} Locked. ${UNLOCK_RULE}</p>`;
+  if(lock)note+=`<p class="why">\u{1F512} Locked. ${C[id].story?'Earn it by defeating this Legend in Story Mode.':UNLOCK_RULE}</p>`;
   return `<div class="inspect" data-a="peekclose" role="dialog" aria-label="Card details">${card(id)}<div class="info">${note}<div class="btns"><button class="btn" data-a="peekclose">Close</button></div></div></div>`;
 }
 function askHTML(){
+  if(S.ask==='story')return storyLockHTML();
   if(S.ask==='admin')return `<div class="modal"><div class="scroll" role="dialog" aria-label="Admin"><div class="big">鍵</div><h2>Admin unlock</h2>
     <p class="sub">Testing only. Unlocks every card, every piece of gear and the highest level.</p>
     <label class="field"><span>Password</span><input id="f-admin" type="password" autocomplete="off"></label>
@@ -3417,7 +3703,9 @@ function renderScreen(){
     case 'decks':h=decksHTML();break;
     case 'build':h=builderHTML();break;
     case 'collection':S.dtab='col';h=decksHTML();break;
-    case 'quest':h=questHTML();break;
+    case 'quest':h=storyHTML();break;
+    case 'story':h=storyHTML();break;
+    case 'boss':h=bossHTML();break;
     case 'ladder':h=ladderHTML();break;
     case 'prebattle':h=prebattleHTML();break;
     case 'friend':h=friendHTML();break;
@@ -3491,6 +3779,10 @@ document.addEventListener('click',e=>{
     case 'skirmish':S.mode='ai';go('ladder');return;
     case 'ladgo':S.mode='ai';go('prebattle');return;
     case 'tutorial':startTutorial();return;
+    case 'quest':if(ACC.story&&ACC.story.unlocked){go('story');return}S.ask='story';S.storyPwErr=false;render();setTimeout(()=>{const i=document.getElementById('f-story');if(i)i.focus()},50);return;
+    case 'storyok':{const i=document.getElementById('f-story');if(i&&i.value===STORY_PW){if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.ask=null;save();go('story')}else{S.storyPwErr=true;render();setTimeout(()=>{const j=document.getElementById('f-story');if(j)j.focus()},50)}return}
+    case 'boss':S.boss=v;S.storyErr=null;go('boss');return;
+    case 'bossgo':startStoryBattle(v);return;
     case 'friend':go('friend');return;
     case 'fronline':S.on={step:'menu'};go('online');return;
     case 'sfx':SFX.toggle();render();return;
