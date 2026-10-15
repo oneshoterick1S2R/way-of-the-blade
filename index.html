@@ -372,6 +372,11 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .livelist ul{list-style:none;margin:0;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.35);min-width:200px}
 .livelist li{display:flex;align-items:center;gap:8px;padding:4px 0}
 .livelist li b{font-weight:600}.livelist li small{margin-left:auto;opacity:.7;font-size:12px}
+.duelrec{display:inline-flex;align-items:center;gap:5px}
+.duelrec em{font-style:normal;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--gold,#c9a24e)}
+.info{width:18px;height:18px;border-radius:50%;border:1px solid var(--mist);color:var(--cream);background:transparent;font:italic 700 11px/1 Georgia,serif;display:inline-grid;place-items:center;padding:0;margin-left:2px;cursor:pointer}
+.info[aria-expanded="true"]{background:var(--gold,#c9a24e);color:#1a1210;border-color:var(--gold,#c9a24e)}
+.infotip{margin:6px 0 0;font-size:12.5px;line-height:1.4;color:var(--cream);background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;padding:7px 10px;max-width:320px}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -2468,8 +2473,13 @@ function mayWrite(prev,c){
   return false;
 }
 /* called after every battle render */
+function onlineRecord(){
+  if(!ON||ON.recorded||!G||!G.online||(G.over!=='win'&&G.over!=='lose'))return;
+  ON.recorded=true;if(!ACC.pvp)ACC.pvp={w:0,l:0};ACC.pvp[G.over==='win'?'w':'l']++;save();
+}
 function onlineAfterRender(){
   if(!ON||!G||!G.online)return;
+  onlineRecord();
   const c=canonOf(G),str=JSON.stringify(c);
   if(str===ON.last)return;
   const prev=ON.last?JSON.parse(ON.last):null;
@@ -2526,7 +2536,7 @@ function endOnlineTurn(){
   showBanner(`${oppName()}’s turn`,'Waiting for their move');render();
 }
 function onlineSeppuku(){
-  if(G.phase==='play'&&!G.over){G.over='lose';pushState(true)}
+  if(G.phase==='play'&&!G.over){G.over='lose';onlineRecord();pushState(true)}
   else if(ON&&ON.ref)ON.chain=ON.chain.then(()=>ON.ref.update({status:'cancelled'})).catch(()=>{});
   clearMatch();setTimeout(stopOnline,1500);
 }
@@ -2663,6 +2673,7 @@ function migrate(a){
     a.decks=PATHS4.map(starterFor);a.active=a.decks.find(d=>d.path===a.path).id;a.v=2;a.seenRules=false;
   }
   if(!Array.isArray(a.unlocked))a.unlocked=[];
+  if(!a.pvp||typeof a.pvp!=='object')a.pvp={w:0,l:0};
   if(!Array.isArray(a.decks)||!a.decks.length){a.decks=PATHS4.map(starterFor);a.active=a.decks[0].id}
   if(!a.stats)a.stats={wins:0,losses:0,played:0};
   BASE_UNLOCKED.forEach(id=>{if(!a.unlocked.includes(id))a.unlocked.push(id)});
@@ -2806,7 +2817,8 @@ function dojoHTML(){
         <div class="eyebrow">${esc(a.clan)}</div>
         <h1>${esc(a.name)}</h1>
         ${pathTag(a.path)}
-        <div class="rec"><span><b>${a.stats.wins}</b> wins</span><span><b>${a.stats.losses}</b> losses</span><span><b>${a.unlocked.length}</b>/${ORDER.length} cards</span></div>
+        <div class="rec"><span class="duelrec"><em>Duels</em> <b>${(a.pvp||{}).w||0}</b> wins <b>${(a.pvp||{}).l||0}</b> losses<button class="info" data-a="pvpinfo" aria-label="What is this?" aria-expanded="${!!S.pvpInfo}">i</button></span><span><b>${a.unlocked.length}</b>/${ORDER.length} cards</span></div>
+        ${S.pvpInfo?'<p class="infotip">Your record in <b>online duels against other players</b>. Games against the computer and same-phone duels don\u2019t count.</p>':''}
         ${xpBar(a.xp)}
         <button class="btn sm armory" data-a="editprofile"><span class="mk">鎧</span>Armory &amp; samurai</button>
       </div>
@@ -3029,6 +3041,7 @@ document.addEventListener('click',e=>{
     case 'skirmish':S.mode='ai';go('prebattle');return;
     case 'friend':go('friend');return;
     case 'fronline':S.on={step:'menu'};go('online');return;
+    case 'pvpinfo':S.pvpInfo=!S.pvpInfo;render();return;
     case 'livelist':S.showLive=!S.showLive;render();return;
     case 'onhost':hostMatch();return;
     case 'onjoin':{const i=document.getElementById('f-code');joinMatch(i?i.value:'');return}
