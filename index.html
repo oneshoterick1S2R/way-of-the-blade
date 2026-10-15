@@ -451,6 +451,9 @@ body.artbg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 .sfxbtn[aria-pressed="false"]{color:var(--mist);opacity:.75}
 .sfxrow{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:14px}
 .sfxrow{flex-wrap:wrap}.sfxrow span{margin-right:8px}.sync .sfxbtn+.sfxbtn{margin-left:-4px}
+.tuttile{grid-column:1/-1;position:relative}
+.tuttile.new{border-color:var(--gold,#c9a24e);box-shadow:0 0 0 1px rgba(201,162,78,.4),0 0 16px rgba(201,162,78,.25)}
+.tuttile em{position:absolute;top:10px;right:10px;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--gold,#c9a24e);color:#1a1210;padding:3px 8px;border-radius:99px}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -806,6 +809,27 @@ button.tface{cursor:pointer}
 .aicall{top:auto;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);animation:aicUp .28s ease-out}
 @keyframes aicUp{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
 .aic-card{width:64px}
+/* ===== Tutorial overlay ===== */
+#tut{position:fixed;inset:0;z-index:60;pointer-events:none}
+#tut.center{background:rgba(8,4,2,.72);pointer-events:auto}
+.tut-hole{position:fixed;border-radius:10px;box-shadow:0 0 0 9999px rgba(8,4,2,.72);outline:2.5px solid #f3d48a;outline-offset:0;transition:all .25s ease;pointer-events:none;animation:tutGlow 1.4s ease-in-out infinite alternate}
+#tut.act .tut-hole{outline-color:#e8604a}
+#tut.act.free .tut-hole{box-shadow:0 0 0 9999px rgba(8,4,2,.25)}
+@keyframes tutGlow{from{filter:drop-shadow(0 0 2px rgba(243,212,138,.4))}to{filter:drop-shadow(0 0 12px rgba(243,212,138,.9))}}
+.tut-tip{position:fixed;left:50%;width:min(360px,calc(100vw - 24px));pointer-events:auto;background:linear-gradient(160deg,#2b1c12,#140c08);border:2px solid #c9a24e;border-radius:12px;padding:12px 14px;color:var(--cream);box-shadow:0 14px 40px rgba(0,0,0,.7);transition:top .25s ease}
+#tut.act.free .tut-tip{opacity:.95}
+.tut-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.tut-n{font-size:11px;letter-spacing:.14em;color:#c9a24e}
+.tut-skip{font-size:12px;color:var(--mist);text-decoration:underline;padding:4px}
+.tut-tip h3{margin:0 0 6px;font-family:var(--f-card);font-size:20px;line-height:1.2}
+.tut-tip p{margin:0;font-size:14.5px;line-height:1.45;color:#e9dcc4}
+.tut-do{margin-top:8px;font-size:13px;font-weight:700;color:#f0a090;display:flex;align-items:center;gap:6px}
+.tut-do .dot{width:8px;height:8px;border-radius:50%;background:#e8604a;animation:aiPulseR .6s ease-in-out infinite alternate}
+.tut-do.ok{color:#9cd38a}
+.tut-btns{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
+.tut-btns .btn{min-height:40px}
+@media (prefers-reduced-motion:reduce){.tut-hole{animation:none;transition:none}.tut-tip{transition:none}}
+.tut-btns .btn{white-space:nowrap;padding-inline:14px}.tut-end{display:flex;gap:8px}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2262,6 +2286,7 @@ function overHTML(){
       <p class="sub">${esc(Lz.name)}’s Honor is spent. A friendly duel: it doesn’t change your record.</p>
       <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="again">${G.online?'New online match':'Rematch'}</button><button class="btn ghost-dark" data-act="dojo">Return to dojo</button></div></div></div>`}
   const win=G.over==='win';
+  if(G.practice)return `<div class="modal"><div class="scroll" role="dialog"><div class="big">${win?'勝':'敗'}</div><h2>${win?'Victory':'Defeat'}</h2><p class="sub">Practice battle complete. It doesn\u2019t count toward your record. Ready for the real thing? Try <b>Clan Feud</b>.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="dojo">Return to dojo</button><button class="btn ghost-dark" data-act="tutagain">Replay tutorial</button></div></div></div>`;
   const un=G.unl.length?`<p class="sub" style="margin-top:4px">New card unlocked:</p><div class="fan">${G.unl.map(id=>card(id,{mini:true})).join('')}</div>`:'';
   const xr=G.xpRes||{gain:0,gear:[]};
   const xpBlock=`<div class="xpres"><b>+${xr.gain} XP</b>${xr.after>xr.before?`<span class="lvup">Level ${xr.after}!</span>`:''}</div>${xpBar(ACC.xp)}
@@ -2298,6 +2323,7 @@ function renderBattle(){
   fxs.forEach(f=>{const el=document.querySelector(`#root [data-fx="${f.id}"]`);if(!el)return;if(f.k==='enter'){el.classList.add('enter');return}if(f.k==='dmg')el.classList.add('hit');if(!f.t)return;const s=document.createElement('span');s.className='float '+f.k;s.textContent=f.t;el.appendChild(s);setTimeout(()=>s.remove(),1000)});
   aiMark();
   onlineAfterRender();
+  tutRender();
 }
 let sfxLastOver=null;
 function menuHTML(){
@@ -2440,6 +2466,7 @@ document.addEventListener('click',e=>{
     case 'start':showIntro=false;if(!ACC.seenRules){ACC.seenRules=true;save()}render();return;
     case 'rules':showIntro=true;render();return;
     case 'again':if(G&&G.online){stopOnline();G=null;S.on={step:'menu'};go('online');return}startBattle(active().id);return;
+    case 'tutagain':startTutorial();return;
     case 'dojo':if(G&&G.online){stopOnline();clearMatch()}G=null;go('dojo');return;
     case 'yield':if(!G.over){G.yieldAsk=true;render()}return;
     case 'yieldno':G.yieldAsk=false;render();return;
@@ -2643,7 +2670,7 @@ function endTurnAny(){SFX.play('endTurn');if(G.online)endOnlineTurn();else if(G.
 /* ----- inactivity timer: after 2 minutes idle, a 90-second countdown, then the turn ends ----- */
 function touchIdle(){if(G)G.idleAt=Date.now()}
 function timerState(){
-  if(!G||S.screen!=='battle'||G.phase!=='play'||G.over||G.turn!==0||G.busy||showIntro)return null;
+  if(!G||G.tut||S.screen!=='battle'||G.phase!=='play'||G.over||G.turn!==0||G.busy||showIntro)return null;
   const el=Date.now()-(G.idleAt||Date.now());
   if(el<IDLE_MS)return null;
   return Math.max(0,COUNT_MS-(el-IDLE_MS));
@@ -2888,6 +2915,100 @@ function liveListHTML(){
   return `<div class="livelist"><ul>${rows||'<li><small>Only you right now.</small></li>'}</ul></div>`;
 }
 
+/* ===== Guided tutorial: a staged battle with a spotlight tour (Back / Next / Skip) ===== */
+let TUT=null;
+const tq=s=>document.querySelector(s);
+const myUnit=id=>{const u=G&&G.pl[0].board.find(x=>x&&x.c===id);return u?tq(`#root [data-fx="${u.uid}"]`):null};
+const handCard=id=>{const i=G?G.pl[0].hand.indexOf(id):-1;return i>=0?tq(`#hand [data-i="${i}"]`):null};
+const TSTEPS=[
+  {t:'Welcome to the battlefield',x:'This is a practice battle against the Unoshotto Clan. Each clan starts with <b>20 Honor</b>. Bring the rival’s Honor to <b>0</b> and you win. Tap <b>Next</b> to walk through everything on the field, or <b>Skip</b> at any time.'},
+  {sel:'.side.foe',t:'The rival clan',x:'Their name and Path, how many cards are in their <b>hand</b> and <b>deck</b>, their Ki, and their <b>Honor</b>. The red bar of pips is their Honor too, one pip per point.'},
+  {sel:'.side.me .honor .v',t:'Your Honor',x:'This number is your life. When an enemy samurai strikes your Honor directly, it drops. At <b>0</b> you lose.'},
+  {sel:'.side.me .ki',t:'Ki (気): your energy',x:'Every card costs Ki, shown in the <b>blue gem</b> on the card. You get <b>1 more Ki each turn</b>, up to 10, and it refills at the start of your turn. This practice turn starts with 4 Ki.'},
+  {sel:'.side.me .pwr',t:'Path Power',x:'Every deck follows a Path, and each Path has a power you can use <b>once per turn for 2 Ki</b>, no card needed. Way of the Banner’s power is <b>Muster</b>: summon a 1/1 Levy soldier. It lights up when you can use it.'},
+  {sel:'.handwrap',t:'Your hand',x:'The cards you can play. Swipe sideways to see them all. Cards you can afford right now glow; cards you can’t are dimmed. You draw a card at the start of each turn (10 cards at most).'},
+  {sel:()=>handCard('recruit'),t:'Reading a card',x:'<b>Top right</b>: Ki cost. <b>Middle</b>: its type and ability text. <b>Bottom left ⚔</b>: Strength, the damage it deals. <b>Bottom right 🛡</b>: Vitality, the damage it can take before it falls. The small shield badge means <b>Guardian</b>.'},
+  {sel:()=>handCard('recruit')||myUnit('recruit'),act:true,allow:['.hand','.inspect','.my-board','.bar'],done:()=>G.pl[0].board.some(u=>u&&u.c==='recruit'),
+    t:'Try it: summon a samurai',x:'Tap <b>Spear Recruit</b> in your hand, then tap <b>Summon</b>. It costs 1 Ki.'},
+  {sel:()=>myUnit('recruit'),t:'Arriving',x:'New samurai are <b>Arriving</b>: they can’t strike until your next turn (unless they have <b>Swift</b>). Spear Recruit is also a <b>Guardian</b> (守), so it protects your other samurai and your Honor.'},
+  {sel:'.my-board',t:'Your field',x:'Your samurai fight here, <b>5 at most</b>. Each ready samurai can act <b>once per turn</b>. Ready samurai have a bright border; samurai that already acted are dimmed.'},
+  {sel:'.foe-board .guardian',t:'Guardians (守)',x:'A <b>Guardian</b> wears a glowing frame and a GUARDIAN tag. While the rival has a Guardian, you <b>must strike it first</b>. You can’t hit their other samurai or their Honor until it falls.'},
+  {sel:()=>myUnit('ronin'),t:'Weapons',x:'This Rōnin carries a <b>Katana</b>: the gold frame and sword chip show it’s armed. Weapons stay on a samurai and add Strength or Vitality. Some samurai have <b>techniques</b> that need weapons equipped; tap a samurai to read its technique.'},
+  {sel:()=>myUnit('ronin'),act:true,allow:['.my-board','.foe-board','.inspect','.bar','.side.foe'],done:()=>{const u=G.pl[0].board.find(x=>x&&x.c==='ronin');return !G.pl[1].board.some(x=>x&&x.c==='gatekeeper')||(u&&u.acts>0)},
+    t:'Try it: strike',x:'Tap your <b>Rōnin</b>, tap <b>Strike</b>, then tap the rival’s <b>Castle Gatekeeper</b>. Both samurai deal their Strength to each other’s Vitality.'},
+  {sel:'.my-board',t:'Combat result',x:'Damage stays on a samurai until it’s healed. A samurai whose Vitality reaches 0 <b>falls</b>. Some samurai have a <b>Death Poem</b>: an effect that happens when they fall.'},
+  {sel:()=>document.querySelectorAll('.traps')[1],t:'Ambushes',x:'Ambush cards are set <b>face-down</b> here (3 at most). They spring by themselves when the enemy strikes. You already have <b>Pike Wall</b> set: the next enemy who strikes takes 3 damage first. The rival’s ambushes show as card backs at the top.'},
+  {sel:()=>handCard('katana'),t:'Equipping a weapon',x:'Weapon cards go from your hand onto one of your samurai: tap it, tap <b>Equip a samurai</b>, then choose who carries it.'},
+  {sel:'.mid',t:'Battle log',x:'The last few things that happened are written here, so you can always check what the rival just did.'},
+  {sel:'.endbtn',t:'End turn',x:'When you’re done, tap <b>End turn</b>. It glows when you have nothing left to do. Then the rival takes their turn: each of their moves is announced and highlighted so you can follow along.'},
+  {sel:'.qbtn',t:'Menu',x:'The <b>Menu</b> has the rules, sound and music switches, and <b>Seppuku</b> to leave a battle.'},
+  {t:'You’re ready',x:'Keep playing this practice battle (it doesn’t count toward your record), or head back to the dojo. You can replay this tutorial from the dojo any time.',end:true},
+];
+function startTutorial(){
+  const d=active();
+  newGame(starterDeck('banner',false),'banner',starterDeck('banner',false),'banner',[ACC.clan||'Your Clan','Unoshotto Clan']);
+  G.practice=true;G.rec=true;G.tut=true;G.phase='play';G.mull=null;G.first=0;G.turn=0;G.round=5;
+  const me=G.pl[0],foe=G.pl[1];
+  me.hand=['recruit','katana','cook','harchers'];me.maxKi=4;me.ki=4;me.traps=['pikewall'];
+  foe.maxKi=3;foe.ki=0;foe.hand=foe.hand.slice(0,4);
+  const r=summon(0,'ronin',true);r.sick=false;r.w.push('katana');
+  summon(1,'gatekeeper',true).sick=false;summon(1,'ashi',true).sick=false;
+  G.log=['The practice battle begins.'];
+  S.deckId=d.id;S.screen='battle';showIntro=false;TUT={i:0,done:{}};window.scrollTo(0,0);render();
+}
+function tutEnd(practice){
+  TUT=null;const el=tq('#tut');if(el)el.remove();
+  if(G){G.tut=false;G.sel=null;G.mode=null}
+  if(ACC&&!ACC.tutDone){ACC.tutDone=true;save()}
+  if(practice){touchIdle();render()}else{G=null;go('dojo')}
+}
+function tutGo(n){
+  if(!TUT)return;TUT.i=Math.max(0,Math.min(TSTEPS.length-1,n));TUT.scrolled=false;
+  if(G){G.sel=null;G.mode=null}render();
+}
+function tutTarget(st){if(!st.sel)return null;return typeof st.sel==='function'?st.sel():tq(st.sel)}
+function tutRender(){
+  if(!TUT||S.screen!=='battle'||!G){const el=tq('#tut');if(el)el.remove();return}
+  const st=TSTEPS[TUT.i];let el=tq('#tut');
+  if(!el){el=document.createElement('div');el.id='tut';document.body.appendChild(el)}
+  if(st.act&&st.done&&st.done()&&!TUT.done[TUT.i]){TUT.done[TUT.i]=true;setTimeout(()=>{if(TUT&&TSTEPS[TUT.i]===st)tutGo(TUT.i+1)},1100)}
+  const ok=st.act&&TUT.done[TUT.i];
+  const tgt=tutTarget(st);
+  if(tgt&&!TUT.scrolled){TUT.scrolled=true;tgt.scrollIntoView({block:'center',behavior:'instant'})}
+  const busyHere=G.mode||G.sel;
+  el.className=(st.act?'act':'')+(tgt?'':' center')+(st.act&&busyHere?' free':'');
+  const n=TUT.i+1,N=TSTEPS.length;
+  el.innerHTML=`<div class="tut-hole" hidden></div><div class="tut-tip" role="dialog" aria-label="Tutorial step ${n} of ${N}">
+    <div class="tut-top"><span class="tut-n">${n} / ${N}</span><button class="tut-skip" data-tut="skip">Skip tutorial</button></div>
+    <h3>${st.t}</h3><p>${st.x}</p>
+    ${st.act?`<div class="tut-do ${ok?'ok':''}">${ok?'✓ Nicely done!':'<span class="dot"></span>Your move: follow the steps above'}</div>`:''}
+    <div class="tut-btns">${TUT.i>0?'<button class="btn" data-tut="back">← Back</button>':'<span></span>'}
+      ${st.end?'<span class="tut-end"><button class="btn" data-tut="dojo">Dojo</button><button class="btn pri" data-tut="play">Keep playing</button></span>':`<button class="btn ${st.act&&!ok?'':'pri'}" data-tut="next">${st.act&&!ok?'Skip step':'Next →'}</button>`}</div></div>`;
+  requestAnimationFrame(tutPlace);
+}
+function tutPlace(){
+  const el=tq('#tut');if(!el||!TUT)return;const st=TSTEPS[TUT.i],tgt=tutTarget(st);
+  const hole=el.querySelector('.tut-hole'),tip=el.querySelector('.tut-tip');
+  if(!tgt){hole.hidden=true;tip.style.top='50%';tip.style.transform='translate(-50%,-50%)';return}
+  const r=tgt.getBoundingClientRect(),pad=6;
+  hole.hidden=false;Object.assign(hole.style,{left:r.left-pad+'px',top:r.top-pad+'px',width:r.width+pad*2+'px',height:r.height+pad*2+'px'});
+  const th=tip.offsetHeight,vh=innerHeight;
+  let top=r.bottom+14;if(top+th>vh-8)top=r.top-14-th;if(top<8)top=Math.min(vh-th-8,Math.max(8,vh-th-8));
+  tip.style.transform='translateX(-50%)';tip.style.top=top+'px';
+}
+addEventListener('resize',()=>TUT&&tutPlace());
+addEventListener('scroll',()=>TUT&&tutPlace(),true);
+document.addEventListener('click',e=>{
+  if(!TUT)return;
+  const b=e.target.closest('[data-tut]');
+  if(b){e.stopPropagation();e.preventDefault();const a=b.dataset.tut;
+    if(a==='next')tutGo(TUT.i+1);else if(a==='back')tutGo(TUT.i-1);else if(a==='skip'||a==='play')tutEnd(true);else if(a==='dojo')tutEnd(false);return}
+  if(e.target.closest('#tut'))return;
+  const st=TSTEPS[TUT.i];
+  if(st.act&&st.allow&&e.target.closest(st.allow.join(',')))return;
+  e.stopPropagation();e.preventDefault();
+},true);
+
 /* ===== Account, collection, decks ===== */
 const DECK_SIZE=30, MIN_SAMURAI=12, MAX_DECKS=6;
 const limitOf=id=>C[id].rar==='L'?1:2;
@@ -3105,6 +3226,7 @@ function dojoHTML(){
     <div class="tiles">
       <button class="tile" data-a="nav" data-v="decks"><span class="mk">札</span><b>Decks</b><small>${a.decks.length} of ${MAX_DECKS} built \u00B7 ${a.unlocked.length}/${ORDER.length} cards</small></button>
       <button class="tile" data-a="friend"><span class="mk">対</span><b>Battle a Friend</b><small>Same phone or online</small></button>
+      <button class="tile tuttile ${ACC.tutDone?'':'new'}" data-a="tutorial"><span class="mk">学</span><b>Tutorial</b><small>${ACC.tutDone?'Replay the guided walkthrough':'New here? Learn to play in 2 minutes'}</small>${ACC.tutDone?'':'<em>Start here</em>'}</button>
     </div>
     <section class="sect"><h2>Cards to unlock</h2><p class="muted">${UNLOCK_RULE} ${locked.length} left to find.</p>
       <div class="lockstrip">${locked.slice(0,8).map(id=>`<button class="lk" data-a="peek" data-v="${id}">${avatar(id,'sq')}<i class="rj r-${C[id].rar}"></i></button>`).join('')}</div></section>
@@ -3283,7 +3405,7 @@ function render(){
   if(!render._bg&&IMG.bgL){render._bg=1;const st=document.createElement('style');st.textContent=`body.artbg::before{background-image:linear-gradient(90deg,rgba(12,7,5,0) 0,rgba(12,7,5,0) calc(50% - 300px),rgba(12,7,5,.55) calc(50% - 240px),rgba(12,7,5,.55) calc(50% + 240px),rgba(12,7,5,0) calc(50% + 300px)),url(${IMG.bgL}),url(${IMG.bgR}),url(${IMG.bgM})}@media (max-width:700px){body.artbg::before{background-image:linear-gradient(rgba(12,7,5,.6),rgba(12,7,5,.8)),url(${IMG.bgL}),url(${IMG.bgR})}}`;document.head.appendChild(st)}
   document.body.classList.toggle('artbg',S.screen!=='battle');
   document.documentElement.style.setProperty('--clan',ACC?COLORS[ACC.color][1]:'#c9a24e');
-  if(S.screen==='battle'&&G)renderBattle();else renderScreen();
+  if(S.screen==='battle'&&G)renderBattle();else{renderScreen();if(TUT)tutRender()}
 }
 function startBattle(deckId){
   const d=ACC.decks.find(x=>x.id===deckId);if(!d||!validate(d).ok){go('prebattle');return}
@@ -3343,6 +3465,7 @@ document.addEventListener('click',e=>{
     case 'begin':startBattle(active().id);return;
     case 'skirmish':S.mode='ai';go('ladder');return;
     case 'ladgo':S.mode='ai';go('prebattle');return;
+    case 'tutorial':startTutorial();return;
     case 'friend':go('friend');return;
     case 'fronline':S.on={step:'menu'};go('online');return;
     case 'sfx':SFX.toggle();render();return;
