@@ -410,6 +410,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .rung.lock .rk img{filter:grayscale(1) brightness(.55)}
 .rung.next .rk img{filter:grayscale(.6) brightness(.8)}
 .rung.here .rk{padding:3px}
+.lbar{display:block;width:96px;height:8px;border-radius:4px;border:1px solid var(--gold,#c9a24e);overflow:hidden}.lbar i{display:block;height:100%;background:var(--gold,#c9a24e)}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -2655,7 +2656,7 @@ const BASE_UNLOCKED=ORDER.filter(id=>!LOCKABLE.includes(id));
 const UNLOCK_RULE='Each victory unlocks a random Epic or Legendary card.';
 const MONS=['桜','竜','虎','月','鷹','波','炎','雷'];
 const COLORS={shu:['Vermilion','#d0513a'],ai:['Indigo','#5f86c4'],kin:['Gold','#c9a24e'],matsu:['Pine','#7fa05a'],fuji:['Wisteria','#9b7fc9'],yuki:['Snow','#d8d0bf']};
-const TITLES=[[0,'Ashigaru'],[1,'Gokenin'],[3,'Hatamoto'],[6,'Taishō'],[10,'Daimyō'],[15,'Shōgun']];
+const TITLES=[[0,'Ashigaru'],[3,'Gokenin'],[10,'Hatamoto'],[25,'Taishō'],[50,'Daimyō'],[100,'Shōgun']];
 const titleOf=w=>TITLES.filter(t=>w>=t[0]).pop()[1];
 const nextTitle=w=>TITLES.find(t=>t[0]>w);
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -2973,7 +2974,7 @@ function ladderHTML(){
     if(st==='here')side=`<span class="you"><span class="mk">${esc(ACC.mon)}</span>You are here</span>`;
     else if(st==='done')side='<span class="chk">✓ Earned</span>';
     else if(st==='next'){const prev=TITLES[i-1][0],need=t[0]-prev,got=w-prev;
-      side=`<span class="pips" aria-label="${got} of ${need} wins">${Array.from({length:need},(_,j)=>`<i class="${j<got?'on':''}"></i>`).join('')}</span><small>${t[0]-w} more win${t[0]-w>1?'s':''}</small>`}
+      side=(need<=10?`<span class="pips" aria-label="${got} of ${need} wins">${Array.from({length:need},(_,j)=>`<i class="${j<got?'on':''}"></i>`).join('')}</span>`:`<span class="lbar" role="progressbar" aria-valuemin="0" aria-valuemax="${need}" aria-valuenow="${got}"><i style="width:${Math.round(got/need*100)}%"></i></span>`)+`<small>${got}/${need} \u00B7 ${t[0]-w} more win${t[0]-w>1?'s':''}</small>`}
     else side=`<small>${t[0]} wins</small>`;
     return `<li class="rung ${st}"><span class="rk mk">${IMG[RANK_ART[t[1]]]?`<img src="${IMG[RANK_ART[t[1]]]}" alt="">`:k}</span><div class="rt"><b>${t[1]}</b><small>${x}</small></div><div class="rs">${side}</div></li>`;
   }).reverse().join('');
