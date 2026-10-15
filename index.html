@@ -786,6 +786,26 @@ button.tface{cursor:pointer}
 @keyframes holoGlare{0%,15%{background-position:120% 0}60%,100%{background-position:-60% 0}}
 @keyframes holoTwinkle{from{opacity:.25}to{opacity:.7}}
 @media (prefers-reduced-motion:reduce){.tcg.holo .foil,.tcg.holo .foil::after,.tcg.holo .glare{animation:none}}
+/* ===== Rival move callout + highlights ===== */
+.aicall{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:35;width:min(340px,calc(100vw - 32px));cursor:pointer;animation:aicIn .28s ease-out}
+.aic-in{position:relative;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;padding:12px 14px 10px;border-radius:12px;
+  background:linear-gradient(160deg,#2a0d08,#120605);border:2px solid #b23a27;box-shadow:0 0 0 4px rgba(178,58,39,.25),0 14px 34px rgba(0,0,0,.65);color:var(--cream)}
+.aic-tag{grid-column:1/-1;display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#f0a090}
+.aic-tag .mk{font-size:16px;color:#e8604a}
+.aic-card{width:78px;grid-row:span 1}
+.aic-tx{min-width:0}.aic-in:not(:has(.aic-card)) .aic-tx{grid-column:1/-1}
+.aic-tx b{display:block;font-family:var(--f-card);font-weight:700;font-size:19px;line-height:1.2}
+.aic-tx p{margin:4px 0 0;font-size:13px;line-height:1.35;color:var(--mist)}
+.aic-skip{grid-column:1/-1;text-align:right;font-size:10.5px;color:#8a7a68;margin-top:2px}
+@keyframes aicIn{from{opacity:0;transform:translate(-50%,-44%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.ai-actor{position:relative;z-index:6;outline:3px solid #f3d48a;outline-offset:2px;border-radius:8px;box-shadow:0 0 18px 4px rgba(243,212,138,.7)!important;animation:aiPulse .8s ease-in-out infinite alternate;transform:scale(1.06)}
+.ai-target{position:relative;z-index:6;outline:3px solid #e8604a;outline-offset:2px;border-radius:8px;box-shadow:0 0 20px 6px rgba(232,96,74,.75)!important;animation:aiPulseR .6s ease-in-out infinite alternate}
+@keyframes aiPulse{from{box-shadow:0 0 8px 2px rgba(243,212,138,.45)}to{box-shadow:0 0 22px 6px rgba(243,212,138,.9)}}
+@keyframes aiPulseR{from{box-shadow:0 0 8px 2px rgba(232,96,74,.45)}to{box-shadow:0 0 24px 8px rgba(232,96,74,.95)}}
+@media (prefers-reduced-motion:reduce){.aicall,.ai-actor,.ai-target{animation:none}}
+.aicall{top:auto;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);animation:aicUp .28s ease-out}
+@keyframes aicUp{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
+.aic-card{width:64px}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2267,6 +2287,7 @@ function renderBattle(){
   if(showIntro)layer+=introHTML();else if(G.over)layer+=overHTML();
   if(G.yieldAsk)layer+=`<div class="modal"><div class="scroll" role="dialog"><div class="big">降</div><h2>Yield this battle?</h2><p class="sub">It counts as a loss on your record.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="yieldok">Yield</button><button class="btn ghost-dark" data-act="yieldno">Keep fighting</button></div></div></div>`;
   layer+=bannerHTML()+`<button class="qbtn" data-act="menu" aria-label="Battle menu"><span class="mk">退</span><small>Menu</small></button>`+(G.menu?menuHTML():'');
+  layer+=aiCallHTML();
   if(toast)layer+=`<div class="toast" role="status">${toast.c?`<div class="tcard">${card(toast.c,{mini:true})}</div>`:`<div class="tk">${toast.k}</div>`}<div><b>${toast.t}</b><p>${toast.x}</p></div></div>`;
   $('#layer').innerHTML=layer;
   const fxs=G.fx;G.fx=[];
@@ -2275,6 +2296,7 @@ function renderBattle(){
     if(snd)SFX.play(snd);}
   if(G.over&&G.over!=='quit'&&sfxLastOver!==G.over){setTimeout(()=>SFX.play(G.over==='win'?'win':'lose'),250)}sfxLastOver=G.over||null;
   fxs.forEach(f=>{const el=document.querySelector(`#root [data-fx="${f.id}"]`);if(!el)return;if(f.k==='enter'){el.classList.add('enter');return}if(f.k==='dmg')el.classList.add('hit');if(!f.t)return;const s=document.createElement('span');s.className='float '+f.k;s.textContent=f.t;el.appendChild(s);setTimeout(()=>s.remove(),1000)});
+  aiMark();
   onlineAfterRender();
 }
 let sfxLastOver=null;
@@ -2345,17 +2367,54 @@ async function endPlayerTurn(){
   startTurn(1);showBanner('Rival’s turn',PATH_INFO[G.pl[1].path].n);render();await sleep(1100);
   await aiTurnUI();
 }
+/* ----- Rival turn: slowed down, each move announced and highlighted ----- */
+let aiSkip=null;
+const aiWait=ms=>new Promise(r=>{const t=setTimeout(()=>{aiSkip=null;r()},ms);aiSkip=()=>{clearTimeout(t);aiSkip=null;r()}});
+function aiCallHTML(){
+  const c=G.aiCall;if(!c)return '';
+  return `<div class="aicall" data-act="aiskip" role="status" aria-live="polite"><div class="aic-in">
+    <div class="aic-tag"><span class="mk">敵</span>Rival’s move</div>
+    ${c.c?`<div class="aic-card">${card(c.c,{mini:true})}</div>`:''}
+    <div class="aic-tx"><b>${c.t}</b>${c.x?`<p>${c.x}</p>`:''}</div>
+    <small class="aic-skip">Tap to speed up</small></div></div>`;
+}
+function aiMark(){
+  document.querySelectorAll('.ai-actor,.ai-target').forEach(e=>e.classList.remove('ai-actor','ai-target'));
+  const f=G&&G.aiFocus;if(!f)return;
+  if(f.a){const e=document.querySelector(`#root [data-fx="${f.a}"]`);if(e)e.classList.add('ai-actor')}
+  if(f.t){const e=document.querySelector(`#root [data-fx="${f.t}"]`);if(e)e.classList.add('ai-target')}
+}
+function tgtName(t){if(!t)return '';if(t.i==='h')return t.s===0?'your Honor':'their own Honor';const u=unitAt(t);return u?(t.s===0?'your ':'their ')+C[u.c].n:'';}
+function tgtFx(t){if(!t)return null;if(t.i==='h')return 'h'+t.s;const u=unitAt(t);return u?u.uid:null}
 async function aiTurnUI(){
-  G.busy=true;
+  G.busy=true;render();
+  await aiWait(1100);
   for(let n=0;n<40&&!G.over;n++){
     const a=aiPlan(1);if(!a)break;
-    if(a.k==='strike'){await doStrike(1,a.s,a.t);await sleep(200);continue}
-    if(a.k==='tech'){await doAbility(1,a.s,a.t);await sleep(200);continue}
-    if(a.k==='play'){const c=G.pl[1].hand[a.i];if(C[c].t!=='a')showToast(C[c].v,`Rival plays ${C[c].n}`,C[c].x||(C[c].t==='w'?'Equip: '+wText(C[c]):C[c].ty),c);}
-    if(a.k==='power'){const pw=PATH_INFO[G.pl[1].path].power;showToast(PATH_INFO[G.pl[1].path].k,`Rival uses ${pw.n}`,pw.x)}
-    if(!applyAction(1,a))break;render();await sleep(750);
+    if(a.k==='strike'){
+      const u=G.pl[1].board[a.s];
+      G.aiFocus={a:u&&u.uid,t:tgtFx(a.t)};
+      G.aiCall={t:`${C[u.c].n} strikes ${tgtName(a.t)}`,x:`${str(u)} Strength${a.t.i==='h'?' straight at your Honor':' against '+(unitAt(a.t)?Math.max(0,hp(unitAt(a.t)))+' Vitality':'')}.`};
+      render();await aiWait(1500);G.aiCall=null;render();
+      await doStrike(1,a.s,a.t);G.aiFocus=null;render();await aiWait(800);continue}
+    if(a.k==='tech'){
+      const u=G.pl[1].board[a.s],ab=C[u.c].ab||{};
+      G.aiFocus={a:u&&u.uid,t:tgtFx(a.t)};
+      G.aiCall={t:`${C[u.c].n} uses ${ab.n||'a technique'}${a.t?' on '+tgtName(a.t):''}`,x:ab.x||''};
+      render();await aiWait(1600);G.aiCall=null;render();
+      await doAbility(1,a.s,a.t);G.aiFocus=null;render();await aiWait(800);continue}
+    if(a.k==='play'){
+      const c=G.pl[1].hand[a.i],d=C[c];
+      if(d.t==='a'){G.aiCall={t:'Rival sets an Ambush',x:'A face-down card waits in their ambush row. It springs when you strike and its condition is met.'}}
+      else if(d.t==='w'){const tu=a.o&&a.o.slot!=null?G.pl[1].board[a.o.slot]:null;G.aiFocus={a:tu&&tu.uid};G.aiCall={t:`Rival equips ${d.n}${tu?' to '+C[tu.c].n:''}`,x:'Equip: '+wText(d),c}}
+      else{G.aiFocus={t:tgtFx(a.t)};G.aiCall={t:`Rival summons ${d.n}`+(a.t&&d.arr?` \u2192 ${tgtName(a.t)}`:''),x:d.x||d.ty,c}}
+      render();await aiWait(d.t==='a'?1500:1900);G.aiCall=null;
+    }
+    if(a.k==='power'){const pw=PATH_INFO[G.pl[1].path].power;G.aiFocus={t:tgtFx(a.t)};G.aiCall={t:`Rival uses ${pw.n}`+(a.t?` on ${tgtName(a.t)}`:''),x:pw.x};render();await aiWait(1600);G.aiCall=null}
+    if(!applyAction(1,a))break;G.aiFocus=null;render();await aiWait(900);
   }
-  if(!G.over){await sleep(300);startTurn(0);touchIdle();showBanner('Your turn',`気 ${G.pl[0].ki} Ki`)}
+  G.aiCall=null;G.aiFocus=null;
+  if(!G.over){await sleep(400);startTurn(0);touchIdle();showBanner('Your turn',`気 ${G.pl[0].ki} Ki`)}
   G.busy=false;render();
 }
 
@@ -2364,6 +2423,7 @@ document.addEventListener('click',e=>{
   if(S.screen!=='battle')return;
   const b=e.target.closest('[data-act]');if(!b||!G)return;
   const act=b.dataset.act,P=G.pl[0];
+  if(act==='aiskip'){if(aiSkip)aiSkip();return}
   if(act==='sfx'){SFX.toggle();render();return}
   if(act==='music'){SFX.toggleMusic();render();return}
   if(act==='menu'){G.menu=true;render();return}
