@@ -411,6 +411,14 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .rung.next .rk img{filter:grayscale(.6) brightness(.8)}
 .rung.here .rk{padding:3px}
 .lbar{display:block;width:96px;height:8px;border-radius:4px;border:1px solid var(--gold,#c9a24e);overflow:hidden}.lbar i{display:block;height:100%;background:var(--gold,#c9a24e)}
+.ladhead{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}
+.ladhead .ladtx{min-width:0}
+.ladfoe{position:relative;width:84px;height:84px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,#5a1a10,#120605 75%);border:2px solid #b23a27;box-shadow:0 0 0 3px rgba(178,58,39,.25),0 4px 12px rgba(0,0,0,.5)}
+.ladfoe svg{position:absolute;left:50%;top:6%;width:150%;height:auto;transform:translateX(-50%)}
+.ladfoe .mk{position:absolute;right:2px;bottom:2px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#120605;border:1.5px solid #c9a24e;color:#e2c27a;font-size:14px}
+.ladfoe svg{display:none}
+.ladfoe .dollwrap{position:absolute;inset:0}
+.ladfoe .doll{height:255%;bottom:auto;top:4%}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -2966,6 +2974,7 @@ function p2HTML(){
 const RANK_INFO={'Ashigaru':['足軽','Foot soldier. Every warrior starts here.'],'Gokenin':['御家人','Sworn retainer of the clan.'],'Hatamoto':['旗本','Bannerman of the lord’s own guard.'],
   'Taishō':['大将','General. Commands the field.'],'Daimyō':['大名','Lord of a province.'],'Shōgun':['将軍','Ruler of all the clans.']};
 const RANK_ART={'Ashigaru':'ashi','Gokenin':'gokenin','Hatamoto':'hatamoto','Taishō':'taisho','Daimyō':'daimyo','Shōgun':'shogun'};
+const RIVAL_DOLL={helmet:'kuwagata',mask:'onimask',armor:'ashigaru',weapon:'kanabo',hair:'bald',beard:'none'};
 function ladderHTML(){
   const w=ACC.stats.wins,l=ACC.stats.losses,cur=TITLES.filter(t=>w>=t[0]).length-1,nt=nextTitle(w);
   const rungs=TITLES.map((t,i)=>{
@@ -2980,7 +2989,7 @@ function ladderHTML(){
   }).reverse().join('');
   return `<div class="screen">
     <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Clan Feud</h1></header>
-    <div class="ladhead"><div class="foe"><span class="mk">闇</span></div><div><small>The road to Shōgun</small><h2>${nt?`Next rank: ${nt[1]}`:'You are Shōgun'}</h2>
+    <div class="ladhead"><div class="ladfoe">${figureHTML(RIVAL_DOLL,'#7a1f14','闇',{bg:false})}<span class="mk">闇</span></div><div class="ladtx"><small>The road to Shōgun</small><h2>${nt?`Next rank: ${nt[1]}`:'You are Shōgun'}</h2>
       <p>Defeat the Unoshotto Clan to climb the ranks. Each victory also unlocks a new card.</p>
       <p class="lrec"><b>${w}</b> wins · <b>${l}</b> losses against the Unoshotto Clan</p></div></div>
     <ol class="ladder">${rungs}</ol>
