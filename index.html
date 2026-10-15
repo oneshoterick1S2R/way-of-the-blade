@@ -405,6 +405,11 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .rung.next .rt b{color:var(--cream)}.rung.next .rt small{color:var(--mist)}
 .pips{display:flex;gap:4px}.pips i{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--gold,#c9a24e)}.pips i.on{background:var(--gold,#c9a24e)}
 .rung.lock{opacity:.7}
+.rung .rk{overflow:hidden;padding:0}
+.rung .rk img{width:100%;height:100%;object-fit:cover;object-position:50% 22%;display:block;border-radius:50%}
+.rung.lock .rk img{filter:grayscale(1) brightness(.55)}
+.rung.next .rk img{filter:grayscale(.6) brightness(.8)}
+.rung.here .rk{padding:3px}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -2959,6 +2964,7 @@ function p2HTML(){
 }
 const RANK_INFO={'Ashigaru':['足軽','Foot soldier. Every warrior starts here.'],'Gokenin':['御家人','Sworn retainer of the clan.'],'Hatamoto':['旗本','Bannerman of the lord’s own guard.'],
   'Taishō':['大将','General. Commands the field.'],'Daimyō':['大名','Lord of a province.'],'Shōgun':['将軍','Ruler of all the clans.']};
+const RANK_ART={'Ashigaru':'ashi','Gokenin':'gokenin','Hatamoto':'hatamoto','Taishō':'taisho','Daimyō':'daimyo','Shōgun':'shogun'};
 function ladderHTML(){
   const w=ACC.stats.wins,l=ACC.stats.losses,cur=TITLES.filter(t=>w>=t[0]).length-1,nt=nextTitle(w);
   const rungs=TITLES.map((t,i)=>{
@@ -2969,7 +2975,7 @@ function ladderHTML(){
     else if(st==='next'){const prev=TITLES[i-1][0],need=t[0]-prev,got=w-prev;
       side=`<span class="pips" aria-label="${got} of ${need} wins">${Array.from({length:need},(_,j)=>`<i class="${j<got?'on':''}"></i>`).join('')}</span><small>${t[0]-w} more win${t[0]-w>1?'s':''}</small>`}
     else side=`<small>${t[0]} wins</small>`;
-    return `<li class="rung ${st}"><span class="rk mk">${k}</span><div class="rt"><b>${t[1]}</b><small>${x}</small></div><div class="rs">${side}</div></li>`;
+    return `<li class="rung ${st}"><span class="rk mk">${IMG[RANK_ART[t[1]]]?`<img src="${IMG[RANK_ART[t[1]]]}" alt="">`:k}</span><div class="rt"><b>${t[1]}</b><small>${x}</small></div><div class="rs">${side}</div></li>`;
   }).reverse().join('');
   return `<div class="screen">
     <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Clan Feud</h1></header>
