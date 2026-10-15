@@ -364,6 +364,14 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .vs em{font-family:var(--f-card);font-size:20px;color:var(--mist)}
 .feudrank{display:block;margin-top:3px;color:var(--gold,#e2c27a);opacity:.95}.feudrank b{font-weight:700}.feudrank .mk{font-size:13px}
 .battle .feudrank,.battle small.feudrank{display:block;font-size:13px;line-height:1.3;margin-top:4px;color:#f3d48a}.battle .feudrank b{display:inline;font:inherit;font-weight:700;color:inherit;margin:0}.battle .feudrank .mk{display:inline;font-size:13px}
+.sync{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.livepill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid rgba(120,200,120,.45);background:rgba(40,90,40,.35);color:#cfeccb;font:600 12px/1.2 var(--f-body,serif);letter-spacing:.04em;text-transform:none}
+.livepill i,.livelist i{width:8px;height:8px;border-radius:50%;background:#5fd36a;box-shadow:0 0 6px #5fd36a;animation:livep 2s ease-in-out infinite;flex:none}
+@keyframes livep{50%{opacity:.45}}
+.livelist{margin:-6px 0 12px;display:flex;justify-content:flex-end}
+.livelist ul{list-style:none;margin:0;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.35);min-width:200px}
+.livelist li{display:flex;align-items:center;gap:8px;padding:4px 0}
+.livelist li b{font-weight:600}.livelist li small{margin-left:auto;opacity:.7;font-size:12px}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -2539,6 +2547,39 @@ function friendHTML(){
     </div></div>`;
 }
 
+/* ----- who's online (website copy only: uses the Firestore presence list) ----- */
+const PRES={list:[],started:false,id:null};
+function presenceId(){if(PRES.id)return PRES.id;try{PRES.id=localStorage.getItem('wotb-pid')}catch(e){}
+  if(!PRES.id){PRES.id=Math.random().toString(36).slice(2,12);try{localStorage.setItem('wotb-pid',PRES.id)}catch(e){}}return PRES.id}
+function presenceBeat(){
+  if(!DBH||!DBH.collection||!ACC||document.hidden)return;
+  DBH.collection('presence').doc(presenceId()).set({name:String(ACC.name||'Samurai').slice(0,24),at:Date.now(),
+    status:S.screen==='battle'&&G?(G.online?'duel':'battle'):'dojo'}).catch(()=>{});
+}
+function startPresence(){
+  if(PRES.started||!DBH||!DBH.collection)return;PRES.started=true;
+  presenceBeat();setInterval(presenceBeat,60000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)presenceBeat()});
+  const watch=()=>{const since=Date.now()-150000;
+    return DBH.collection('presence').where('at','>',since).onSnapshot(q=>{
+      const l=[];q.forEach(d=>{const v=d.data();if(v&&v.at>Date.now()-150000)l.push({id:d.id,name:v.name,status:v.status})});
+      PRES.list=l;if(S.screen!=='battle')render();
+    },()=>{})};
+  let un=watch();setInterval(()=>{try{un()}catch(e){}un=watch()},120000);
+}
+function liveCount(){const me=presenceId();const n=PRES.list.filter(p=>p.id!==me).length+(ACC?1:0);return n}
+function liveHTML(){
+  if(!PRES.started)return '';
+  if(!PRES.beat&&ACC){PRES.beat=true;setTimeout(presenceBeat,0)}
+  return `<button class="livepill" data-a="livelist" aria-label="Players online"><i></i>${liveCount()} online</button>`;
+}
+function liveListHTML(){
+  if(!PRES.started||!S.showLive)return '';
+  const me=presenceId(),st={duel:'in an online duel',battle:'in a battle',dojo:'in the dojo'};
+  const rows=[...PRES.list].sort((a,b)=>(a.id===me?-1:b.id===me?1:0)).map(p=>`<li><i></i><b>${esc(p.name)}${p.id===me?' (you)':''}</b><small>${st[p.status]||''}</small></li>`).join('');
+  return `<div class="livelist"><ul>${rows||'<li><small>Only you right now.</small></li>'}</ul></div>`;
+}
+
 /* ===== Account, collection, decks ===== */
 const DECK_SIZE=30, MIN_SAMURAI=12, MAX_DECKS=6;
 const limitOf=id=>C[id].rar==='L'?1:2;
@@ -2621,7 +2662,7 @@ function save(){
 async function connect(){
   try{
     if(!window.claude?.use){
-      if(window.FB_CFG&&window.firebase&&FB_CFG.projectId&&!/PASTE/.test(FB_CFG.projectId)){try{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);DBH=firebase.firestore();if(S.screen!=='battle')render()}catch(e){}}
+      if(window.FB_CFG&&window.firebase&&FB_CFG.projectId&&!/PASTE/.test(FB_CFG.projectId)){try{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);DBH=firebase.firestore();startPresence();if(S.screen!=='battle')render()}catch(e){}}
       return;
     }
     const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
@@ -2735,7 +2776,7 @@ function dojoHTML(){
   const a=ACC,d=active(),v=validate(d),nt=nextTitle(a.stats.wins);
   const locked=LOCKABLE.filter(id=>!a.unlocked.includes(id));
   return `<div class="screen">
-    <header class="topbar"><div class="logo sm">刀道</div><span class="sync">${S.sync==='account'?'Saved to your account':'Saved on this device'}</span></header>
+    <header class="topbar"><div class="logo sm">刀道</div><span class="sync">${liveHTML()}${S.sync==='account'?'Saved to your account':'Saved on this device'}</span></header>${liveListHTML()}
     <section class="hero">
       <div class="hero-card">${samStage(a)}</div>
       <div class="hero-info">
@@ -2965,6 +3006,7 @@ document.addEventListener('click',e=>{
     case 'skirmish':S.mode='ai';go('prebattle');return;
     case 'friend':go('friend');return;
     case 'fronline':S.on={step:'menu'};go('online');return;
+    case 'livelist':S.showLive=!S.showLive;render();return;
     case 'onhost':hostMatch();return;
     case 'onjoin':{const i=document.getElementById('f-code');joinMatch(i?i.value:'');return}
     case 'oncancel':cancelHost();return;
