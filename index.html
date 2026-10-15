@@ -2368,7 +2368,7 @@ function meInfo(){const d=active();return {name:ACC.name,mon:ACC.mon,look:ACC.lo
 function onErr(e){
   const code=e&&e.code,msg=String(e&&e.message||e||'');
   if(S.screen!=='battle'){stopOnline();clearMatch()}
-  S.on=Object.assign(S.on||{},S.screen!=='battle'?{step:'menu'}:{},{err:(/invalid_argument|permission|denied|forbidden/i.test(String(code||'')+' '+msg))?'Your access to this game only lets you view it. Ask the owner to share it with you as an Editor (invited by email), then reopen the link.':'The connection dropped. Check your signal and try again.'});
+  S.on=Object.assign(S.on||{},S.screen!=='battle'?{step:'menu'}:{},{err:(/invalid_argument|permission|denied|forbidden/i.test(String(code||'')+' '+msg))?(window.claude?.use?'Your access to this game only lets you view it. Ask the owner to share it with you as an Editor (invited by email), then reopen the link.':'The match server refused the connection. The game owner needs to check the Firestore rules.'):'The connection dropped. Check your signal and try again.'});
   if(S.screen==='battle'&&G){showToast('!','Connection problem',S.on.err)}else render();
 }
 function saveMatch(){try{localStorage.setItem(MATCH_KEY,JSON.stringify({code:ON.code,seat:ON.seat}))}catch(e){}}
