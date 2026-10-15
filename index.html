@@ -686,6 +686,27 @@ button.tface{cursor:pointer}
 .joinrow{display:flex;gap:8px;margin-top:8px}
 .joinrow input{flex:1;min-width:0;font:600 24px Cinzel,serif;letter-spacing:.3em;text-transform:uppercase;text-align:center;padding:8px;border-radius:8px;border:1.5px solid var(--line);background:rgba(0,0,0,.3);color:inherit}
 .muted.small{font-size:13px;margin-top:18px}
+/* ===== Legendary holographic foil ===== */
+.tcg.holo{box-shadow:0 0 0 1px #f6dc8a,0 0 10px rgba(255,214,120,.55),0 2px 0 rgba(0,0,0,.5),0 8px 18px rgba(0,0,0,.5)}
+.tcg.holo .tin{background:var(--grain),linear-gradient(135deg,#f7dd88 0%,#a8741e 18%,#fff0b8 34%,#8a5a14 52%,#f3d377 70%,#7a4c10 86%,#f1cf6e 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,248,220,.6),inset 0 0 0 2.2cqw rgba(60,30,0,.25),inset 0 0 7cqw rgba(0,0,0,.35);overflow:hidden}
+.tcg.holo .tname,.tcg.holo .ttype{border-color:#c99a3a}
+.tcg.holo .foil{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
+  background:repeating-linear-gradient(120deg,rgba(255,40,110,.5) 0,rgba(255,170,0,.45) 7%,rgba(230,255,40,.4) 14%,rgba(0,255,160,.4) 21%,rgba(0,190,255,.5) 28%,rgba(150,70,255,.5) 35%,rgba(255,40,110,.5) 42%);
+  background-size:220% 220%;mix-blend-mode:color-dodge;opacity:.3;animation:holoShift 9s linear infinite}
+.tcg.holo .foil::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(circle,rgba(255,255,255,.95) 0 .5px,transparent 1.2px) 0 0/9px 11px,radial-gradient(circle,rgba(255,240,190,.8) 0 .6px,transparent 1.4px) 4px 6px/13px 15px;
+  mix-blend-mode:screen;opacity:.55;animation:holoTwinkle 2.6s ease-in-out infinite alternate}
+.tcg.holo .glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:6;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.55) 48%,rgba(255,250,220,.25) 52%,transparent 62%);
+  background-size:260% 100%;mix-blend-mode:soft-light;animation:holoGlare 4.5s ease-in-out infinite}
+.tcg.holo .lotus{position:absolute;left:50%;bottom:-.6cqw;transform:translateX(-50%);z-index:7;font-size:9cqw;line-height:1;color:#ffe08a;
+  text-shadow:0 0 2cqw rgba(255,200,80,.9),0 .4cqw 0 #6b430c;pointer-events:none}
+.tcg.mini.holo .lotus,.tcg.tiny.holo .lotus{font-size:11cqw}
+@keyframes holoShift{0%{background-position:0% 0%}100%{background-position:100% 100%}}
+@keyframes holoGlare{0%,15%{background-position:120% 0}60%,100%{background-position:-60% 0}}
+@keyframes holoTwinkle{from{opacity:.25}to{opacity:.7}}
+@media (prefers-reduced-motion:reduce){.tcg.holo .foil,.tcg.holo .foil::after,.tcg.holo .glare{animation:none}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -1863,13 +1884,15 @@ function card(id,o={}){
   }else if(d.t==='s'&&(o.mini||o.tiny)&&d.kw.includes('guard'))extra+=`<span class="kwb"><i>${ICON_GUARD}</i></span>`;
   const tag=o.btn?'button':'div';
   const size=o.tiny?'mini tiny':o.mini?'mini':'full';
-  return `<${tag} class="tcg f-${d.fr} ${size} ${o.cls||''}" ${o.attrs||''}>
+  const holo=d.rar==='L';
+  return `<${tag} class="tcg f-${d.fr} ${size} ${holo?'holo':''} ${o.cls||''}" ${o.attrs||''}>
     <div class="tin">
       <div class="tname pp"><span class="nm">${d.n}</span>${gem}</div>
       <div class="tart ${d.own?'own':''}" ${d.ap?`style="--ap:${d.ap}"`:''}>${art(id)}${d.r?`<span class="rank">${d.r}</span>`:''}${d.own?'':`<span class="vk pp ${d.r?'low':''}">${d.v}</span>`}${extra}</div>
       <div class="ttype pp"><span>${d.ty}</span><i class="rj r-${d.rar}" title="${RAR[d.rar]}"></i></div>
       <div class="ttext pp">${rulesHTML(d)}<p class="fl">“${d.fl}”</p></div>
       ${stats?`<div class="tstats">${stats}</div>`:''}
+      ${holo?'<span class="foil" aria-hidden="true"></span><span class="glare" aria-hidden="true"></span><span class="lotus" aria-hidden="true">❀</span>':''}
     </div></${tag}>`;
 }
 const modeHas=(s,i)=>!!(G.mode&&G.mode.list.some(t=>t.s===s&&t.i===i));
