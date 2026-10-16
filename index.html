@@ -1338,17 +1338,17 @@ S_('levy','banner',1,'C','Levy','Token — Conscript','徴兵',1,1,{tok:1,fl:'An
 S_('straw','n',0,'C','Straw Dummy','Token — Decoy','藁',0,3,{tok:1,kw:['guard'],fl:'It never flinches.'});
 
 /* ---------- Story Mode Legends (earned by defeating each boss) ---------- */
-S_('st_chiyome','shadow',3,'L','Mochizuki Chiyome','Shadow — Mistress of Eyes','望月',2,3,{story:1,arr:{k:'discardAW'},x:'Arrival: look at the enemy’s hand and discard an Ambush or weapon from it.',fl:'I have watched you since the fire.'});
-S_('st_fuma','shadow',5,'L','Fūma Kotarō','Shadow — Night Raider','風魔',4,3,{story:1,kw:['sneak','fumaRaid'],x:'Strikes past Guardians. When he damages enemy Honor, one enemy weapon returns to its owner’s hand.',fl:'The night belongs to me.'});
+S_('st_chiyome','shadow',3,'R','Mochizuki Chiyome','Shadow — Mistress of Eyes','望月',2,3,{story:1,arr:{k:'discardAW'},x:'Arrival: look at the enemy’s hand and discard an Ambush or weapon from it.',fl:'I have watched you since the fire.'});
+S_('st_fuma','shadow',5,'E','Fūma Kotarō','Shadow — Night Raider','風魔',4,3,{story:1,kw:['sneak','fumaRaid'],x:'Strikes past Guardians. When he damages enemy Honor, one enemy weapon returns to its owner’s hand.',fl:'The night belongs to me.'});
 S_('st_hanzo','shadow',5,'L','Hattori Hanzō','Shadow — Demon of Iga','服部',3,3,{story:1,kw:['sneakAmbush'],aura:'hanzo',x:'Your Shuriken deals 2 damage instead of 1. Strikes past Guardians while you have an Ambush set.',fl:'Iga never forgets.'});
-S_('st_kojiro','steel',4,'L','Sasaki Kojirō','Steel — Swallow Cutter','佐々木',4,2,{story:1,kw:['killNoCounter','swallow'],x:'Strikes first: takes no damage back from a samurai he destroys. Swallow Cut: the first time each turn he destroys a samurai, he may strike again.',fl:'The Drying Pole never misses.'});
-S_('st_tadakatsu','steel',5,'L','Honda Tadakatsu','Steel — The Unwounded','本多',3,5,{story:1,kw:['guard','firstShield'],arr:{k:'addCard',id:'st_tonbokiri'},x:'On the enemy’s turn, prevent the first damage dealt to him. Arrival: add Tonbokiri (+2 Strength weapon) to your hand.',fl:'Fifty battles. Not one wound.'});
+S_('st_kojiro','steel',4,'R','Sasaki Kojirō','Steel — Swallow Cutter','佐々木',3,2,{story:1,kw:['killNoCounter','swallow'],x:'Strikes first: takes no damage back from a samurai he destroys. Swallow Cut: the first time each turn he destroys a samurai, he may strike again.',fl:'The Drying Pole never misses.'});
+S_('st_tadakatsu','steel',6,'E','Honda Tadakatsu','Steel — The Unwounded','本多',3,4,{story:1,kw:['guard','firstShield'],x:'On the enemy’s turn, prevent the first damage dealt to him.',fl:'Fifty battles. Not one wound.'});
 S_('st_musashi','steel',7,'L','Miyamoto Musashi','Steel — The Two Heavens','宮本',5,5,{story:1,kw:['growKill'],arr:{k:'equipTwo'},x:'Arrival: equip two random swords. Each time he destroys a samurai in combat, he gains +1 Strength permanently.',fl:'Today is victory over yourself of yesterday.'});
-S_('st_naotora','temple',4,'L','Ii Naotora','Temple — The Nun Who Ruled','井伊',2,5,{story:1,aura:'naotora',x:'Whenever you restore Honor, also summon a 1/1 Levy.',fl:'A clan is held together by patience.'});
-S_('st_kenshin','temple',6,'L','Uesugi Kenshin','Temple — Dragon of Echigo','上杉',4,5,{story:1,aura:'templeStr',arr:{k:'healAll',v:99},x:'Your other Temple samurai have +1 Strength. Arrival: fully heal all your samurai.',fl:'I fight with arms, not with salt.'});
-S_('st_kennyo','temple',5,'L','Kennyo of Hongan-ji','Temple — The Ten-Year Fortress','顕如',3,4,{story:1,aura:'ikko',x:'At the start of your turn, summon a 1/1 Ikkō Monk. Your Prayer also restores 1 Vitality to all your samurai.',fl:'Ten years, and the gates still stand.'});
-S_('st_shingen','banner',7,'L','Takeda Shingen','Banner — Tiger of Kai','武田',5,6,{story:1,aura:'furinkazan',x:'Furinkazan: each of your turns your army takes the next stance. Wind: strike past Guardians. Forest: can’t be targeted by abilities. Fire: +2 Strength. Mountain: Guardians +3 Vitality.',fl:'Swift as wind, silent as forest, fierce as fire, unmoving as the mountain.'});
-S_('st_hideyoshi','banner',4,'L','Toyotomi Hideyoshi','Banner — The Monkey Lord','豊臣',2,3,{story:1,aura:'levyBuff',x:'Your Levies have +1/+1. When a Levy survives combat, it is promoted: +1/+1 permanently.',fl:'I was born with nothing. So were you.'});
+S_('st_naotora','temple',3,'R','Ii Naotora','Temple — The Nun Who Ruled','井伊',2,5,{story:1,aura:'naotora',x:'Whenever you restore Honor, also summon a 1/1 Levy.',fl:'A clan is held together by patience.'});
+S_('st_kenshin','temple',6,'E','Uesugi Kenshin','Temple — Dragon of Echigo','上杉',4,5,{story:1,aura:'templeStr',arr:{k:'healAll',v:99},x:'Your other Temple samurai have +1 Strength. Arrival: fully heal all your samurai.',fl:'I fight with arms, not with salt.'});
+S_('st_kennyo','temple',5,'L','Kennyo of Hongan-ji','Temple — The Ten-Year Fortress','顕如',4,5,{story:1,aura:'ikko',x:'At the start of your turn, summon a 1/1 Ikkō Monk. Your Prayer also restores 1 Vitality to all your samurai.',fl:'Ten years, and the gates still stand.'});
+S_('st_shingen','banner',6,'R','Takeda Shingen','Banner — Tiger of Kai','武田',5,5,{story:1,aura:'furinkazan',x:'Furinkazan: each of your turns your army takes the next stance. Wind: strike past Guardians. Forest: can’t be targeted by abilities. Fire: +2 Strength. Mountain: Guardians +3 Vitality.',fl:'Swift as wind, silent as forest, fierce as fire, unmoving as the mountain.'});
+S_('st_hideyoshi','banner',4,'E','Toyotomi Hideyoshi','Banner — The Monkey Lord','豊臣',2,3,{story:1,aura:'levyBuff',x:'Your Levies have +1/+1. When a Levy survives combat, it is promoted: +1/+1 permanently.',fl:'I was born with nothing. So were you.'});
 S_('st_nobunaga','banner',8,'L','Oda Nobunaga','Banner — Demon King','織田',6,6,{story:1,aura:'nobunaga',arr:{k:'burnTemple'},x:'Arrival — Burn the Temple: deal 2 damage to every other samurai. At the end of your turn, deal 1 damage to a random enemy samurai for each Levy or archer you control (max 3).',fl:'Only fire can forge one Japan.'});
 W_('st_tonbokiri','steel',2,'L','Tonbokiri','Weapon — Dragonfly Spear','蜻蛉切',2,0,{tok:1,story:1,fl:'A dragonfly that lands on its blade is cut in two.'});
 S_('st_ikko','temple',1,'C','Ikkō Monk','Token — Peasant Monk','一向',1,1,{tok:1,fl:'Paradise for those who fall.'});
@@ -3365,7 +3365,7 @@ function storyOverHTML(){
     <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="storyretry">Try again</button><button class="btn ghost-dark" data-act="storymap">Story map</button></div></div></div>`;
   return `<div class="modal"><div class="scroll" role="dialog"><div class="big">勝</div><h2>${esc(b.n)} is defeated</h2>
     <p class="sub squote">${b.win}</p>
-    ${G.storyNew?`<p class="sub" style="margin-top:6px"><b>${esc(b.n)} pledges their banner to you.</b> New Legend card:</p><div class="fan">${card(b.card,{mini:true})}</div>`:'<p class="sub">You already hold this Legend’s banner.</p>'}
+    ${G.storyNew?`<p class="sub" style="margin-top:6px"><b>${esc(b.n)} pledges their banner to you.</b> New ${RAR[C[b.card].rar]} card:</p><div class="fan">${card(b.card,{mini:true})}</div>`:'<p class="sub">You already hold this warrior’s banner.</p>'}
     ${b.final?`<p class="sub sepi">${EPILOGUE}</p>`:''}
     <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="storymap">Continue the story</button><button class="btn ghost-dark" data-act="dojo">Dojo</button></div></div></div>`;
 }
@@ -3384,7 +3384,7 @@ function storyHTML(){
   return `<div class="screen">
     <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Story Mode</h1></header>
     <div class="sthero"><small>A tale of legend, not history</small><h2>The Road to Honnō-ji</h2>
-      <p>You are a nameless ronin in 1570s Japan, the last survivor of a village burned in Oda Nobunaga’s wars. To reach the Demon King, you must prove yourself to the twelve greatest warriors of the age. Each one you defeat pledges their banner to you, and you win their Legend card.</p>
+      <p>You are a nameless ronin in 1570s Japan, the last survivor of a village burned in Oda Nobunaga’s wars. To reach the Demon King, you must prove yourself to the twelve greatest warriors of the age. Each one you defeat pledges their banner to you and their card joins your collection. The last warrior of each Path gives a Legendary.</p>
       <div class="stprog"><span style="width:${n/12*100}%"></span></div><p class="lrec"><b>${n}</b> of 12 legends pledged · Chapters 1–3 can be played in any order</p></div>
     ${chs}
   </div>`;
@@ -3399,10 +3399,10 @@ function bossHTML(){
     <section class="sect"><h2>The story</h2><p class="stx">${b.story}</p></section>
     <section class="bossrule"><span class="mk">掟</span><div><small>Boss Rule</small><b>${b.rule}</b><p>${b.rx}</p></div></section>
     <section class="sect"><h2>Reward</h2><div class="breward"><button class="bcard" data-a="peek" data-v="${b.card}">${card(b.card,{mini:true})}</button>
-      <p class="muted">${won?'✓ Earned. You can fight again for practice.':'Defeat '+esc(b.n)+' to win this Legend card (1 copy per deck).'}</p></div></section>
+      <p class="muted">${won?'✓ Earned. You can fight again for practice.':'Defeat '+esc(b.n)+' to win this '+RAR[C[b.card].rar]+' card'+(C[b.card].rar==='L'?' (1 copy per deck).':' (up to 2 per deck).')}</p></div></section>
     <div class="activedeck"><span class="mk dp-k p-${d.path}">${PATH_INFO[d.path].k}</span><div><b>${esc(d.name)}</b><small>Your active deck · ${PATH_INFO[d.path].n} · change it in Decks</small></div><span class="pill ${v.ok?'ok':'bad'}">${v.ok?'Valid':'Invalid'}</span></div>
     ${S.storyErr?`<p class="why" style="color:#f0a090">${S.storyErr}</p>`:''}
-    <button class="battle" data-a="bossgo" data-v="${b.id}" ${v.ok?'':'disabled'}><span class="mk">戦</span><span><b>${won?'Fight again':'Face '+esc(b.n.split(' ').slice(-1)[0])}</b><small>Win to ${won?'test yourself':'earn their Legend'}</small></span></button>
+    <button class="battle" data-a="bossgo" data-v="${b.id}" ${v.ok?'':'disabled'}><span class="mk">戦</span><span><b>${won?'Fight again':'Face '+esc(b.n.split(' ').slice(-1)[0])}</b><small>Win to ${won?'test yourself':'earn their '+RAR[C[b.card].rar]+' card'}</small></span></button>
   </div>`;
 }
 function storyLockHTML(){
