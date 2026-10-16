@@ -3626,7 +3626,7 @@ function gearHTML(look,lv){
 function pathButtons(sel,act){
   return `<div class="paths">${PATHS4.map(k=>{const P=PATH_INFO[k];return `<button class="path pathbn p-${k} ${sel===k?'on':''}" data-a="${act}" data-k="path" data-v="${k}" aria-pressed="${sel===k}" style="--pb:url(${IMG['pb_'+k]})"><img class="pflag" src="${IMG['pf_'+k]}" alt=""><span class="ptx"><strong>${P.n}</strong><small>${P.x}</small><small class="pw"><em>Path Power · ${P.power.n}:</em> ${P.power.x}</small></span>${sel===k?'<span class="pchk">\u2713</span>':''}</button>`}).join('')}</div>`;
 }
-const CTABS_ALL=[['style','Style'],['body','Body'],['face','Face & Hair'],['gear','Gear'],['colours','Colours'],['clan','Name & Clan'],['deck','Active Deck']];
+const CTABS_ALL=[['style','Style'],['clan','Name & Path'],['body','Body'],['face','Face & Hair'],['gear','Gear'],['colours','Colours'],['deck','Active Deck']];
 let CTABS=CTABS_ALL.slice(1,6);/* the deck tab is no longer offered; active deck lives in Decks */
 const PANEL_ICON={deck:'札',helmet:'兜',armor:'鎧',weapon:'刀',mask:'面',banner:'旗',sex:'人',build:'体',skin:'肌',hair:'髪',hairc:'色',eyes:'眼',beard:'髭',mark:'印',acol:'染',color:'紐',mon:'紋',styles:'型',name:'名',path:'道'};
 function tile(on,locked,icon,label,attrs){
@@ -3662,7 +3662,7 @@ function tabIcon(k,d){
 }
 function createHTML(edit){
   CTABS=CTABS_ALL.slice(1,6);
-  const d=S.draft,lv=edit?levelOf(ACC.xp||0):1,tab=(!S.ctab||S.ctab==='deck'||S.ctab==='style')?'body':S.ctab,acc=accentOf(d),L=d.look;
+  const d=S.draft,lv=edit?levelOf(ACC.xp||0):1,tab=(!S.ctab||S.ctab==='deck'||S.ctab==='style')?'clan':S.ctab,acc=accentOf(d),L=d.look;
   const gearPanel=slot=>panel(slot,GEAR[slot].label,`<div class="tiles2">${GEAR[slot].items.map(it=>{const lock=it.lv>lv;
     return tile(L[slot]===it.id,lock,gearIcon(slot,it.id,L,acc,d.mon),lock?`Locked · Lv ${it.lv}`:it.n,`data-a="gear" data-k="${slot}" data-v="${it.id}"`)}).join('')}</div>`);
   const appPanel=k=>{const A=APPEAR[k];
