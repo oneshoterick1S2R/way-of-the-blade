@@ -916,6 +916,36 @@ button.tface{cursor:pointer}
 .tcg.mythic .tart{z-index:8;box-shadow:0 0 0 1px rgba(255,240,200,.6)}
 .tcg.mythic .tart::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;mix-blend-mode:color-dodge;opacity:.35;
   background:linear-gradient(115deg,transparent 30%,rgba(255,120,220,.55) 42%,rgba(120,220,255,.55) 50%,rgba(255,230,140,.5) 58%,transparent 70%);background-size:250% 100%;animation:holoGlare 3.4s ease-in-out infinite}
+/* ===== Story Legends: living art ===== */
+.tcg.mythic .tart>img{animation:breathe 7s ease-in-out infinite;transform-origin:50% 35%}
+@keyframes breathe{0%,100%{transform:scale(1.02) translate(0,0)}50%{transform:scale(1.09) translate(-1%,-1.5%)}}
+.tcg.mythic .gleam{position:absolute;inset:-20%;z-index:3;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(120deg,transparent 44%,rgba(255,255,255,.0) 46%,rgba(255,255,255,.9) 49.5%,rgba(255,240,200,.6) 50.5%,transparent 54%);
+  background-size:300% 300%;animation:gleam 4.2s ease-in-out infinite}
+@keyframes gleam{0%,55%{background-position:100% 100%;opacity:0}60%{opacity:1}80%{background-position:0% 0%;opacity:1}81%,100%{opacity:0;background-position:0 0}}
+.lfx{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.lfx i{position:absolute;bottom:-10%;display:block;border-radius:50%;opacity:0}
+.lfx i:nth-child(1){left:8%;animation-delay:0s}.lfx i:nth-child(2){left:20%;animation-delay:1.1s}.lfx i:nth-child(3){left:33%;animation-delay:2.3s}
+.lfx i:nth-child(4){left:46%;animation-delay:.6s}.lfx i:nth-child(5){left:58%;animation-delay:1.8s}.lfx i:nth-child(6){left:70%;animation-delay:2.9s}
+.lfx i:nth-child(7){left:82%;animation-delay:.3s}.lfx i:nth-child(8){left:92%;animation-delay:1.5s}.lfx i:nth-child(9){left:40%;animation-delay:3.4s}
+/* embers: glowing sparks rising */
+.lfx-embers i{width:2.2cqw;height:2.2cqw;background:radial-gradient(circle,#fff6c0,#ff9a2a 45%,rgba(255,60,0,0) 70%);animation:ember 3.8s linear infinite}
+@keyframes ember{0%{transform:translate(0,0) scale(.6);opacity:0}10%{opacity:1}100%{transform:translate(6cqw,-60cqw) scale(.2);opacity:0}}
+/* gold dust: Hideyoshi */
+.lfx-gold i{width:1.6cqw;height:1.6cqw;background:radial-gradient(circle,#fff,#ffd76a 50%,transparent 70%);animation:ember 4.6s linear infinite}
+/* sakura petals drifting down */
+.lfx-petals i{top:-10%;bottom:auto;width:3cqw;height:2cqw;border-radius:70% 0 70% 0;background:linear-gradient(135deg,#ffd1e3,#ff8fb8);animation:petal 5.5s linear infinite}
+@keyframes petal{0%{transform:translate(0,0) rotate(0);opacity:0}10%{opacity:.95}100%{transform:translate(-14cqw,62cqw) rotate(320deg);opacity:0}}
+/* drifting mist / smoke for the shinobi */
+.lfx-mist i{width:30cqw;height:12cqw;bottom:-6%;border-radius:50%;background:radial-gradient(ellipse,rgba(200,190,255,.38),transparent 70%);filter:blur(1.5cqw);animation:mist 6s ease-in-out infinite}
+@keyframes mist{0%{transform:translate(-10cqw,0) scale(.8);opacity:0}30%{opacity:1}100%{transform:translate(18cqw,-26cqw) scale(1.4);opacity:0}}
+/* incense: thin rising smoke */
+.lfx-incense i{width:8cqw;height:20cqw;border-radius:50%;background:radial-gradient(ellipse,rgba(235,225,210,.32),transparent 70%);filter:blur(1cqw);animation:mist 7s ease-in-out infinite}
+/* wind streaks for the duelists */
+.lfx-wind i{left:-30%!important;bottom:auto;width:28cqw;height:.6cqw;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(220,240,255,.85),transparent);animation:wind 2.6s linear infinite}
+.lfx-wind i:nth-child(odd){top:22%}.lfx-wind i:nth-child(even){top:58%}.lfx-wind i:nth-child(3n){top:40%}
+@keyframes wind{0%{transform:translateX(0);opacity:0}15%{opacity:.9}100%{transform:translateX(160cqw);opacity:0}}
+@media (prefers-reduced-motion:reduce){.tcg.mythic .tart>img,.tcg.mythic .gleam,.lfx i{animation:none}.lfx{display:none}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2272,6 +2302,7 @@ document.addEventListener('pointerdown',e=>{const b=e.target.closest('button');i
 const $=s=>document.querySelector(s);
 let showIntro=false,toast=null,toastTimer=null;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const LFX={st_chiyome:'mist',st_fuma:'mist',st_hanzo:'mist',st_kojiro:'wind',st_tadakatsu:'embers',st_musashi:'wind',st_naotora:'petals',st_kenshin:'petals',st_kennyo:'incense',st_shingen:'embers',st_hideyoshi:'gold',st_nobunaga:'embers'};
 const KW_LABEL={guard:'Guardian',swift:'Swift'};
 function rulesHTML(d){
   const kws=d.kw.filter(k=>KW_LABEL[k]&&d.t==='s').map(k=>KW_LABEL[k]);
@@ -2313,7 +2344,7 @@ function card(id,o={}){
   return `<${tag} class="tcg f-${d.fr} ${size} ${holo?'holo':''} ${myth?'mythic':''} ${o.cls||''}" ${o.attrs||''}>
     <div class="tin">
       <div class="tname pp"><span class="nm">${d.n}</span>${gem}</div>
-      <div class="tart ${d.own?'own':''}" ${d.ap?`style="--ap:${d.ap}"`:''}>${art(id)}${d.r?`<span class="rank">${d.r}</span>`:''}${d.own?'':`<span class="vk pp ${d.r?'low':''}">${d.v}</span>`}${extra}</div>
+      <div class="tart ${d.own?'own':''}" ${d.ap?`style="--ap:${d.ap}"`:''}>${art(id)}${myth?`<span class="lfx lfx-${LFX[id]||'glint'}" aria-hidden="true">${'<i></i>'.repeat(9)}</span><span class="gleam" aria-hidden="true"></span>`:''}${d.r?`<span class="rank">${d.r}</span>`:''}${d.own?'':`<span class="vk pp ${d.r?'low':''}">${d.v}</span>`}${extra}</div>
       <div class="ttype pp"><span>${d.ty}</span><i class="rj r-${d.rar}" title="${RAR[d.rar]}"></i></div>
       <div class="ttext pp">${rulesHTML(d)}<p class="fl">“${d.fl}”</p></div>
       ${stats?`<div class="tstats">${stats}</div>`:''}
