@@ -492,6 +492,33 @@ body.artbg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 .breward{display:flex;gap:12px;align-items:center}.breward .bcard{width:96px;flex:none}
 .srule{font-size:13.5px;line-height:1.4;padding:8px 10px;border-radius:8px;background:rgba(178,58,39,.12);border:1px solid rgba(178,58,39,.4);margin:6px 0 10px;text-align:left}
 .squote{font-style:italic}.sepi{font-size:13.5px;line-height:1.5;text-align:left}
+/* ===== Title screen ===== */
+.splash2{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;overflow:hidden;background:#0c0705}
+.sp-bg{position:absolute;inset:0;background-repeat:no-repeat;background-position:left top,right top;background-size:auto 100%,auto 100%;opacity:.55;filter:saturate(1.1)}
+@media (max-width:700px){.sp-bg{background-size:auto 100%,0 0;background-position:30% top;opacity:.45}}
+.splash2::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(12,7,5,.2),rgba(12,7,5,.85) 75%)}
+.sp-sun{position:absolute;left:50%;top:38%;width:min(78vw,440px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,#c8321f 0 55%,rgba(178,50,31,.35) 62%,transparent 70%);opacity:.55;filter:blur(1px);z-index:1}
+.sp-panel{position:relative;z-index:2;width:min(380px,100%);text-align:center;padding:26px 22px 24px;border-radius:14px;
+  background:var(--grain),linear-gradient(170deg,rgba(40,16,10,.92),rgba(14,7,5,.94));border:2px solid #c9a24e;
+  box-shadow:inset 0 0 0 4px rgba(12,7,5,.9),inset 0 0 0 5px rgba(201,162,78,.45),0 0 0 1px rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.7),0 0 40px rgba(178,58,39,.25);animation:spIn .7s ease-out both}
+@keyframes spIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.sp-fan{position:relative;height:118px;margin:-70px auto 6px;width:240px}
+.sp-card{position:absolute;bottom:0;left:50%;width:78px;transform-origin:50% 120%}
+.sp-card.c0{transform:translateX(-50%) rotate(-21deg) translateX(-28px)}.sp-card.c1{transform:translateX(-50%) rotate(-7deg) translateX(-8px)}
+.sp-card.c2{transform:translateX(-50%) rotate(7deg) translateX(8px)}.sp-card.c3{transform:translateX(-50%) rotate(21deg) translateX(28px)}
+.sp-card .tcg{box-shadow:0 6px 16px rgba(0,0,0,.6)}
+.sp-logo{font-family:var(--f-brush);font-size:68px;line-height:1;color:#e8463a;text-shadow:0 2px 0 #4a120a,0 0 24px rgba(232,70,58,.35)}
+.sp-title{margin:8px 0 6px;font-family:var(--f-head);font-weight:800;font-size:clamp(24px,7.5vw,32px);letter-spacing:.06em;color:#f3d48a;
+  background:linear-gradient(180deg,#fff0c0,#e2b860 55%,#a77a2a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 0 rgba(0,0,0,.6))}
+.sp-rule{display:flex;align-items:center;gap:10px;margin:2px 8px 8px}.sp-rule span{flex:1;height:1px;background:linear-gradient(90deg,transparent,#c9a24e,transparent)}
+.sp-rule i{font-style:normal;font-family:var(--f-brush);font-size:16px;color:#c9a24e;letter-spacing:.1em}
+.sp-sub{margin:0 0 18px;font-family:var(--f-body);font-style:italic;font-size:16px;color:#d9c7a4}
+.sp-go{min-width:240px;font-size:16px;padding:14px 22px}
+.sp-bg{opacity:.75}
+@media (max-width:700px){.sp-bg{opacity:.6}}
+.splash2::after{background:radial-gradient(ellipse at 50% 45%,rgba(12,7,5,.1),rgba(12,7,5,.72) 78%)}
+.sp-fan{margin:-84px auto 14px}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -3787,9 +3814,17 @@ function askHTML(){
     <div class="btns left"><button class="btn pri" data-a="delok">Delete deck</button><button class="btn ghost-dark" data-a="delno">Keep it</button></div></div></div>`;
 }
 function splashHTML(){
-  return `<div class="stage splash">${scrollHTML(`<div class="kanji-title" style="font-size:64px">刀道</div><h2 class="ttl" style="font-size:28px">Way of the Blade</h2>
-    <p class="sub">A trading card game of samurai honor</p>
-    <button class="btn pri" data-a="enter">${ACC?`Enter the dojo, ${esc(ACC.name)}`:'Begin your path'}</button>`)}</div>`;
+  const fan=['st_nobunaga','st_musashi','st_hanzo','st_kennyo'].filter(id=>C[id]&&IMG[id]).map((id,i)=>`<div class="sp-card c${i}">${card(id,{mini:true})}</div>`).join('');
+  return `<div class="splash2" role="dialog" aria-label="Way of the Blade">
+    <div class="sp-bg" style="background-image:url(${IMG.bgL}),url(${IMG.bgR})"></div><div class="sp-sun"></div>
+    <div class="sp-panel">
+      <div class="sp-fan">${fan}</div>
+      <div class="sp-logo">刀道</div>
+      <h1 class="sp-title">Way of the Blade</h1>
+      <div class="sp-rule"><span></span><i>武士の道</i><span></span></div>
+      <p class="sp-sub">A trading card game of samurai honor</p>
+      <button class="btn pri sp-go" data-a="enter">${ACC?`Enter the dojo, ${esc(ACC.name)}`:'Begin your path'}</button>
+    </div></div>`;
 }
 function renderScreen(){
   const root=$('#root');let h='';
