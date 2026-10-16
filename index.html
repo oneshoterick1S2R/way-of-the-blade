@@ -2340,7 +2340,7 @@ function card(id,o={}){
   }else if(d.t==='s'&&(o.mini||o.tiny)&&d.kw.includes('guard'))extra+=`<span class="kwb"><i>${ICON_GUARD}</i></span>`;
   const tag=o.btn?'button':'div';
   const size=o.tiny?'mini tiny':o.mini?'mini':'full';
-  const holo=d.rar==='L',myth=!!d.story&&!d.tok;
+  const holo=d.rar==='L',myth=false;
   return `<${tag} class="tcg f-${d.fr} ${size} ${holo?'holo':''} ${myth?'mythic':''} ${o.cls||''}" ${o.attrs||''}>
     <div class="tin">
       <div class="tname pp"><span class="nm">${d.n}</span>${gem}</div>
