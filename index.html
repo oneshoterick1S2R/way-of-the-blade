@@ -3799,7 +3799,7 @@ function dojoHTML(){
       </div>
     </section>
     <div class="playmodes">
-      <button class="pm-quest ${a.story&&a.story.unlocked?'open':''}" data-a="quest"><span class="mk">旅</span><span><b>Story Mode</b><small>${a.story&&a.story.unlocked?`The Road to Honnō-ji \u00B7 ${storyCount()}/12 legends`:'The Road to Honnō-ji \u00B7 locked for testing'}</small></span><em>${a.story&&a.story.unlocked?'Play':'\u{1F512}'}</em></button>
+      <button class="pm-quest open" data-a="quest"><span class="mk">旅</span><span><b>Story Mode</b><small>The Road to Honnō-ji \u00B7 ${storyCount()}/12 legends</small></span><em>Play</em></button>
       <button class="battle" data-a="skirmish"><span class="mk">戦</span><span><b>Clan Feud</b><small>vs the Unoshotto Clan \u00B7 ${esc(d.name)} \u00B7 ${v.ok?'ready':'needs fixing'}</small><small class="feudrank"><span class="mk">${a.mon}</span> Rank: <b>${titleOf(a.stats.wins)}</b> \u00B7 ${nt?`${nt[0]-a.stats.wins} more win${nt[0]-a.stats.wins>1?'s':''} to ${nt[1]}`:'highest rank reached'}</small></span></button>
     </div>
     <div class="tiles">
@@ -4050,7 +4050,7 @@ document.addEventListener('click',e=>{
     case 'skirmish':S.mode='ai';go('ladder');return;
     case 'ladgo':S.mode='ai';go('prebattle');return;
     case 'tutorial':startTutorial();return;
-    case 'quest':if(ACC.story&&ACC.story.unlocked){go('story');return}S.ask='story';S.storyPwErr=false;render();setTimeout(()=>{const i=document.getElementById('f-story');if(i)i.focus()},50);return;
+    case 'quest':if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;go('story');return;
     case 'storyok':{const i=document.getElementById('f-story');if(i&&i.value===STORY_PW){if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.ask=null;save();go('story')}else{S.storyPwErr=true;render();setTimeout(()=>{const j=document.getElementById('f-story');if(j)j.focus()},50)}return}
     case 'boss':S.boss=v;S.storyErr=null;go('boss');return;
     case 'bossgo':startStoryBattle(v);return;
