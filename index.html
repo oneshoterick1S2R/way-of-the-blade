@@ -2259,10 +2259,11 @@ function dollHTML(look){
     const f=skinK.includes(k)?SKIN_F[L.skin]:(tint&&tint.includes(k))?HAIR_F[L.hairc]:'none';
     return `<img src="${d.s}" alt="" style="left:${d.l}%;top:${d.t}%;width:${d.w}%;${f&&f!=='none'?`filter:${f}`:''}">`};
   const B=DOLL_BODY[L.armor]||1;
-  const lift=(FEET_Y-NECK_Y)*(B-1); /* how far the neck rises when the body grows */
+  const BW=B*({slim:.8,broad:1.22}[L.build]||1),BH=B*({slim:1.03,broad:.98}[L.build]||1);
+  const lift=(FEET_Y-NECK_Y)*(BH-1); /* how far the neck rises when the body grows */
   return `<div class="doll" role="img" aria-label="Your samurai">
-    <div class="dgrp" style="transform-origin:${NECK_X}% ${FEET_Y}%;transform:scale(${B})">${body.filter(Boolean).map(img).join('')}${img(DOLL_W[L.weapon])}</div>
-    <div class="dgrp" style="transform-origin:${NECK_X}% ${NECK_Y}%;transform:translateY(-${lift.toFixed(2)}%) scale(${DOLL_HEAD})">${head.filter(Boolean).map(img).join('')}</div></div>`;
+    <div class="dgrp" style="transform-origin:${NECK_X}% ${FEET_Y}%;transform:scale(${BW.toFixed(3)},${BH.toFixed(3)})">${body.filter(Boolean).map(img).join('')}${img(DOLL_W[L.weapon])}</div>
+    <div class="dgrp" style="transform-origin:${NECK_X}% ${NECK_Y}%;transform:translateY(${(-lift).toFixed(2)}%) scale(${DOLL_HEAD})">${head.filter(Boolean).map(img).join('')}</div></div>`;
 }
 const STAGE_BG=`<svg class="stagebg" viewBox="0 0 200 280" preserveAspectRatio="none" aria-hidden="true"><rect width="200" height="280" fill="url(#samBg)"/><circle cx="100" cy="92" r="58" fill="#b4261a" opacity=".85"/><path d="M0 268 Q100 252 200 268 L200 280 L0 280Z" fill="#2a1a10" opacity=".55"/></svg>`;
 /* figure: painted when every chosen piece has painted art, otherwise the drawn figure */
