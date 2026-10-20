@@ -1021,6 +1021,19 @@ button.tface{cursor:pointer}
 .hcard:hover{background:rgba(142,42,30,.12)}
 .histtip{margin:0 0 8px;font-size:12.5px;font-style:italic;color:#6b5a40}
 .histpeek{z-index:60}
+/* ===== Battle avatars: your samurai and the rival ===== */
+.avatar{position:relative;flex:none;width:62px;height:62px;border-radius:50%;overflow:visible;align-self:center}
+.avatar>.avdoll,.avatar>.avart{position:absolute;inset:0;border-radius:50%;overflow:hidden;border:2px solid currentColor;
+  background:var(--bd,none) var(--bdp,30% 20%)/cover no-repeat,radial-gradient(circle at 50% 35%,#4a3424,#1a110b)}
+.avatar.foe>.avdoll{background:radial-gradient(circle at 50% 35%,#5a1a10,#120605)}
+.avatar.foe{color:var(--shu)}.avatar.me{color:var(--clan,#c9a24e)}
+.avdoll .dollwrap{position:absolute;inset:0}
+.avdoll .doll{height:270%;bottom:auto;top:3%}
+.avdoll svg{position:absolute;left:50%;top:4%;width:170%;height:auto;transform:translateX(-50%)}
+.avart img,.avart svg{width:100%;height:100%;object-fit:cover;object-position:50% 22%;display:block}
+.avmon{position:absolute;right:-4px;bottom:-4px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#140c08;border:1.5px solid currentColor;font-family:var(--f-brush);font-size:13px}
+.side.me .avatar{box-shadow:0 0 12px rgba(201,162,78,.35);border-radius:50%}
+@media (max-width:380px){.avatar{width:52px;height:52px}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2522,6 +2535,13 @@ function card(id,o={}){
     </div></${tag}>`;
 }
 const modeHas=(s,i)=>!!(G.mode&&G.mode.list.some(t=>t.s===s&&t.i===i));
+function avatarHTML(p){
+  const P=G.pl[p],mon=P.who?P.who.mon:(p?'闇':ACC.mon);
+  let pic='';
+  if(p===1&&G.boss){const b=bossById(G.boss);pic=b?`<span class="avart">${art(b.card)}</span>`:''}
+  else{const look=P.who?P.who.look:(p?RIVAL_DOLL:ACC.look);pic=look?`<span class="avdoll">${figureHTML(look,'#7a1f14',mon,{bg:false})}</span>`:''}
+  return `<div class="avatar ${p?'foe':'me'}" ${p===0&&ACC?`style="${backdropCSS(P.who?P.who.look:ACC.look)}"`:''}>${pic}<span class="avmon">${mon}</span></div>`;
+}
 function sideHTML(p){
   const P=G.pl[p],foe=p===1,pw=PATH_INFO[P.path].power,PI=PATH_INFO[P.path];
   const pips=Array.from({length:HONOR_MAX},(_,i)=>`<i class="${i<P.honor?'on':''}"></i>`).join('');
@@ -2531,7 +2551,7 @@ function sideHTML(p){
   const powerBtn=foe?`<span class="pwr foe" title="${pw.n}: ${pw.x}"><span class="mk">${PI.k}</span>${pw.n}</span>`:
     `<button class="pwr ${canPower(0)&&myTurn()&&!G.mode?'ready':''}" data-act="power" ${canPower(0)&&myTurn()?'':'disabled'} title="${pw.x}"><span class="mk">${PI.k}</span>${pw.n}<em>${POWER_COST}</em></button>`;
   return `<section class="side ${foe?'foe':'me'} ${tgt?'target':''}" data-fx="h${p}" ${tgt?`data-act="honor" data-side="${p}" role="button" tabindex="0"`:''} aria-label="${P.name}">
-    <div class="mon">${P.who?P.who.mon:(foe?'闇':ACC.mon)}</div>
+    ${avatarHTML(p)}
     <div class="who"><b>${P.name}</b>
       <div class="meta">${backs}<span>${PI.n.replace(/^Way of (the )?/,'')} · Hand ${P.hand.length} · Deck ${P.deck.length}</span></div>${extra?`<div class="sideextra">${extra}</div>`:''}
       <div class="ki" aria-label="Ki ${P.ki} of ${P.maxKi}"><b>気 ${P.ki}/${P.maxKi}</b>${Array.from({length:Math.max(P.maxKi,P.ki)},(_,i)=>`<i class="${i<P.ki?'on':''}"></i>`).join('')}</div>
