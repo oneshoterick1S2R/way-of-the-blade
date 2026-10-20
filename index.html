@@ -1042,6 +1042,14 @@ button.tface{cursor:pointer}
 .backfig .bdoll{position:absolute;left:50%;width:150px;transform:translateX(-50%);top:-4px}
 .backfig .avmon{right:2px;bottom:10px;z-index:3}
 .side.me>.who{position:relative}
+/* ===== Large front-facing samurai on your panel ===== */
+.side.me{position:relative;padding-left:118px;overflow:visible}
+.traps.me{padding-left:108px}.traps.me .lab .mk{display:none}.traps.me .tslot{width:26px;height:38px}
+.frontfig{position:absolute;left:2px;bottom:0;width:116px;height:176px;overflow:hidden;color:var(--clan,#c9a24e);z-index:2;
+  -webkit-mask:linear-gradient(180deg,#000 84%,transparent);mask:linear-gradient(180deg,#000 84%,transparent)}
+.frontfig .dollwrap{position:absolute;inset:0}
+.frontfig .doll{height:210%;top:0;bottom:auto}
+.frontfig .avmon{right:2px;bottom:10px;z-index:3}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2563,6 +2571,7 @@ function avatarHTML(p){
   let pic='';
   if(p===1&&G.boss){const b=bossById(G.boss);pic=b?`<span class="avart">${art(b.card)}</span>`:''}
   else{const look=P.who?P.who.look:(p?RIVAL_DOLL:ACC.look);pic=look?`<span class="avdoll">${figureHTML(look,'#7a1f14',mon,{bg:false})}</span>`:''}
+  if(p===0&&ACC){const look=P.who?P.who.look:ACC.look;if(dollOK(look))return `<div class="frontfig" style="${backdropCSS(look)}">${figureHTML(look,'#7a1f14',mon,{bg:false})}<span class="avmon">${mon}</span></div>`}
   if(p===0&&typeof BACK_META!=='undefined'&&window.USE_BACK_VIEW){const look=P.who?P.who.look:ACC.look;return `<div class="backfig" style="${backdropCSS(look)}">${backDollHTML(look)}<span class="avmon">${mon}</span></div>`}
   return `<div class="avatar ${p?'foe':'me'}" ${p===0&&ACC?`style="${backdropCSS(P.who?P.who.look:ACC.look)}"`:''}>${pic}<span class="avmon">${mon}</span></div>`;
 }
