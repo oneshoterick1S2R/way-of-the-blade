@@ -1056,6 +1056,7 @@ button.tface{cursor:pointer}
 .frontfig.tall .doll{top:24px}
 .pwrinfo{display:inline-grid;place-items:center;width:20px;height:20px;margin:5px 0 0 4px;vertical-align:top;border-radius:50%;border:1px solid var(--gold);background:rgba(0,0,0,.45);color:var(--gold);font:italic 700 12px/1 Georgia,serif;cursor:pointer;padding:0}
 .pwrinfo:hover{background:var(--gold);color:#1a1210}
+.toast .tclose{display:block;margin-top:6px;font-size:11px;opacity:.65;font-style:italic}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2952,6 +2953,7 @@ async function aiTurnUI(){
 /* ===== Input ===== */
 document.addEventListener('click',e=>{
   if(S.screen!=='battle')return;
+  if(toast&&toast.sticky){const pb=e.target.closest('[data-act="powerinfo"]');toast=null;if(!pb){e.preventDefault();e.stopPropagation();render();return}}
   const b=e.target.closest('[data-act]');if(!b||!G)return;
   const act=b.dataset.act,P=G.pl[0];
   if(act==='aiskip'){if(aiSkip)aiSkip();else if(REMOTE.cur)remoteNext();return}
@@ -2978,7 +2980,7 @@ document.addEventListener('click',e=>{
     case 'tutagain':startTutorial();return;
     case 'storyretry':startStoryBattle(G.boss);return;
     case 'storymap':G=null;go('story');return;
-    case 'powerinfo':{const P=G.pl[+b.dataset.side],PI=PATH_INFO[P.path],pw=PI.power;showToast(PI.k,`${+b.dataset.side?'Foe’s':'Your'} Path Power · ${pw.n}`,`${pw.x} Costs ${POWER_COST} Ki, usable once per turn.`);clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toast=null;render()},4500);render();return}
+    case 'powerinfo':{const sd=+b.dataset.side,P=G.pl[sd],PI=PATH_INFO[P.path],pw=PI.power;clearTimeout(toastTimer);toast={k:PI.k,t:`${sd?'Foe’s':'Your'} Path Power · ${pw.n}`,x:`${pw.x} Costs ${POWER_COST} Ki, usable once per turn.<small class="tclose">Tap anywhere to close</small>`,sticky:true};render();return}
     case 'bossrule':{const b=bossById(G.boss);showToast('掟','Boss Rule · '+b.rule,b.rx);return}
     case 'dojo':if(G&&G.online){stopOnline();clearMatch()}G=null;go('dojo');return;
     case 'yield':if(!G.over){G.yieldAsk=true;render()}return;
