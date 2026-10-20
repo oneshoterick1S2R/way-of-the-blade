@@ -990,6 +990,33 @@ button.tface{cursor:pointer}
 #tut.act.free .tut-tip h3{font-size:15px;margin:0}
 #tut.act.free .tut-do{margin-top:4px}
 .samstage.bdstage{background:linear-gradient(180deg,rgba(20,15,11,.1),rgba(20,15,11,.45)),var(--bd,none) var(--bdp,30% 20%)/cover no-repeat,#2a2119}
+/* ===== Ambush rows: clearer ===== */
+.traps{gap:8px;padding:5px 8px;border-radius:8px;border:1px dashed rgba(185,163,224,.35);background:rgba(60,40,90,.14)}
+.traps.armed{border-style:solid;border-color:rgba(185,163,224,.6);background:rgba(70,45,110,.24)}
+.traps .lab{display:flex;align-items:center;gap:5px;color:#cbbbe8;font-size:10.5px}
+.traps .lab .mk{font-size:14px;color:#b9a3e0;letter-spacing:0}
+.traps .lab b{color:#f0e6ff}
+.tslots{display:flex;gap:6px}
+.tslot{width:30px;height:42px;border-radius:4px;display:grid;place-items:center;flex:none;position:relative}
+.tslot.empty{border:1.5px dashed rgba(185,163,224,.35);color:rgba(185,163,224,.35);font-family:var(--f-brush);font-size:14px;letter-spacing:0}
+.tslot.full{box-shadow:0 0 0 1.5px #b9a3e0,0 0 8px rgba(185,163,224,.55)}
+.tslot.full .back,.tslot.full>svg{width:100%;height:100%}
+.tslot.full>svg{display:block;border-radius:4px}
+.tslot .tface{width:100%;height:100%}
+.tslot.new{animation:trapIn 1.6s ease-out}
+@keyframes trapIn{0%{transform:translateY(-30px) scale(1.6) rotate(-12deg);opacity:0;box-shadow:0 0 0 2px #fff,0 0 30px 10px rgba(200,170,255,.9)}
+  40%{transform:none;opacity:1}100%{box-shadow:0 0 0 1.5px #b9a3e0,0 0 8px rgba(185,163,224,.55)}}
+.traps.ai-target{outline:3px solid #b9a3e0!important;box-shadow:0 0 22px 6px rgba(185,163,224,.75)!important}
+/* ===== Battle history ===== */
+.log{cursor:pointer;border-radius:6px;padding:4px 6px;margin:0 -6px}
+.log:hover{background:rgba(255,255,255,.04)}
+.loghint{display:block;font-size:10.5px;color:#c9a24e;margin-top:3px;letter-spacing:.04em}
+.scroll.hist{max-height:84vh;display:flex;flex-direction:column}
+.histlist{list-style:none;margin:8px 0 12px;padding:0 4px 0 0;overflow-y:auto;flex:1;min-height:120px;max-height:62vh;text-align:left;font-size:14px;line-height:1.4}
+.histlist li{padding:4px 2px;border-bottom:1px dotted rgba(90,63,34,.3)}
+.histlist li.turn{margin-top:8px;border:0;font-family:var(--f-card);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8e2a1e}
+@media (prefers-reduced-motion:reduce){.tslot.new{animation:none}}
+.traps{flex-wrap:nowrap;min-height:0}.traps .rules-btn{margin-left:auto;padding:4px 8px;font-size:10px;white-space:nowrap}.traps .lab{white-space:nowrap}@media (max-width:380px){.traps .lab .mk{display:none}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -1595,7 +1622,7 @@ function strongest(p){let b=null;for(const u of units(p))if(hp(u)>0&&(!b||str(u)
 const slotOf=u=>G.pl[u.owner].board.indexOf(u);
 
 const nm=p=>G.duel?G.pl[p].who.name:(p?'They':'You');
-function log(t){if(!G)return;G.log.push(t);if(G.log.length>40)G.log.shift()}
+function log(t){if(!G)return;G.log.push(t);G.logN=(G.logN||0)+1;if(G.log.length>300)G.log.shift()}
 const fx=(id,t,k)=>G.fx.push({id,t,k});
 
 /* ---------- basic effects ---------- */
@@ -1763,7 +1790,7 @@ function usePower(p,t){
     case 'shadow':{const v=units(p).some(u=>C[u.c].aura==='hanzo')?2:1;if(t.i==='h')hurtHonor(t.s,v);else dmg(tu,v);break}
     case 'temple':if(t.i==='h')healHonor(p,2);else heal(tu,2);if(units(p).some(u=>C[u.c].aura==='ikko'))units(p).forEach(u=>heal(u,1));break;
   }
-  log(`${nm(p)} ${G.duel||p?'uses':'use'} ${pw.n}.`);cleanup();return true;
+  log(`${nm(p)} ${G.duel?'uses':'use'} ${pw.n}.`);cleanup();return true;
 }
 function techTargets(p,s){const u=G.pl[p].board[s];const ab=C[u.c].ab;return ab&&ab.tg?targetsFor(p,ab.tg,u):[]}
 function useTech(p,s,t){
@@ -2510,8 +2537,12 @@ function sideHTML(p){
 }
 function trapsHTML(p){
   const P=G.pl[p];
-  const items=P.traps.map(t=>p===1?`<span class="back" title="Face-down ambush">${BACK}</span>`:`<button class="tface" data-act="peektrap" data-c="${t}" title="${C[t].n}">${C[t].v[0]}</button>`).join('');
-  return `<div class="traps"><span class="lab">Ambushes ${P.traps.length}/${TRAP_MAX}</span>${items}${p===1?'<button class="rules-btn" data-act="rules">How to play</button>':''}</div>`;
+  if(!G._tc)G._tc=[P.traps.length,G.pl[1].traps.length];
+  const grew=P.traps.length>(G._tc[p]||0);G._tc[p]=P.traps.length;
+  const items=P.traps.map((t,i)=>{const nw=grew&&i===P.traps.length-1?' new':'';return p===1?`<span class="tslot full${nw}" title="Face-down ambush">${BACK}</span>`:`<button class="tslot full mine${nw}" data-act="peektrap" data-c="${t}" title="${C[t].n}"><span class="tface">${C[t].v[0]}</span></button>`}).join('')
+    +Array.from({length:TRAP_MAX-P.traps.length},()=>'<span class="tslot empty">伏</span>').join('');
+  const who=p===1?(G.duel||G.online?esc(G.pl[1].who?G.pl[1].who.name:G.pl[1].name):'Rival'):'Your';
+  return `<div class="traps ${p===1?'foe':'me'} ${P.traps.length?'armed':''}" data-fx="t${p}"><span class="lab"><span class="mk">伏</span>${who}${p===1&&who!=='Rival'?'’s':''} ambushes <b>${P.traps.length}/${TRAP_MAX}</b></span><span class="tslots">${items}</span></div>`;
 }
 function unitHTML(u,side,slot){
   let cls='';
@@ -2554,7 +2585,7 @@ function midHTML(){
   const hint=myTurn()&&!G.sel&&!G.mode?(st==='done'?'<div class="hint urge-hint">Nothing left to play. End your turn.</div>':st==='noki'?'<div class="hint">No more cards you can afford. Strike with your ready samurai, then end your turn.</div>':'<div class="hint">Gold-edged cards are ready to play.</div>'):'';
   return `<div class="mid"><div class="phase">${phase} ${seals}${timerHTML()}</div>
     <button class="endbtn ${urge}" data-act="end" ${myTurn()&&!G.mode?'':'disabled'}><span>終</span>End turn</button>
-    <div class="log">${lines}${hint}</div></div>`;
+    <div class="log" data-act="history" role="button" tabindex="0" aria-label="Battle history">${lines}${hint}<small class="loghint">📜 Tap for full battle history</small></div></div>`;
 }
 function reasonsHand(i){
   const P=G.pl[0],c=P.hand[i],d=C[c];
@@ -2656,7 +2687,7 @@ function renderBattle(){
   if(showIntro)layer+=introHTML();else if(G.over)layer+=overHTML();
   if(G.yieldAsk)layer+=`<div class="modal"><div class="scroll" role="dialog"><div class="big">降</div><h2>Yield this battle?</h2><p class="sub">It counts as a loss on your record.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="yieldok">Yield</button><button class="btn ghost-dark" data-act="yieldno">Keep fighting</button></div></div></div>`;
   layer+=bannerHTML()+`<button class="qbtn" data-act="menu" aria-label="Battle menu"><span class="mk">退</span><small>Menu</small></button>`+(G.menu?menuHTML():'');
-  layer+=aiCallHTML();
+  layer+=aiCallHTML()+historyHTML();
   if(toast)layer+=`<div class="toast" role="status">${toast.c?`<div class="tcard">${card(toast.c,{mini:true})}</div>`:`<div class="tk">${toast.k}</div>`}<div><b>${toast.t}</b><p>${toast.x}</p></div></div>`;
   $('#layer').innerHTML=layer;
   const fxs=G.fx;G.fx=[];
@@ -2739,12 +2770,19 @@ async function endPlayerTurn(){
   await aiTurnUI();
 }
 /* ----- Rival turn: slowed down, each move announced and highlighted ----- */
-let aiSkip=null;
+let aiSkip=null;const REMOTE={q:[],cur:null,t:null};
+function remoteFeed(lines,name){lines.forEach(l=>REMOTE.q.push({t:l,x:'',tag:name}));if(!REMOTE.cur)remoteNext()}
+function remoteNext(){clearTimeout(REMOTE.t);REMOTE.cur=REMOTE.q.shift()||null;if(G)render();if(REMOTE.cur)REMOTE.t=setTimeout(remoteNext,REMOTE.q.length>3?900:1600)}
+function historyHTML(){
+  if(!G||!G.showHist)return '';
+  const rows=G.log.map(l=>l.startsWith('\u2014')?`<li class="turn">${esc(l.replace(/\u2014/g,'').trim())}</li>`:`<li>${esc(l)}</li>`).join('');
+  return `<div class="modal" data-act="histclose"><div class="scroll hist" role="dialog" aria-label="Battle history"><h2>Battle history</h2><ol class="histlist" id="histlist">${rows}</ol><div class="btns"><button class="btn pri" data-act="histclose">Back to battle</button></div></div></div>`;
+}
 const aiWait=ms=>new Promise(r=>{const t=setTimeout(()=>{aiSkip=null;r()},ms);aiSkip=()=>{clearTimeout(t);aiSkip=null;r()}});
 function aiCallHTML(){
-  const c=G.aiCall;if(!c)return '';
+  const c=G.aiCall||(G.online&&REMOTE.cur);if(!c)return '';
   return `<div class="aicall" data-act="aiskip" role="status" aria-live="polite"><div class="aic-in">
-    <div class="aic-tag"><span class="mk">敵</span>Rival’s move</div>
+    <div class="aic-tag"><span class="mk">敵</span>${c.tag?esc(c.tag)+'’s move':'Rival’s move'}</div>
     ${c.c?`<div class="aic-card">${card(c.c,{mini:true})}</div>`:''}
     <div class="aic-tx"><b>${c.t}</b>${c.x?`<p>${c.x}</p>`:''}</div>
     <small class="aic-skip">Tap to speed up</small></div></div>`;
@@ -2776,7 +2814,7 @@ async function aiTurnUI(){
       await doAbility(1,a.s,a.t);G.aiFocus=null;render();await aiWait(800);continue}
     if(a.k==='play'){
       const c=G.pl[1].hand[a.i],d=C[c];
-      if(d.t==='a'){G.aiCall={t:'Rival sets an Ambush',x:'A face-down card waits in their ambush row. It springs when you strike and its condition is met.'}}
+      if(d.t==='a'){G.aiFocus={t:'t1'};G.aiCall={t:'Rival sets an Ambush',x:'A face-down card waits in their ambush row. It springs when you strike and its condition is met.'}}
       else if(d.t==='w'){const tu=a.o&&a.o.slot!=null?G.pl[1].board[a.o.slot]:null;G.aiFocus={a:tu&&tu.uid};G.aiCall={t:`Rival equips ${d.n}${tu?' to '+C[tu.c].n:''}`,x:'Equip: '+wText(d),c}}
       else{G.aiFocus={t:tgtFx(a.t)};G.aiCall={t:`Rival summons ${d.n}`+(a.t&&d.arr?` \u2192 ${tgtName(a.t)}`:''),x:d.x||d.ty,c}}
       render();await aiWait(d.t==='a'?1500:1900);G.aiCall=null;
@@ -2794,7 +2832,9 @@ document.addEventListener('click',e=>{
   if(S.screen!=='battle')return;
   const b=e.target.closest('[data-act]');if(!b||!G)return;
   const act=b.dataset.act,P=G.pl[0];
-  if(act==='aiskip'){if(aiSkip)aiSkip();return}
+  if(act==='aiskip'){if(aiSkip)aiSkip();else if(REMOTE.cur)remoteNext();return}
+  if(act==='history'){G.showHist=true;render();const h=document.getElementById('histlist');if(h)h.scrollTop=h.scrollHeight;return}
+  if(act==='histclose'){if(e.target===b||b.tagName==='BUTTON'){G.showHist=false;render()}return}
   if(act==='sfx'){SFX.toggle();render();return}
   if(act==='music'){SFX.toggleMusic();render();return}
   if(act==='menu'){G.menu=true;render();return}
@@ -3059,7 +3099,7 @@ setInterval(()=>{
 /* ===== Online duel across two devices (shared database, turn by turn) ===== */
 let DBH=null,USERH=null,ON=null;
 const MATCH_KEY='wotb-online-match';
-const VOL=['sel','mode','fx','busy','drawn','mull','menu','yieldAsk','handoff','idleAt','rec','unl','xpRes'];
+const VOL=['sel','mode','fx','busy','drawn','mull','menu','yieldAsk','handoff','idleAt','rec','unl','xpRes','showHist','_tc','aiCall','aiFocus'];
 function swapState(c){
   c.pl.reverse();c.pl.forEach((P,i)=>P.board.forEach(u=>{if(u)u.owner=i}));
   c.turn=1-c.turn;c.first=1-c.first;
@@ -3165,19 +3205,19 @@ function onMatchSnap(snap){
   if(d.rev<=ON.rev&&!(d.status==='over'&&G&&G.online&&!G.over))return;
   ON.rev=Math.max(ON.rev,d.rev);
   const c=JSON.parse(d.state);
-  const old=G&&G.online?G:null,oldLog=old?old.log.length:0,wasMine=old&&old.turn===0;
+  const old=G&&G.online?G:null,oldN=old?(old.logN||old.log.length):0,wasMine=old&&old.turn===0,keepHist=old&&old.showHist;
   const keepMull=old&&old.mull&&c.phase==='mull'?old.mull:null;
   G=fromCanon(c);
   ON.last=JSON.stringify(canonOf(G));
   if(G.phase==='mull'){G.mull=keepMull||{sel:[],done:false,fresh:[]};if(ON.seat===0)watchMulls()}
   if(S.screen!=='battle')enterBattle();
   if(G.phase==='play'&&!G.over){
-    const fresh=G.log.slice(oldLog>G.log.length?0:oldLog).filter(l=>!l.startsWith('—'));
-    if(fresh.length&&old)SFX.play('card');
-    if(fresh.length&&old)showToast(G.pl[1].who.mon,oppName(),fresh[fresh.length-1]);
+    const nNew=Math.min(G.log.length,Math.max(0,(G.logN||G.log.length)-oldN));const fresh=G.log.slice(G.log.length-nNew).filter(l=>!l.startsWith('\u2014'));
+    if(fresh.length&&old){SFX.play('card');remoteFeed(fresh,oppName())}
     if(G.turn===0&&!wasMine){touchIdle();showBanner('Your turn',`気 ${G.pl[0].ki} Ki`)}
     else if(G.turn!==0&&old&&old.phase!=='play')showBanner(`${oppName()}\u2019s turn`,'Waiting for their move');
   }
+  if(keepHist)G.showHist=true;
   if(G.over)clearMatch();
   render();
 }
