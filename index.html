@@ -2328,7 +2328,7 @@ function dollMissing(look){const L=Object.assign({},DEFAULT_LOOK,look||{}),out=[
   return out}
 const HAIR_F={black:'brightness(.72)',brown:'none',chestnut:'sepia(.5) saturate(1.6) brightness(1.15)',grey:'grayscale(1) brightness(1.75)',white:'grayscale(1) brightness(2.7) contrast(.8)'};
 /* proportions: head group shrinks a little; armour widens the body (feet stay on the pedestal) */
-const DOLL_HEAD=0.88,DOLL_BODY={gi:1.07,ashigaru:1.07,lamellar:1.07,okegawa:1.07,lord:1.07,shogun:1.07};
+let DOLL_HEAD=0.97,DOLL_HEAD_DY=1.5;const DOLL_BODY={gi:1.07,ashigaru:1.07,lamellar:1.07,okegawa:1.07,lord:1.07,shogun:1.07};
 const NECK_X=285/600*100,NECK_Y=195/880*100,FEET_Y=858/880*100;
 function dollHTML(look){
   const L=cleanLook(Object.assign({},DEFAULT_LOOK,look||{}));
@@ -2363,7 +2363,7 @@ function dollHTML(look){
   const lift=(FEET_Y-NECK_Y)*(BH-1); /* how far the neck rises when the body grows */
   return `<div class="doll" role="img" aria-label="Your samurai">
     <div class="dgrp" style="transform-origin:${NECK_X}% ${FEET_Y}%;transform:scale(${BW.toFixed(3)},${BH.toFixed(3)})">${body.filter(Boolean).map(img).join('')}${img(DOLL_W[L.weapon])}</div>
-    <div class="dgrp" style="transform-origin:${NECK_X}% ${NECK_Y}%;transform:translateY(${(-lift).toFixed(2)}%) scale(${DOLL_HEAD})">${head.filter(Boolean).map(img).join('')}</div></div>`;
+    <div class="dgrp" style="transform-origin:${NECK_X}% ${NECK_Y}%;transform:translateY(${(-lift+DOLL_HEAD_DY).toFixed(2)}%) scale(${DOLL_HEAD})">${head.filter(Boolean).map(img).join('')}</div></div>`;
 }
 const STAGE_BG=`<svg class="stagebg" viewBox="0 0 200 280" preserveAspectRatio="none" aria-hidden="true"><rect width="200" height="280" fill="url(#samBg)"/><circle cx="100" cy="92" r="58" fill="#b4261a" opacity=".85"/><path d="M0 268 Q100 252 200 268 L200 280 L0 280Z" fill="#2a1a10" opacity=".55"/></svg>`;
 /* figure: painted when every chosen piece has painted art, otherwise the drawn figure */
