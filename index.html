@@ -1017,6 +1017,10 @@ button.tface{cursor:pointer}
 .histlist li.turn{margin-top:8px;border:0;font-family:var(--f-card);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8e2a1e}
 @media (prefers-reduced-motion:reduce){.tslot.new{animation:none}}
 .traps{flex-wrap:nowrap;min-height:0}.traps .rules-btn{margin-left:auto;padding:4px 8px;font-size:10px;white-space:nowrap}.traps .lab{white-space:nowrap}@media (max-width:380px){.traps .lab .mk{display:none}}
+.hcard{display:inline;padding:0 2px;margin:0 -2px;border-radius:3px;font:inherit;font-weight:700;color:#8e2a1e;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
+.hcard:hover{background:rgba(142,42,30,.12)}
+.histtip{margin:0 0 8px;font-size:12.5px;font-style:italic;color:#6b5a40}
+.histpeek{z-index:60}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2775,8 +2779,12 @@ function remoteFeed(lines,name){lines.forEach(l=>REMOTE.q.push({t:l,x:'',tag:nam
 function remoteNext(){clearTimeout(REMOTE.t);REMOTE.cur=REMOTE.q.shift()||null;if(G)render();if(REMOTE.cur)REMOTE.t=setTimeout(remoteNext,REMOTE.q.length>3?900:1600)}
 function historyHTML(){
   if(!G||!G.showHist)return '';
-  const rows=G.log.map(l=>l.startsWith('\u2014')?`<li class="turn">${esc(l.replace(/\u2014/g,'').trim())}</li>`:`<li>${esc(l)}</li>`).join('');
-  return `<div class="modal" data-act="histclose"><div class="scroll hist" role="dialog" aria-label="Battle history"><h2>Battle history</h2><ol class="histlist" id="histlist">${rows}</ol><div class="btns"><button class="btn pri" data-act="histclose">Back to battle</button></div></div></div>`;
+  if(!historyHTML.re){const names=Object.keys(C).map(k=>[C[k].n,k]).sort((x,y)=>y[0].length-x[0].length);historyHTML.map=Object.fromEntries(names);
+    historyHTML.re=new RegExp('('+names.map(n=>n[0].replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g')}
+  const link=l=>esc(l).replace(historyHTML.re,m=>{const id=historyHTML.map[m];return id?`<button class="hcard" data-act="histcard" data-c="${id}">${m}</button>`:m});
+  const rows=G.log.map(l=>l.startsWith('\u2014')?`<li class="turn">${esc(l.replace(/\u2014/g,'').trim())}</li>`:`<li>${link(l)}</li>`).join('');
+  const peek=G.histCard&&C[G.histCard]?`<div class="inspect histpeek" data-act="histpeekclose" role="dialog" aria-label="${C[G.histCard].n}">${card(G.histCard)}<div class="info"><div class="btns"><button class="btn" data-act="histpeekclose">Close</button></div></div></div>`:'';
+  return `<div class="modal" data-act="histclose"><div class="scroll hist" role="dialog" aria-label="Battle history"><h2>Battle history</h2><ol class="histlist" id="histlist">${rows}</ol><p class="histtip">Tap a <u>card name</u> to see the card.</p><div class="btns"><button class="btn pri" data-act="histclose">Back to battle</button></div></div></div>${peek}`;
 }
 const aiWait=ms=>new Promise(r=>{const t=setTimeout(()=>{aiSkip=null;r()},ms);aiSkip=()=>{clearTimeout(t);aiSkip=null;r()}});
 function aiCallHTML(){
@@ -2834,6 +2842,8 @@ document.addEventListener('click',e=>{
   const act=b.dataset.act,P=G.pl[0];
   if(act==='aiskip'){if(aiSkip)aiSkip();else if(REMOTE.cur)remoteNext();return}
   if(act==='history'){G.showHist=true;render();const h=document.getElementById('histlist');if(h)h.scrollTop=h.scrollHeight;return}
+  if(act==='histcard'){G.histCard=b.dataset.c;const h=document.getElementById('histlist'),st=h?h.scrollTop:0;render();const h2=document.getElementById('histlist');if(h2)h2.scrollTop=st;return}
+  if(act==='histpeekclose'){if(e.target===b||b.tagName==='BUTTON'){const h=document.getElementById('histlist'),st=h?h.scrollTop:0;G.histCard=null;render();const h2=document.getElementById('histlist');if(h2)h2.scrollTop=st}return}
   if(act==='histclose'){if(e.target===b||b.tagName==='BUTTON'){G.showHist=false;render()}return}
   if(act==='sfx'){SFX.toggle();render();return}
   if(act==='music'){SFX.toggleMusic();render();return}
@@ -3099,7 +3109,7 @@ setInterval(()=>{
 /* ===== Online duel across two devices (shared database, turn by turn) ===== */
 let DBH=null,USERH=null,ON=null;
 const MATCH_KEY='wotb-online-match';
-const VOL=['sel','mode','fx','busy','drawn','mull','menu','yieldAsk','handoff','idleAt','rec','unl','xpRes','showHist','_tc','aiCall','aiFocus'];
+const VOL=['sel','mode','fx','busy','drawn','mull','menu','yieldAsk','handoff','idleAt','rec','unl','xpRes','showHist','histCard','_tc','aiCall','aiFocus'];
 function swapState(c){
   c.pl.reverse();c.pl.forEach((P,i)=>P.board.forEach(u=>{if(u)u.owner=i}));
   c.turn=1-c.turn;c.first=1-c.first;
