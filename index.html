@@ -2673,8 +2673,8 @@ function avatarHTML(p){
   const P=G.pl[p],mon=P.who?P.who.mon:(p?'闇':ACC.mon);
   let pic='';
   if(p===1&&G.boss){const b=bossById(G.boss);pic=b?`<span class="avart">${art(b.card)}</span>`:''}
-  else{const look=P.who?P.who.look:(p?RIVAL_DOLL:ACC.look);pic=look?`<span class="avdoll">${figureHTML(look,'#7a1f14',mon,{bg:false})}</span>`:''}
-  if(p===0&&ACC){const look=P.who?P.who.look:ACC.look;if(dollOK(look))return `<div class="frontfig${['crescent','oni','sun'].includes(look.helmet)?' tall':''}" style="${backdropCSS(look)}">${figureHTML(look,'#7a1f14',mon,{bg:false})}<span class="avmon">${mon}</span></div>`}
+  else{const look=P.who?P.who.look:(p?RIVAL_DOLL:ACC.look);pic=look?`<span class="avdoll">${figureHTML(look,P.who&&P.who.accent||(p?'#7a1f14':accentOf(ACC)),mon,{bg:false})}</span>`:''}
+  if(p===0&&ACC){const look=P.who?P.who.look:ACC.look;if(dollOK(look))return `<div class="frontfig${['crescent','oni','sun'].includes(look.helmet)?' tall':''}" style="${backdropCSS(look)}">${figureHTML(look,P.who&&P.who.accent||accentOf(ACC),mon,{bg:false})}<span class="avmon">${mon}</span></div>`}
   if(p===0&&typeof BACK_META!=='undefined'&&window.USE_BACK_VIEW){const look=P.who?P.who.look:ACC.look;return `<div class="backfig" style="${backdropCSS(look)}">${backDollHTML(look)}<span class="avmon">${mon}</span></div>`}
   return `<div class="avatar ${p?'foe':'me'}" ${p===0&&ACC?`style="${backdropCSS(P.who?P.who.look:ACC.look)}"`:''}>${pic}<span class="avmon">${mon}</span></div>`;
 }
@@ -4108,7 +4108,7 @@ function prebattleHTML(){
 }
 function p2HTML(){
   const p=S.p2;
-  return `<div class="p2box"><div class="mfig solo">${figureHTML(p.look,'#5f86c4',p.mon,{bg:false})}</div>
+  return `<div class="p2box"><div class="mfig solo">${figureHTML(p.look,p.accent||'#5f86c4',p.mon,{bg:false})}</div>
     <div class="p2f"><label class="field"><span>Player 2 name</span><input id="f-p2name" maxlength="20" value="${esc(p.name)}" placeholder="Player 2" autocomplete="off"></label>
       <button class="btn sm" data-a="p2look"><span class="mk">賽</span> New look</button>
       <div class="field"><span>Player 2 Path \u00B7 full starter deck</span><div class="p2paths">${PATHS4.map(k=>`<button class="chip ${p.path===k?'on':''}" data-a="p2path" data-v="${k}">${PATH_INFO[k].k} ${PATH_INFO[k].n.replace(/^Way of (the )?/,'')}</button>`).join('')}</div></div></div></div>`;
