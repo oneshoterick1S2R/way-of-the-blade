@@ -3867,7 +3867,7 @@ function storyHTML(){
       return `<button class="scard ${cur?'cur':''} ${won?'won':open?'open':'lock'}" data-a="boss" data-v="${b.id}" ${open||won?'':'disabled'} aria-label="${esc(b.n)}">
         <img src="${IMG[b.card]||''}" alt=""><span class="scg"></span>
         ${won?'<span class="scst won">✓</span>':!open?'<span class="scst"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg></span>':''}
-        <span class="sctx"><small>Boss ${['I','II','III'][bs.indexOf(b)]}${b.final?' · Final':''}</small><b>${b.n}</b></span></button>`}).join('');
+        <span class="sctx"><small>${won?'⚔ Rematch':'Boss '+['I','II','III'][bs.indexOf(b)]+(b.final?' · Final':'')}</small><b>${b.n}</b></span></button>`}).join('');
     return `<section class="stpage p-${ch.path}" style="--tint:${tint}" aria-label="Chapter ${ch.id}">
       <img class="stbg" src="${IMG[hero.card]||''}" alt=""><span class="stshade"></span><span class="stkanji" aria-hidden="true">${ch.k}</span>
       <div class="stin">
