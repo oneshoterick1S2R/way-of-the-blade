@@ -1057,6 +1057,7 @@ button.tface{cursor:pointer}
 .pwrinfo{display:inline-grid;place-items:center;width:20px;height:20px;margin:5px 0 0 4px;vertical-align:top;border-radius:50%;border:1px solid var(--gold);background:rgba(0,0,0,.45);color:var(--gold);font:italic 700 12px/1 Georgia,serif;cursor:pointer;padding:0}
 .pwrinfo:hover{background:var(--gold);color:#1a1210}
 .toast .tclose{display:block;margin-top:6px;font-size:11px;opacity:.65;font-style:italic}
+.traps.me{padding-left:132px}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2696,7 +2697,7 @@ function trapsHTML(p){
   const items=P.traps.map((t,i)=>{const nw=grew&&i===P.traps.length-1?' new':'';return p===1?`<span class="tslot full${nw}" title="Face-down ambush">${BACK}</span>`:`<button class="tslot full mine${nw}" data-act="peektrap" data-c="${t}" title="${C[t].n}"><span class="tface">${C[t].v[0]}</span></button>`}).join('')
     +Array.from({length:TRAP_MAX-P.traps.length},()=>'<span class="tslot empty">伏</span>').join('');
   const who=p===1?(G.duel||G.online?esc(G.pl[1].who?G.pl[1].who.name:G.pl[1].name):'Rival'):'Your';
-  return `<div class="traps ${p===1?'foe':'me'} ${P.traps.length?'armed':''}" data-fx="t${p}"><span class="lab"><span class="mk">伏</span>${who}${p===1&&who!=='Rival'?'’s':''} ambushes <b>${P.traps.length}/${TRAP_MAX}</b></span><span class="tslots">${items}</span></div>`;
+  return `<div class="traps ${p===1?'foe':'me'} ${P.traps.length?'armed':''}" data-fx="t${p}"><span class="lab"><span class="mk">伏</span>${p===0?'Ambushes':`${who}${who!=='Rival'?'’s':''} ambushes`} <b>${P.traps.length}/${TRAP_MAX}</b></span><span class="tslots">${items}</span></div>`;
 }
 function unitHTML(u,side,slot){
   let cls='';
