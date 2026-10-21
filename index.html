@@ -3606,7 +3606,10 @@ document.addEventListener('click',e=>{
   e.stopPropagation();e.preventDefault();
 },true);
 /* ===== Story narration (browser text-to-speech, deep slow male voice) ===== */
-const NARR={on:null,v:null};
+const NARR={on:null,v:null,a:null};
+/* recorded narration: filled in as audio files are added (key -> data URI or URL) */
+const NARR_AUDIO=window.NARR_AUDIO||{};
+const narrKey=id=>id==='hero'?'intro':/^ch\d/.test(id)?'chapter'+id.slice(2):(()=>{const i=BOSSES.findIndex(b=>id==='b'+b.id||id==='bi'+b.id);return i<0?id:'boss'+(i+1)})();
 function narrVoice(){
   if(!window.speechSynthesis)return null;
   const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));if(!vs.length)return null;
@@ -3614,10 +3617,12 @@ function narrVoice(){
   for(const r of pref){const v=vs.find(x=>r.test(x.name));if(v)return v}
   return vs[0];
 }
-function narrStop(){try{speechSynthesis.cancel()}catch(e){}NARR.on=null;document.querySelectorAll('.saybtn.on').forEach(b=>b.classList.remove('on'))}
+function narrStop(){try{speechSynthesis.cancel()}catch(e){}if(NARR.a){NARR.a.pause();NARR.a=null}NARR.on=null;document.querySelectorAll('.saybtn.on').forEach(b=>b.classList.remove('on'))}
 function narrSay(id,text,btn){
-  if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){narrNote();return}
   const same=NARR.on===id;narrStop();if(same)return;
+  const rec=NARR_AUDIO[narrKey(id)];
+  if(rec){NARR.on=id;btn&&btn.classList.add('on');const a=new Audio(rec);NARR.a=a;a.onended=()=>{if(NARR.on===id)narrStop()};a.play().catch(()=>narrStop());return}
+  if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){narrNote();return}
   NARR.on=id;btn&&btn.classList.add('on');
   const parts=text.replace(/<[^>]+>/g,'').replace(/Honnō-ji/g,'Hon-no-ji').replace(/ō/g,'o').replace(/ū/g,'u').split(/(?<=[.!?…])\s+/);
   const v=narrVoice();
