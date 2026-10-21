@@ -2491,11 +2491,11 @@ function dollHTML(look,accent){
     const f=skinK.includes(k)?SKIN_F[L.skin]:(tint&&tint.includes(k))?HAIR_F[L.hairc]:'none';
     let l=d.l,t=d.t,mk='';const gp=DOLL_GRIP[k];
     if(gp){const fa=L.sex==='f'&&L.armor==='ashigaru'?'ashigaru_f':L.armor,fp=DOLL_FIST[fa]||DOLL_FIST.ashigaru;
-      l+=(fp[0]-gp[0])/6;t+=(fp[1]-gp[1])/8.8;
+      l+=(fp[0]-gp[0]+(k==='w_bow'||k==='w_nodachi'?24:0))/6;t+=(fp[1]-gp[1])/8.8;
       /* cut a fist-shaped hole in the weapon so the hand sits over the grip */
       const W=d.w*6,H=W*gp[2],x=(fp[0]-l*6)/W*100,y=(fp[1]-t*8.8)/H*100,rx=21/W*100,ry=25/H*100;
       const g=`radial-gradient(ellipse ${rx.toFixed(2)}% ${ry.toFixed(2)}% at ${x.toFixed(2)}% ${y.toFixed(2)}%,transparent 0,transparent 80%,#000 100%)`;
-      mk=`-webkit-mask-image:${g};mask-image:${g};`}
+      mk='';}
     const T=DOLL_TINT[k],pc=L.acol&&L.acol!=='default'?optVal('acol',L.acol):null;
     const ov=(m,c,op)=>m&&c?`<span class="dtint" style="left:${l}%;top:${t}%;width:${d.w}%;aspect-ratio:1/${T.r};background:${c};-webkit-mask-image:url(${m});mask-image:url(${m});opacity:${op}"></span>`:'';
     return `<img src="${d.s}" alt="" style="left:${l}%;top:${t}%;width:${d.w}%;${mk}${f&&f!=='none'?`filter:${f}`:''}">`+(T?ov(T.p,pc,L.acol==='ivory'?.6:.8)+(L.acol==='ivory'&&T.p?ov(T.p,'#cfc3a6',.45).replace('class="dtint"','class="dtint scr"'):'')+ov(T.c,accent,.85):'')};
@@ -2503,7 +2503,7 @@ function dollHTML(look,accent){
   const BW=B,BH=B;
   const lift=(FEET_Y-NECK_Y)*(BH-1); /* how far the neck rises when the body grows */
   return `<div class="doll" role="img" aria-label="Your samurai">
-    <div class="dgrp" style="transform-origin:${NECK_X}% ${FEET_Y}%;transform:scale(${BW.toFixed(3)},${BH.toFixed(3)})">${body.filter(Boolean).map(img).join('')}${img(DOLL_W[L.weapon])}</div>
+    <div class="dgrp" style="transform-origin:${NECK_X}% ${FEET_Y}%;transform:scale(${BW.toFixed(3)},${BH.toFixed(3)})">${img(body[0])}${img(DOLL_W[L.weapon])}${body.slice(1).filter(Boolean).map(img).join('')}</div>
     <div class="dgrp" style="transform-origin:${NECK_X}% ${NECK_Y}%;transform:translateY(${(-lift+DOLL_HEAD_DY).toFixed(2)}%) scale(${DOLL_HEAD})">${head.filter(Boolean).map(img).join('')}</div></div>`;
 }
 const STAGE_BG=`<svg class="stagebg" viewBox="0 0 200 280" preserveAspectRatio="none" aria-hidden="true"><rect width="200" height="280" fill="url(#samBg)"/><circle cx="100" cy="92" r="58" fill="#b4261a" opacity=".85"/><path d="M0 268 Q100 252 200 268 L200 280 L0 280Z" fill="#2a1a10" opacity=".55"/></svg>`;
