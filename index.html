@@ -519,6 +519,7 @@ body.artbg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 @media (max-width:700px){.sp-bg{opacity:.6}}
 .splash2::after{background:radial-gradient(ellipse at 50% 45%,rgba(12,7,5,.1),rgba(12,7,5,.72) 78%)}
 .sp-fan{margin:-84px auto 14px}
+.rung .rs{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.rematch{min-height:36px;padding:0 12px;border-radius:99px;border:1px solid var(--gold);background:rgba(0,0,0,.35);color:var(--gold);font-family:var(--f-card);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.rematch:hover{background:var(--gold);color:#1a1210}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -4245,7 +4246,7 @@ function prebattleHTML(){
   const d=ACC.decks.find(x=>x.id===S.deckId),v=validate(d);
   const list=sortIds(Object.keys(d.cards).filter(id=>d.cards[id]>0&&C[id])).map(id=>`<button class="li" data-a="peek" data-v="${id}"><span class="lt t-${C[id].t}"></span><span class="ln">${C[id].n}</span><em>×${d.cards[id]}</em></button>`).join('');
   return `<div class="screen">
-    <header class="topbar"><button class="back" data-a="nav" data-v="${S.mode==='duel'?'friend':'ladder'}">← Back</button><h1>${S.mode==='duel'?'Battle a Friend':'Clan Feud'}</h1></header>
+    <header class="topbar"><button class="back" data-a="nav" data-v="${S.mode==='duel'?'friend':'ladder'}">← Back</button><h1>${S.mode==='duel'?'Battle a Friend':S.feudRank!=null?'Rematch · '+TITLES[S.feudRank][1]:'Clan Feud'}</h1></header>
     <section class="sect"><h2>Your active deck</h2>
       <div class="activedeck"><span class="mk dp-k p-${d.path}">${PATH_INFO[d.path].k}</span><div><b>${esc(d.name)}</b><small>${PATH_INFO[d.path].n}</small></div><span class="pill ${v.ok?'ok':'bad'}">${v.ok?'Valid':'Invalid'}</span></div>
       <button class="link" data-a="nav" data-v="decks">Change your active deck in Decks</button></section>
@@ -4275,8 +4276,9 @@ function ladderHTML(){
   const rungs=TITLES.map((t,i)=>{
     const st=i<cur?'done':i===cur?'here':i===cur+1?'next':'lock',[k,x]=RANK_INFO[t[1]]||['',''];
     let side='';
-    if(st==='here')side=`<span class="you"><span class="mk">${esc(ACC.mon)}</span>You are here</span>`;
-    else if(st==='done')side='<span class="chk">✓ Earned</span>';
+    const rem=`<button class="rematch" data-a="ladrank" data-v="${i}" aria-label="Challenge the ${t[1]} rival">Challenge</button>`;
+    if(st==='here')side=`<span class="you"><span class="mk">${esc(ACC.mon)}</span>You are here</span>${i>0?rem:''}`;
+    else if(st==='done')side='<span class="chk">✓ Earned</span>'+rem;
     else if(st==='next'){const prev=TITLES[i-1][0],need=t[0]-prev,got=w-prev;
       side=(need<=10?`<span class="pips" aria-label="${got} of ${need} wins">${Array.from({length:need},(_,j)=>`<i class="${j<got?'on':''}"></i>`).join('')}</span>`:`<span class="lbar" role="progressbar" aria-valuemin="0" aria-valuemax="${need}" aria-valuenow="${got}"><i style="width:${Math.round(got/need*100)}%"></i></span>`)+`<small>${got}/${need} \u00B7 ${t[0]-w} more win${t[0]-w>1?'s':''}</small>`}
     else side=`<small>${t[0]} wins</small>`;
@@ -4364,7 +4366,8 @@ function startBattle(deckId){
     G.duel=true;G.pl[0].who=me;G.pl[1].who={name:p2.name.trim()||'Player 2',mon:p2.mon,look:p2.look,accent:'#5f86c4'};
   }else{
     const foePath=pick(PATHS4);
-    newGame(clone(d.cards),d.path,starterDeck(foePath,feudWins()>=5),foePath,[ACC.clan||'Your Clan','Unoshotto Clan']);
+    const rk=S.feudRank,strong=rk!=null?TITLES[rk][0]>=5:feudWins()>=5;
+    newGame(clone(d.cards),d.path,starterDeck(foePath,strong),foePath,[ACC.clan||'Your Clan','Unoshotto Clan']);G.feudRank=rk;
   }
   showIntro=!ACC.seenRules;window.scrollTo(0,0);render();
 }
@@ -4410,8 +4413,10 @@ document.addEventListener('click',e=>{
     case 'minus':{const d=deck();if(!d)return;const n=d.cards[v]||0;if(n>0){if(n===1)delete d.cards[v];else d.cards[v]=n-1;save();render()}return}
     case 'clear':{const d=deck();if(d){d.cards={};save();render()}return}
     case 'begin':startBattle(active().id);return;
-    case 'skirmish':S.mode='ai';go('ladder');return;
-    case 'ladgo':S.mode='ai';go('prebattle');return;
+    case 'skirmish':S.mode='ai';S.feudRank=null;go('ladder');return;
+    case 'ladgo':S.mode='ai';S.feudRank=null;go('prebattle');return;
+    case 'ladrank':S.mode='ai';S.feudRank=+v;go('prebattle');return;
+    case 'skirmish0':return;
     case 'tutorial':startTutorial();return;
     case 'quest':if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;go('story');return;
     case 'storyok':{const i=document.getElementById('f-story');if(i&&i.value===STORY_PW){if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.ask=null;save();go('story')}else{S.storyPwErr=true;render();setTimeout(()=>{const j=document.getElementById('f-story');if(j)j.focus()},50)}return}
