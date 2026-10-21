@@ -1072,6 +1072,7 @@ button.tface{cursor:pointer}
 .saybtn.on .w1{animation:sayw 1s infinite}.saybtn.on .w2{animation:sayw 1s .3s infinite}
 @keyframes sayw{0%,100%{opacity:.2}50%{opacity:1}}
 .sayrow{display:flex;gap:6px;align-items:flex-start}.sayrow .stx{flex:1;margin:0}
+.narrnote{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99999;width:min(360px,92vw);background:#120c09;border:1px solid var(--gold);border-radius:8px;padding:12px 14px;color:#ecdcb4;box-shadow:0 10px 30px rgba(0,0,0,.7);font-size:14px;display:flex;flex-direction:column;gap:4px}.narrnote b{color:var(--gold)}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -3615,7 +3616,7 @@ function narrVoice(){
 }
 function narrStop(){try{speechSynthesis.cancel()}catch(e){}NARR.on=null;document.querySelectorAll('.saybtn.on').forEach(b=>b.classList.remove('on'))}
 function narrSay(id,text,btn){
-  if(!window.speechSynthesis){alert('Your browser does not support read-aloud.');return}
+  if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){narrNote();return}
   const same=NARR.on===id;narrStop();if(same)return;
   NARR.on=id;btn&&btn.classList.add('on');
   const parts=text.replace(/<[^>]+>/g,'').replace(/Honnō-ji/g,'Hon-no-ji').replace(/ō/g,'o').replace(/ū/g,'u').split(/(?<=[.!?…])\s+/);
@@ -3624,9 +3625,12 @@ function narrSay(id,text,btn){
     if(i===parts.length-1)u.onend=()=>{if(NARR.on===id)narrStop()};speechSynthesis.speak(u)});
 }
 if(window.speechSynthesis){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}
-const sayBtn=(id,text)=>window.speechSynthesis?`<button class="saybtn ${NARR.on===id?'on':''}" data-say="${id}" data-txt="${esc(String(text).replace(/<[^>]+>/g,''))}" aria-label="Read aloud" title="Read aloud"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="w1" d="M16 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path class="w2" d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg></button>`:'';
+const sayBtn=(id,text)=>`<button class="saybtn ${NARR.on===id?'on':''}" data-say="${id}" data-txt="${esc(String(text).replace(/<[^>]+>/g,''))}" aria-label="Read aloud" title="Read aloud"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="w1" d="M16 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path class="w2" d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg></button>`;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-say]');if(!b)return;e.preventDefault();e.stopPropagation();narrSay(b.dataset.say,b.dataset.txt,b)},true);
 document.addEventListener('click',e=>{if(NARR.on&&e.target.closest('[data-a],[data-act]')&&!e.target.closest('[data-say]'))narrStop()});
+function narrNote(){let n=document.getElementById('narrnote');if(n)n.remove();n=document.createElement('div');n.id='narrnote';n.className='narrnote';
+  n.innerHTML='<b>Read-aloud isn’t available in this app.</b><span>Open the game in Chrome or Safari (oneshoterick1s2r.github.io/way-of-the-blade) to hear the story narrated.</span>';
+  document.body.appendChild(n);setTimeout(()=>n.remove(),5000);n.onclick=()=>n.remove()}
 const STORY_HERO=`You are a nameless ronin in 1570s Japan, the last survivor of a village burned in Oda Nobunaga’s wars. To reach the Demon King, you must prove yourself to the twelve greatest warriors of the age. Each one you defeat pledges their banner to you and their card joins your collection. The last warrior of each Path gives a Legendary.`;
 
 /* ===== Story Mode: The Road to Honnō-ji (12 bosses, 4 chapters) ===== */
