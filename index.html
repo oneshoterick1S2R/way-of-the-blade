@@ -3608,7 +3608,7 @@ document.addEventListener('click',e=>{
 /* ===== Story narration (browser text-to-speech, deep slow male voice) ===== */
 const NARR={on:null,v:null,a:null};
 /* recorded narration: filled in as audio files are added (key -> data URI or URL) */
-const NARR_AUDIO=window.NARR_AUDIO||{};
+const NARR_AUDIO=window.NARR_AUDIO||Object.fromEntries(['intro','chapter1','chapter2','chapter3','chapter4',...Array.from({length:12},(_,i)=>'boss'+(i+1))].map(k=>[k,'audio/'+k+'.mp3']));
 const narrKey=id=>id==='hero'?'intro':/^ch\d/.test(id)?'chapter'+id.slice(2):(()=>{const i=BOSSES.findIndex(b=>id==='b'+b.id||id==='bi'+b.id);return i<0?id:'boss'+(i+1)})();
 function narrVoice(){
   if(!window.speechSynthesis)return null;
