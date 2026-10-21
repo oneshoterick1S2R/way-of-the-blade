@@ -2894,7 +2894,7 @@ function overHTML(){
   return `<div class="modal"><div class="scroll" role="dialog">
     <div class="big">${win?'勝':'敗'}</div><h2>${win?'Victory':'Defeat'}</h2>
     <p class="sub">${win?'The Unoshotto Clan bows. Your banners fly over the field.':'Your clan’s Honor is spent. Sharpen your blades and return.'}</p>
-    <p style="margin:0 0 12px;font-size:14px">Record: ${ACC.stats.wins} wins · ${ACC.stats.losses} losses · Title: ${titleOf(ACC.stats.wins)}</p>
+    <p style="margin:0 0 12px;font-size:14px">Record: ${ACC.stats.wins} wins · ${ACC.stats.losses} losses · Title: ${titleOf(feudWins())}</p>
     ${xpBlock}
     ${un}
     <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="again">Fight again</button><button class="btn ghost-dark" data-act="dojo">Return to dojo</button></div>
@@ -3935,6 +3935,8 @@ const BASE_UNLOCKED=ORDER.filter(id=>!LOCKABLE.includes(id)&&!C[id].story);
 const UNLOCK_RULE='Each victory unlocks a random Epic or Legendary card.';
 const MONS=['桜','竜','虎','月','鷹','波','炎','雷'];
 const COLORS={shu:['Vermilion','#d0513a'],ai:['Indigo','#5f86c4'],kin:['Gold','#c9a24e'],matsu:['Pine','#7fa05a'],fuji:['Wisteria','#9b7fc9'],yuki:['Snow','#d8d0bf']};
+/* rank progress: Admin testing unlocks every Clan Feud rank */
+const feudWins=()=>ACC?(ACC.admin?Math.max(ACC.stats.wins||0,100):ACC.stats.wins||0):0;
 const TITLES=[[0,'Ashigaru'],[3,'Gokenin'],[10,'Hatamoto'],[25,'Taishō'],[50,'Daimyō'],[100,'Shōgun']];
 const titleOf=w=>TITLES.filter(t=>w>=t[0]).pop()[1];
 const nextTitle=w=>TITLES.find(t=>t[0]>w);
@@ -4141,7 +4143,7 @@ function createHTML(edit){
 function xpBar(xp){const x=xpInfo(xp||0);
   return `<div class="xpbar"><div class="xlv">Lv ${x.lv}</div><div class="xtrack"><div class="bar2"><i style="width:${x.max?100:Math.round(x.into/x.need*100)}%"></i></div><small>${x.max?'Highest level reached':`${x.into} / ${x.need} XP to Level ${x.lv+1}`}</small></div></div>`;}
 function dojoHTML(){
-  const a=ACC,d=active(),v=validate(d),nt=nextTitle(a.stats.wins);
+  const a=ACC,d=active(),v=validate(d),nt=nextTitle(feudWins());
   const locked=LOCKABLE.filter(id=>!a.unlocked.includes(id));
   return `<div class="screen">
     <header class="topbar"><div class="logo sm">刀道</div><span class="sync">${sfxBtnHTML()}${liveHTML()}${S.sync==='account'?'Saved to your account':'Saved on this device'}</span></header>${liveListHTML()}
@@ -4159,7 +4161,7 @@ function dojoHTML(){
     </section>
     <div class="playmodes">
       <button class="pm-quest open" data-a="quest"><span class="mk">旅</span><span><b>Story Mode</b><small>The Road to Honnō-ji \u00B7 ${storyCount()}/12 legends</small></span><em>Play</em></button>
-      <button class="battle" data-a="skirmish"><span class="mk">戦</span><span><b>Clan Feud</b><small>vs the Unoshotto Clan \u00B7 ${esc(d.name)} \u00B7 ${v.ok?'ready':'needs fixing'}</small><small class="feudrank"><span class="mk">${a.mon}</span> Rank: <b>${titleOf(a.stats.wins)}</b> \u00B7 ${nt?`${nt[0]-a.stats.wins} more win${nt[0]-a.stats.wins>1?'s':''} to ${nt[1]}`:'highest rank reached'}</small></span></button>
+      <button class="battle" data-a="skirmish"><span class="mk">戦</span><span><b>Clan Feud</b><small>vs the Unoshotto Clan \u00B7 ${esc(d.name)} \u00B7 ${v.ok?'ready':'needs fixing'}</small><small class="feudrank"><span class="mk">${a.mon}</span> Rank: <b>${titleOf(feudWins())}</b> \u00B7 ${nt?`${nt[0]-feudWins()} more win${nt[0]-feudWins()>1?'s':''} to ${nt[1]}`:'highest rank reached'}</small></span></button>
     </div>
     <div class="tiles">
       <button class="tile" data-a="nav" data-v="decks"><span class="mk">札</span><b>Decks</b><small>${a.decks.length} of ${MAX_DECKS} built \u00B7 ${a.unlocked.length}/${ORDER.length} cards</small></button>
@@ -4269,7 +4271,7 @@ const RANK_INFO={'Ashigaru':['足軽','Foot soldier. Every warrior starts here.'
 const RANK_ART={'Ashigaru':'ashi','Gokenin':'gokenin','Hatamoto':'hatamoto','Taishō':'taisho','Daimyō':'daimyo','Shōgun':'shogun'};
 const RIVAL_DOLL={sex:'m',helmet:'oni',mask:'onimask',armor:'shogun',weapon:'kanabo',banner:'war',hair:'bald',beard:'none'};
 function ladderHTML(){
-  const w=ACC.stats.wins,l=ACC.stats.losses,cur=TITLES.filter(t=>w>=t[0]).length-1,nt=nextTitle(w);
+  const w=feudWins(),l=ACC.stats.losses,cur=TITLES.filter(t=>w>=t[0]).length-1,nt=nextTitle(w);
   const rungs=TITLES.map((t,i)=>{
     const st=i<cur?'done':i===cur?'here':i===cur+1?'next':'lock',[k,x]=RANK_INFO[t[1]]||['',''];
     let side='';
@@ -4284,7 +4286,7 @@ function ladderHTML(){
     <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Clan Feud</h1></header>
     <div class="ladhead"><div class="ladfoe">${figureHTML(RIVAL_DOLL,'#7a1f14','闇',{bg:false})}<span class="mk">闇</span></div><div class="ladtx"><small>The road to Shōgun</small><h2>${nt?`Next rank: ${nt[1]}`:'You are Shōgun'}</h2>
       <p>Defeat the Unoshotto Clan to climb the ranks. Each victory also unlocks a new card.</p>
-      <p class="lrec"><b>${w}</b> wins · <b>${l}</b> losses against the Unoshotto Clan</p></div></div>
+      <p class="lrec"><b>${ACC.stats.wins}</b> wins · <b>${l}</b> losses against the Unoshotto Clan</p></div></div>
     <ol class="ladder">${rungs}</ol>
     <button class="battle" data-a="ladgo"><span class="mk">戦</span><span><b>Choose your deck</b><small>Then begin the feud</small></span></button>
   </div>`;
@@ -4299,7 +4301,7 @@ function peekHTML(){
 function askHTML(){
   if(S.ask==='story')return storyLockHTML();
   if(S.ask==='admin')return `<div class="modal"><div class="scroll" role="dialog" aria-label="Admin"><div class="big">鍵</div><h2>Admin unlock</h2>
-    <p class="sub">Testing only. Unlocks every card, every piece of gear, the highest level and every Story Mode boss.</p>
+    <p class="sub">Testing only. Unlocks every card, every piece of gear, the highest level, every Clan Feud rank and every Story Mode boss.</p>
     <label class="field"><span>Password</span><input id="f-admin" type="password" autocomplete="off"></label>
     ${S.adminErr?'<p class="why" style="color:#8d2b1b">Wrong password. Try again.</p>':''}
     <div class="btns left"><button class="btn pri" data-a="adminok">Unlock everything</button><button class="btn ghost-dark" data-a="delno">Cancel</button></div></div></div>`;
@@ -4362,7 +4364,7 @@ function startBattle(deckId){
     G.duel=true;G.pl[0].who=me;G.pl[1].who={name:p2.name.trim()||'Player 2',mon:p2.mon,look:p2.look,accent:'#5f86c4'};
   }else{
     const foePath=pick(PATHS4);
-    newGame(clone(d.cards),d.path,starterDeck(foePath,ACC.stats.wins>=5),foePath,[ACC.clan||'Your Clan','Unoshotto Clan']);
+    newGame(clone(d.cards),d.path,starterDeck(foePath,feudWins()>=5),foePath,[ACC.clan||'Your Clan','Unoshotto Clan']);
   }
   showIntro=!ACC.seenRules;window.scrollTo(0,0);render();
 }
