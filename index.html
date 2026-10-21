@@ -1083,6 +1083,8 @@ button.tface{cursor:pointer}
 .np-in p{margin:0;font-family:var(--f-text);font-size:17px;line-height:1.5}
 .np-bar{height:3px;background:rgba(255,255,255,.1);margin-top:12px;border-radius:2px;overflow:hidden}.np-bar span{display:block;height:100%;width:0;background:var(--gold)}
 @keyframes npin{from{opacity:0;transform:translateY(20px)}}
+.np-x{display:grid;place-items:center;padding:0;line-height:1;font-family:system-ui,-apple-system,sans-serif;font-size:16px;align-self:center;-webkit-appearance:none;appearance:none}
+.np-x svg{width:14px;height:14px;display:block}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -3657,7 +3659,7 @@ function narrPanel(id){
   let n=document.getElementById('narrpanel');if(n)n.remove();
   const I=narrInfo(id);if(!I)return;
   n=document.createElement('div');n.id='narrpanel';n.className='narrpanel';n.setAttribute('role','dialog');n.setAttribute('aria-label','Narration');
-  n.innerHTML=`<div class="np-in"><div class="np-h"><span class="np-k">${I.k}</span><div><small>Narration</small><b>${I.t}</b></div><button class="np-x" aria-label="Stop narration">✕</button></div><p>${I.x}</p><div class="np-bar"><span></span></div></div>`;
+  n.innerHTML=`<div class="np-in"><div class="np-h"><span class="np-k">${I.k}</span><div><small>Narration</small><b>${I.t}</b></div><button class="np-x" aria-label="Stop narration"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div><p>${I.x}</p><div class="np-bar"><span></span></div></div>`;
   document.body.appendChild(n);
   n.querySelector('.np-x').onclick=e=>{e.stopPropagation();narrStop()};
   n.onclick=e=>{if(e.target===n)narrStop()};
@@ -3739,6 +3741,7 @@ const bossById=id=>BOSSES.find(b=>b.id===id);
 const storyBeaten=id=>!!(ACC&&ACC.story&&ACC.story.beaten&&ACC.story.beaten[id]);
 const storyCount=()=>BOSSES.filter(b=>storyBeaten(b.id)).length;
 function bossOpen(b){
+  if(ACC&&ACC.admin)return true;
   if(b.ch===4&&BOSSES.filter(x=>x.ch<4).some(x=>!storyBeaten(x.id)))return false;
   const prev=BOSSES.filter(x=>x.ch===b.ch);const i=prev.indexOf(b);return i===0||storyBeaten(prev[i-1].id);
 }
@@ -4231,7 +4234,7 @@ function peekHTML(){
 function askHTML(){
   if(S.ask==='story')return storyLockHTML();
   if(S.ask==='admin')return `<div class="modal"><div class="scroll" role="dialog" aria-label="Admin"><div class="big">鍵</div><h2>Admin unlock</h2>
-    <p class="sub">Testing only. Unlocks every card, every piece of gear and the highest level.</p>
+    <p class="sub">Testing only. Unlocks every card, every piece of gear, the highest level and every Story Mode boss.</p>
     <label class="field"><span>Password</span><input id="f-admin" type="password" autocomplete="off"></label>
     ${S.adminErr?'<p class="why" style="color:#8d2b1b">Wrong password. Try again.</p>':''}
     <div class="btns left"><button class="btn pri" data-a="adminok">Unlock everything</button><button class="btn ghost-dark" data-a="delno">Cancel</button></div></div></div>`;
