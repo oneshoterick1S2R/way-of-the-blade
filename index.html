@@ -1073,6 +1073,16 @@ button.tface{cursor:pointer}
 @keyframes sayw{0%,100%{opacity:.2}50%{opacity:1}}
 .sayrow{display:flex;gap:6px;align-items:flex-start}.sayrow .stx{flex:1;margin:0}
 .narrnote{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99999;width:min(360px,92vw);background:#120c09;border:1px solid var(--gold);border-radius:8px;padding:12px 14px;color:#ecdcb4;box-shadow:0 10px 30px rgba(0,0,0,.7);font-size:14px;display:flex;flex-direction:column;gap:4px}.narrnote b{color:var(--gold)}
+.narrpanel{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-end;justify-content:center;padding:16px;background:linear-gradient(transparent 35%,rgba(0,0,0,.65));animation:npin .35s ease-out}
+.np-in{width:min(460px,100%);background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(150,32,20,.3),transparent 70%),var(--grain),linear-gradient(#1d1410,#0d0907);border:1px solid rgba(201,162,78,.6);border-radius:6px;padding:14px 16px 12px;color:#ecdcb4;box-shadow:0 18px 50px rgba(0,0,0,.8);max-height:60vh;overflow:auto}
+.np-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}.np-h>div{flex:1;min-width:0}
+.np-k{font-family:var(--f-brush);font-size:34px;line-height:1;color:#c7432c}
+.np-h small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.np-h b{font-family:var(--f-card);font-size:17px;color:#f3e6c6}
+.np-x{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(0,0,0,.4);color:var(--gold);font-size:15px;cursor:pointer;flex:none}
+.np-in p{margin:0;font-family:var(--f-text);font-size:17px;line-height:1.5}
+.np-bar{height:3px;background:rgba(255,255,255,.1);margin-top:12px;border-radius:2px;overflow:hidden}.np-bar span{display:block;height:100%;width:0;background:var(--gold)}
+@keyframes npin{from{opacity:0;transform:translateY(20px)}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -3617,13 +3627,13 @@ function narrVoice(){
   for(const r of pref){const v=vs.find(x=>r.test(x.name));if(v)return v}
   return vs[0];
 }
-function narrStop(){try{speechSynthesis.cancel()}catch(e){}if(NARR.a){NARR.a.pause();NARR.a=null}NARR.on=null;document.querySelectorAll('.saybtn.on').forEach(b=>b.classList.remove('on'))}
+function narrStop(){const pn=document.getElementById('narrpanel');if(pn)pn.remove();try{speechSynthesis.cancel()}catch(e){}if(NARR.a){NARR.a.pause();NARR.a=null}NARR.on=null;document.querySelectorAll('.saybtn.on').forEach(b=>b.classList.remove('on'))}
 function narrSay(id,text,btn){
   const same=NARR.on===id;narrStop();if(same)return;
   const rec=NARR_AUDIO[narrKey(id)];
-  if(rec){NARR.on=id;btn&&btn.classList.add('on');const a=new Audio(rec);NARR.a=a;a.onended=()=>{if(NARR.on===id)narrStop()};a.play().catch(()=>narrStop());return}
+  if(rec){NARR.on=id;btn&&btn.classList.add('on');narrPanel(id);const a=new Audio(rec);NARR.a=a;a.onended=()=>{if(NARR.on===id)narrStop()};a.play().then(narrProgress).catch(()=>narrStop());return}
   if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){narrNote();return}
-  NARR.on=id;btn&&btn.classList.add('on');
+  NARR.on=id;btn&&btn.classList.add('on');narrPanel(id);
   const parts=text.replace(/<[^>]+>/g,'').replace(/Honnō-ji/g,'Hon-no-ji').replace(/ō/g,'o').replace(/ū/g,'u').split(/(?<=[.!?…])\s+/);
   const v=narrVoice();
   parts.forEach((t,i)=>{const u=new SpeechSynthesisUtterance(t);if(v)u.voice=v;u.lang=v?v.lang:'en-GB';u.rate=.82;u.pitch=.55;u.volume=1;
@@ -3636,6 +3646,34 @@ document.addEventListener('click',e=>{if(NARR.on&&e.target.closest('[data-a],[da
 function narrNote(){let n=document.getElementById('narrnote');if(n)n.remove();n=document.createElement('div');n.id='narrnote';n.className='narrnote';
   n.innerHTML='<b>Read-aloud isn’t available in this app.</b><span>Open the game in Chrome or Safari (oneshoterick1s2r.github.io/way-of-the-blade) to hear the story narrated.</span>';
   document.body.appendChild(n);setTimeout(()=>n.remove(),5000);n.onclick=()=>n.remove()}
+
+/* ---- on-screen panel showing what is being read ---- */
+function narrInfo(id){
+  if(id==='hero')return {k:'旅',t:'The Road to Honnō-ji',x:STORY_HERO};
+  if(/^ch\d/.test(id)){const c=CHAPTERS.find(c=>'ch'+c.id===id);return c&&{k:c.k,t:'Chapter '+c.id+' · '+c.t,x:c.x}}
+  const b=BOSSES.find(b=>id==='b'+b.id||id==='bi'+b.id);if(b){const c=CHAPTERS.find(c=>c.id===b.ch);return {k:c?c.k:'戦',t:b.n+' · '+b.ti,x:b.story}}
+  return null}
+function narrPanel(id){
+  let n=document.getElementById('narrpanel');if(n)n.remove();
+  const I=narrInfo(id);if(!I)return;
+  n=document.createElement('div');n.id='narrpanel';n.className='narrpanel';n.setAttribute('role','dialog');n.setAttribute('aria-label','Narration');
+  n.innerHTML=`<div class="np-in"><div class="np-h"><span class="np-k">${I.k}</span><div><small>Narration</small><b>${I.t}</b></div><button class="np-x" aria-label="Stop narration">✕</button></div><p>${I.x}</p><div class="np-bar"><span></span></div></div>`;
+  document.body.appendChild(n);
+  n.querySelector('.np-x').onclick=e=>{e.stopPropagation();narrStop()};
+  n.onclick=e=>{if(e.target===n)narrStop()};
+}
+function narrProgress(){const n=document.querySelector('#narrpanel .np-bar span');if(n&&NARR.a&&NARR.a.duration)n.style.width=(NARR.a.currentTime/NARR.a.duration*100)+'%';if(NARR.a)requestAnimationFrame(narrProgress)}
+/* ---- first-visit auto narration ---- */
+function narrAuto(){
+  if(!ACC||NARR.on)return;
+  let id=null;
+  if(S.screen==='story')id='hero';
+  else if(S.screen==='boss'&&S.boss)id='b'+S.boss;
+  if(!id)return;
+  const key=narrKey(id);ACC.heard=ACC.heard||[];if(ACC.heard.includes(key))return;
+  ACC.heard.push(key);save();
+  setTimeout(()=>{const b=document.querySelector(`[data-say="${id}"]`);narrSay(id,narrInfo(id).x,b)},250);
+}
 const STORY_HERO=`You are a nameless ronin in 1570s Japan, the last survivor of a village burned in Oda Nobunaga’s wars. To reach the Demon King, you must prove yourself to the twelve greatest warriors of the age. Each one you defeat pledges their banner to you and their card joins your collection. The last warrior of each Path gives a Legendary.`;
 
 /* ===== Story Mode: The Road to Honnō-ji (12 bosses, 4 chapters) ===== */
@@ -4243,6 +4281,7 @@ function render(){
   document.documentElement.style.setProperty('--clan',ACC?COLORS[ACC.color][1]:'#c9a24e');
   if(S.screen==='battle'&&G)renderBattle();else{renderScreen();if(TUT)tutRender()}
   mythicReveal();
+  if(typeof narrAuto==='function')narrAuto();
 }
 function startBattle(deckId){
   const d=ACC.decks.find(x=>x.id===deckId);if(!d||!validate(d).ok){go('prebattle');return}
