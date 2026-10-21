@@ -2353,7 +2353,7 @@ function dollMissing(look){const L=Object.assign({},DEFAULT_LOOK,look||{}),out=[
   return out}
 const HAIR_F={black:'brightness(.72)',brown:'none',chestnut:'sepia(.5) saturate(1.6) brightness(1.15)',grey:'grayscale(1) brightness(1.75)',white:'grayscale(1) brightness(2.7) contrast(.8)'};
 /* proportions: head group shrinks a little; armour widens the body (feet stay on the pedestal) */
-let DOLL_HEAD=1.12,DOLL_HEAD_DY=2.8;const DOLL_BODY={gi:1.07,ashigaru:1.07,lamellar:1.07,okegawa:1.07,lord:1.07,shogun:1.07};
+let DOLL_HEAD=0.9,DOLL_HEAD_DY=0.4;const DOLL_BODY={gi:1.07,ashigaru:1.07,lamellar:1.07,okegawa:1.07,lord:1.07,shogun:1.07};
 const NECK_X=285/600*100,NECK_Y=195/880*100,FEET_Y=858/880*100;
 function dollHTML(look){
   const L=cleanLook(Object.assign({},DEFAULT_LOOK,look||{}));
