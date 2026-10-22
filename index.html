@@ -531,6 +531,13 @@ body.artbg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 .crest{display:grid;place-items:center;color:#e7cf94}
 .crest.on{color:#fff}
 .avmon .kamon{width:84%;height:84%}
+.doll .dcrest{position:absolute;display:block;aspect-ratio:1;background:#f3e6c6;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;opacity:.9;filter:drop-shadow(0 0 1px rgba(0,0,0,.6));pointer-events:none}
+.npmon{display:block;margin:0 auto 2px;width:30px;height:30px;color:var(--gold)}
+.npmon .kamon{width:100%;height:100%}
+.mt-av{overflow:visible}
+.mt-av .dollwrap{border-radius:50%;overflow:hidden}
+.mt-mon{position:absolute;right:-5px;bottom:-5px;width:20px;height:20px;border-radius:50%;background:#140c08;border:1.5px solid var(--gold);color:var(--gold);display:grid;place-items:center;z-index:2}
+.mt-mon .kamon{width:80%;height:80%}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -2671,7 +2678,9 @@ const HAIR_F={black:'brightness(.72)',brown:'none',chestnut:'sepia(.5) saturate(
 /* proportions: head group shrinks a little; armour widens the body (feet stay on the pedestal) */
 let DOLL_HEAD=0.9,DOLL_HEAD_DY=0.4;const DOLL_BODY={gi:1.07,ashigaru:1.07,lamellar:1.07,okegawa:1.07,lord:1.07,shogun:1.07};
 const NECK_X=285/600*100,NECK_Y=195/880*100,FEET_Y=858/880*100;
-function dollHTML(look,accent){
+/* where the family crest sits on each back banner (doll canvas px, before body scale) */
+const BANNER_CREST={crest:[391,171,64],war:[404,120,50]};
+function dollHTML(look,accent,crest){
   const L=cleanLook(Object.assign({},DEFAULT_LOOK,look||{}));
   const covers=['zukin','hood','kuwagata','kabuto','crescent','oni','sun'].includes(L.helmet);
   if(L.hair==='classic'&&covers)L.beard='goatee';
@@ -2710,14 +2719,14 @@ function dollHTML(look,accent){
   const BW=B,BH=B;
   const lift=(FEET_Y-NECK_Y)*(BH-1); /* how far the neck rises when the body grows */
   return `<div class="doll" role="img" aria-label="Your samurai">
-    <div class="dgrp" style="transform-origin:${NECK_X}% ${FEET_Y}%;transform:scale(${BW.toFixed(3)},${BH.toFixed(3)})">${img(body[0])}${img(DOLL['wb'+(DOLL_W[L.weapon]||'').slice(1)]?'wb'+DOLL_W[L.weapon].slice(1):DOLL_W[L.weapon])}${body.slice(1).filter(Boolean).map(img).join('')}</div>
+    <div class="dgrp" style="transform-origin:${NECK_X}% ${FEET_Y}%;transform:scale(${BW.toFixed(3)},${BH.toFixed(3)})">${img(body[0])}${img(DOLL['wb'+(DOLL_W[L.weapon]||'').slice(1)]?'wb'+DOLL_W[L.weapon].slice(1):DOLL_W[L.weapon])}${(()=>{const bc=BANNER_CREST[L.banner];if(!bc||!crest||typeof MON_IMG==='undefined'||!MON_IMG[crest])return '';const w=bc[2];return `<span class="dcrest" style="left:${((bc[0]-w/2)/6).toFixed(2)}%;top:${((bc[1]-w/2)/8.8).toFixed(2)}%;width:${(w/6).toFixed(2)}%;-webkit-mask-image:url(${MON_IMG[crest]});mask-image:url(${MON_IMG[crest]})"></span>`})()}${body.slice(1).filter(Boolean).map(img).join('')}</div>
     <div class="dgrp" style="transform-origin:${NECK_X}% ${NECK_Y}%;transform:translateY(${(-lift+DOLL_HEAD_DY).toFixed(2)}%) scale(${DOLL_HEAD})">${head.filter(Boolean).map(img).join('')}</div></div>`;
 }
 const STAGE_BG=`<svg class="stagebg" viewBox="0 0 200 280" preserveAspectRatio="none" aria-hidden="true"><rect width="200" height="280" fill="url(#samBg)"/><circle cx="100" cy="92" r="58" fill="#b4261a" opacity=".85"/><path d="M0 268 Q100 252 200 268 L200 280 L0 280Z" fill="#2a1a10" opacity=".55"/></svg>`;
 /* figure: painted when every chosen piece has painted art, otherwise the drawn figure */
 function figureHTML(look,accent,crest,o={}){
   if(!dollOK(look))return samuraiSVG(look,accent,crest,o);
-  return `<div class="dollwrap">${o.bg===false?'':STAGE_BG}${dollHTML(look,accent)}</div>`;
+  return `<div class="dollwrap">${o.bg===false?'':STAGE_BG}${dollHTML(look,accent,crest)}</div>`;
 }
 
 /* ---------- portrait backdrops ---------- */
@@ -4286,7 +4295,7 @@ const accentOf=a=>COLORS[a.color]?COLORS[a.color][1]:'#c9a24e';
 function samStage(a,o={}){
   const xi=xpInfo(a.xp||0);
   return `<div class="samstage bdstage ${o.cls||''}" style="${backdropCSS(a.look)}">${figureHTML(a.look,accentOf(a),a.mon,{bg:false})}
-    <div class="nameplate"><b id="pv-name">${esc(a.name)||'Your name'}</b><small><span id="pv-clan">${esc(a.clan)||'Your clan'}</span> \u00B7 Level ${xi.lv}</small></div></div>`;
+    <div class="nameplate">${typeof monIcon==='function'?`<span class="npmon">${monIcon(a.mon)}</span>`:''}<b id="pv-name">${esc(a.name)||'Your name'}</b><small><span id="pv-clan">${esc(a.clan)||'Your clan'}</span> \u00B7 Level ${xi.lv}</small></div></div>`;
 }
 function gearHTML(look,lv){
   return `<div class="gear">${GEAR_SLOTS.map(slot=>{const it=gearItem(slot,look[slot]);
@@ -4370,7 +4379,7 @@ function createHTML(edit){
       <div class="ccenter">
         <div class="pframe" style="${backdropCSS(L)}"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
           <div class="pfig">${figureHTML(L,acc,d.mon,{bg:false})}</div>${PEDESTAL}${dollOK(L)?'':`<p class="pnote dnote">Classic art: painted version not ready yet for ${dollMissing(L).join(', ')}.</p>`}
-          <div class="pname"><b id="pv-name">${esc(d.name)||'Your name'}</b><small id="pv-clan">${esc(d.clan)||'Your clan'}</small></div></div>
+          <div class="pname"><span class="npmon">${monIcon(d.mon)}</span><b id="pv-name">${esc(d.name)||'Your name'}</b><small id="pv-clan">${esc(d.clan)||'Your clan'}</small></div></div>
         <div class="statplate"><span>LV <b>${xi.lv}</b></span><i></i><span>WINS <b>${wins}</b></span></div>
         <div class="cbtns"><button class="sealbtn" data-a="randomize" aria-label="Randomize"><span class="mk">賽</span>Random</button>
           ${edit?`<button class="btn pri" data-a="saveprofile">Save</button><button class="btn ghost-dark" data-a="nav" data-v="dojo">Cancel</button>`:`<button class="btn pri" data-a="create">Swear the oath</button>`}</div>
@@ -4869,7 +4878,7 @@ function mapHTML(){
     <div class="mapwrap"><img class="mapimg" src="${IMG.worldmap}" alt="A map of your province">${spots}</div>
     <span class="mapfog f1"></span><span class="mapfog f2"></span>
     <header class="maptop">
-      <button class="mt-me" data-a="editprofile" aria-label="Your samurai"><span class="mt-av">${figureHTML(a.look,accentOf(a),a.mon,{bg:false})}</span>
+      <button class="mt-me" data-a="editprofile" aria-label="Your samurai"><span class="mt-av">${figureHTML(a.look,accentOf(a),a.mon,{bg:false})}<span class="mt-mon">${monIcon(a.mon)}</span></span>
         <span class="mt-tx"><b>${esc(a.name)}</b><small>${esc(a.clan)} · Lv ${levelOf(a.xp||0)}</small></span></button>
       <span class="mt-r">${coinPill(ryo())}${sfxBtnHTML()}</span>
     </header>
