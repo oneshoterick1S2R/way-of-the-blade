@@ -1515,6 +1515,10 @@ button.tface{cursor:pointer}
 .sm-k.pl{background:var(--gold);color:#1a1210;box-shadow:0 0 14px rgba(201,162,78,.6)}
 .sm-pl{display:block;font-style:italic;color:var(--gold);font-size:12px;margin-top:2px}
 .segtabs .seg{flex:1 1 0;min-width:0;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.storebg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center 30%;animation:lsin .45s ease-out}
+.storebg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,9,7,.25),rgba(13,9,7,.55) 22%,rgba(13,9,7,.9) 48%)}
+.screen.store{position:relative;z-index:1}
+.store .spack,.store .sg,.store .smus,.store .earnbox{background-color:rgba(13,9,7,.78);backdrop-filter:blur(2px)}
 /* ===== Map home screen ===== */
 .mapscreen{position:fixed;inset:0;z-index:5;overflow:hidden;background:#15100b}
 .mapwrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:max(100vw,calc(100dvh*572/1024));height:max(100dvh,calc(100vw*1024/572))}
@@ -4402,8 +4406,8 @@ function storeHTML(){
       return `<div class="smus ${cur===m.id?'on':''}"><button class="sm-k ${pl?'pl':''}" data-a="sample" data-v="${m.id}" aria-label="${pl?'Stop sample':'Play a sample of '+m.n}">${pl?'■':'▶'}</button><div class="sm-tx"><b>${m.n}</b><small>${m.x}</small>${pl?'<em class="sm-pl">Sample playing…</em>':''}</div>
         ${own?(cur===m.id?'<span class="sg-own">Playing</span>':`<button class="buy" data-a="eqmusic" data-v="${m.id}">Use</button>`):`<button class="buy ${can?'':'no'}" data-a="buymusic" data-v="${m.id}" ${can?'':'disabled'}>${coinPill(m.price)}${can?'Buy':'Not enough'}</button>`}</div>`}).join('');
   }
-  return `<div class="screen store">
-    <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Store</h1>${coinPill(bal)}</header>
+  return `<div class="storebg" style="background-image:url(${IMG.loc_store||''})"></div><div class="screen store">
+    <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Map</button><h1>Merchant Town</h1>${coinPill(bal)}</header>
     <div class="earnbox"><b>Earn Ryō ${RYO_K}</b><span>Clan Feud win +${EARN.feudWin} (loss +${EARN.feudLoss}) · Rōnin quick match win +${EARN.roninWin} · first win each day +${EARN.dailyFirst} · new Story boss +${EARN.storyFirst} (rematch win +${EARN.storyWin}) · online duel win +${EARN.duelWin}</span></div>
     <div class="segtabs">${tabs}</div>
     ${body}
@@ -4483,10 +4487,11 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a="mapsel"]');
   if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
   if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
-  if(b&&b.dataset.v==='tut'){const w=document.querySelector('.mapwrap'),sp=MAP_SPOTS.find(x=>x.k==='tut');if(!w||REDUCED||S.mapZooming){S.tguide=null;go('training');return}
+  const ZOOM_TO={tut:'training',store:'store'};
+  if(b&&ZOOM_TO[b.dataset.v]){const v=b.dataset.v,dest=ZOOM_TO[v],w=document.querySelector('.mapwrap'),sp=MAP_SPOTS.find(x=>x.k===v);S.tguide=null;S.packRes=null;if(!w||REDUCED||S.mapZooming){go(dest);return}
     S.mapZooming=true;document.querySelectorAll('.maptop,.mapmenu,.mpanel').forEach(x=>x.style.opacity='0');
     w.style.transformOrigin=`${sp.x}% ${sp.y}%`;w.style.transition='transform .7s cubic-bezier(.5,0,.3,1),filter .7s';w.style.transform='translate(-50%,-50%) scale(3.2)';w.style.filter='blur(1.5px)';
-    setTimeout(()=>{S.mapZooming=false;S.tguide=null;go('training')},680);return}
+    setTimeout(()=>{S.mapZooming=false;go(dest)},680);return}
   if(b){S.mapSel=b.dataset.v||null;render();return}
   if(S.mapSel&&e.target.closest('.mapwrap')&&!e.target.closest('.mspot')){S.mapSel=null;render()}
 });
