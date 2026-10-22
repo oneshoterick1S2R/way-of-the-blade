@@ -1086,6 +1086,11 @@ button.tface{cursor:pointer}
 @keyframes npin{from{opacity:0;transform:translateY(20px)}}
 .np-x{display:grid;place-items:center;padding:0;line-height:1;font-family:system-ui,-apple-system,sans-serif;font-size:16px;align-self:center;-webkit-appearance:none;appearance:none}
 .np-x svg{width:14px;height:14px;display:block}
+.toast.amb{top:40%;width:min(360px,90vw);padding:16px 18px;border-width:3px;box-shadow:0 0 0 4px rgba(199,67,44,.25),0 0 60px rgba(199,67,44,.55),0 20px 50px rgba(0,0,0,.8);animation:ambin .45s cubic-bezier(.2,1.4,.4,1)}
+.toast.amb b{font-size:22px;color:#ff9a7e}
+.toast.amb p{font-size:14px;color:#ecdcb4}
+.toast.amb .tcard{width:96px}
+@keyframes ambin{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -1711,6 +1716,21 @@ const DRAW={karo:'gendo',master10k:'tomoe',bokken:'tanto',chokuto:'tachi',heirlo
   st_chiyome:'kenji',st_fuma:'kage',st_hanzo:'kage',st_kojiro:'katana',st_tadakatsu:'yari',st_musashi:'tachi',st_naotora:'soen',st_kenshin:'benkei',st_kennyo:'soen',st_shingen:'haru',st_hideyoshi:'gendo',st_nobunaga:'tomoe',st_tonbokiri:'yari',st_ikko:'soen',st_fortress:'gendo'};
 /* painted art reused for the story Legends until their own art arrives */
 [['st_chiyome','kunoichi'],['st_fuma','raider'],['st_hanzo','jonin'],['st_kojiro','wduelist'],['st_tadakatsu','gateguard'],['st_musashi','undefeated'],['st_naotora','miko'],['st_kenshin','enlightened'],['st_kennyo','thousandsteps'],['st_shingen','general'],['st_hideyoshi','ashi'],['st_nobunaga','shogun'],['st_tonbokiri','nagae'],['st_ikko','sohei'],['st_fortress','irongate']].forEach(([a,b])=>{if(!IMG[a]&&IMG[b])IMG[a]=IMG[b]});
+/* ---- extra 1-Ki commons (early-game options for every Path) ---- */
+S_('hikyaku','n',1,'C','Hikyaku Runner','Neutral — Messenger','飛脚',0,1,{arr:{k:'draw',v:1},x:'Arrival: draw a card.',fl:'Three days on foot, one letter.'});
+S_('farmhand','n',1,'C','Rice Farmer','Neutral — Peasant','百姓',1,2,{fl:'The harvest waits for no war.'});
+S_('flagpage','banner',1,'C','Flag Page','Banner — Standard Boy','旗持ち',1,1,{arr:{k:'buffAlly',a:1,h:0,tg:'ally'},x:'Arrival: give one of your samurai +1 Strength.',fl:'Keep it high, keep it moving.'});
+S_('conscript','banner',1,'C','Conscript','Banner — Levy','徴兵',2,2,{fl:'Handed a spear at dawn, sent forward by noon.'});
+S_('drumboy','banner',1,'C','War-Drum Boy','Banner — Drummer','陣太鼓',0,2,{arr:{k:'summon',id:'levy',n:1},x:'Arrival: summon a 1/1 Levy.',fl:'Every beat brings another spear.'});
+W_('jingasaw','banner',1,'C','Jingasa','Weapon — Iron Hat','陣笠',0,2,{fl:'A soldier’s roof in the rain of arrows.'});
+S_('shugyosha','steel',1,'C','Wandering Pupil','Steel — Swordsman','修行者',2,1,{ab:{n:'Practice',c:1,k:'drill',v:1,x:'Gain +1 Strength.'},fl:'A thousand cuts before breakfast.'});
+S_('wakazamurai','steel',1,'C','Young Samurai','Steel — Swordsman','若侍',1,1,{kw:['swift'],x:'Swift: can strike the turn it arrives.',fl:'First to draw, eager to prove it.'});
+W_('tsuba','steel',1,'C','Iron Tsuba','Weapon — Sword Guard','鍔',0,2,{fl:'The blade that stops a blade.'});
+S_('roofspy','shadow',1,'C','Rooftop Spy','Shadow — Infiltrator','屋根の影',1,1,{arr:{k:'hurtHonor',v:1},x:'Arrival: deal 1 damage to the rival’s Honor.',fl:'Every tile a listening post.'});
+S_('acolyte','temple',1,'C','Temple Acolyte','Temple — Novice','小僧',0,3,{kw:['guard'],arr:{k:'honor',v:1},x:'Arrival: restore 1 Honor.',fl:'Sweep the steps, guard the gate.'});
+/* borrowed paintings until their own art is made */
+[['hikyaku','courier'],['farmhand','militia'],['flagpage','sashimono'],['conscript','vetashi'],['drumboy','taiko'],['jingasaw','ironmantlet'],['shugyosha','deshi'],['wakazamurai','iaido'],['tsuba','kodachi'],['roofspy','rooftop'],['acolyte','novice']].forEach(([a,b])=>{if(IMG[b]&&!IMG[a]){IMG[a]=IMG[b];C[a].own=C[b].own;C[a].borrowed=b}});
+['hikyaku','farmhand','flagpage','conscript','drumboy','jingasaw','shugyosha','wakazamurai','tsuba','roofspy','acolyte'].forEach(id=>C[id].extra=1);
 /* painted kanji already in these artworks, or none to hide */
 ['recruit','cook','mantlet','vetashi','kashira','yabusame','templearcher','yamabushi','abbot'].forEach(id=>C[id].own=1);
 ['templebell','ofuda','mist','sanctuary'].forEach(id=>C[id].own=0);
@@ -1732,7 +1752,7 @@ const NEUTRAL_SWORDS=['tanto','bokken','waki','katana','chokuto','tachi','nodach
 /* ---------- decks ---------- */
 const STARTER_NEUTRALS={katana:1,waki:1,tanto:1,smoke:1,makibishi:1,teamaster:1,gatekeeper:1};
 function starterDeck(path,legends){
-  const d={};ORDER.forEach(id=>{const c=C[id];if(c.p===path&&!c.story&&(c.rar!=='L'||legends))d[id]=1});
+  const d={};ORDER.forEach(id=>{const c=C[id];if(c.p===path&&!c.story&&!c.extra&&(c.rar!=='L'||legends))d[id]=1});
   Object.assign(d,STARTER_NEUTRALS);
   if(legends){delete d.teamaster;delete d.gatekeeper}
   return d;
@@ -1963,15 +1983,17 @@ function playCard(p,i,o={}){
   cleanup();return true;
 }
 const powerTargets=p=>{const pw=PATH_INFO[G.pl[p].path].power;return pw.tg?targetsFor(p,pw.tg):[]};
+/* the attacker's very first turn: Path Power costs only 1 Ki */
+function powerCost(p){return G&&G.round===1&&p===G.first?1:POWER_COST}
 function canPower(p){
-  const P=G.pl[p];if(P.powerUsed||P.ki<POWER_COST)return false;
+  const P=G.pl[p];if(P.powerUsed||P.ki<powerCost(p))return false;
   if(P.path==='banner')return P.board.includes(null);
   return powerTargets(p).length>0;
 }
 function usePower(p,t){
   if(!canPower(p))return false;const P=G.pl[p],pw=PATH_INFO[P.path].power;
   if(pw.tg&&!validT(powerTargets(p),t))return false;
-  P.ki-=POWER_COST;P.powerUsed=true;const tu=unitAt(t);
+  P.ki-=powerCost(p);P.powerUsed=true;const tu=unitAt(t);
   switch(P.path){
     case 'banner':summon(p,'levy',true);break;
     case 'steel':buff(tu,1,0);break;
@@ -2756,7 +2778,7 @@ function sideHTML(p){
   const tgt=modeHas(p,'h');
   const extra=(foe&&G.boss?`<button class="brule" data-act="bossrule"><span class="mk">掟</span>Boss Rule</button>`:'')+(P.stance?`<span class="stance-chip st-${P.stance}">${{wind:'風 Wind',forest:'林 Forest',fire:'火 Fire',mountain:'山 Mountain'}[P.stance]}</span>`:'');
   const powerBtn=foe?`<span class="pwr foe" title="${pw.n}: ${pw.x}"><span class="mk">${PI.k}</span>${pw.n}</span>`:
-    `<button class="pwr ${canPower(0)&&myTurn()&&!G.mode?'ready':''}" data-act="power" ${canPower(0)&&myTurn()?'':'disabled'} title="${pw.x}"><span class="mk">${PI.k}</span>${pw.n}<em>${POWER_COST}</em></button>`;
+    `<button class="pwr ${canPower(0)&&myTurn()&&!G.mode?'ready':''}" data-act="power" ${canPower(0)&&myTurn()?'':'disabled'} title="${pw.x}"><span class="mk">${PI.k}</span>${pw.n}<em>${powerCost(0)}</em></button>`;
   return `<section class="side ${foe?'foe':'me'} ${tgt?'target':''}" data-fx="h${p}" ${tgt?`data-act="honor" data-side="${p}" role="button" tabindex="0"`:''} aria-label="${P.name}">
     ${avatarHTML(p)}
     <div class="who"><b>${P.name}</b>
@@ -2877,7 +2899,7 @@ function introHTML(){
       <li><b>Weapons</b> stay on a samurai and add Strength or Vitality. Techniques need a number of weapons equipped.</li>
       <li><b>Ambushes</b> are set face-down (3 at most) and spring when the enemy strikes.</li>
       <li><b>Arrival</b> effects happen when a card is played. <b>Death Poem</b> effects happen when a samurai falls.</li>
-      <li><b>Path Power</b>: once per turn, spend 2 Ki on your Path’s ability (bottom right of your clan panel).</li>
+      <li><b>Path Power</b>: once per turn, spend 2 Ki on your Path’s ability (bottom right of your clan panel). If you strike first, it costs only 1 Ki on your opening turn.</li>
       <li>Whoever defends (goes second) draws 1 extra card and gets +1 Ki on their first turn.</li>
     </ol>
     <button class="btn pri" data-act="start">${G&&G.round>1&&!G.over?'Return to battle':'Draw your blade'}</button>
@@ -2919,7 +2941,7 @@ function renderBattle(){
   if(G.yieldAsk)layer+=`<div class="modal"><div class="scroll" role="dialog"><div class="big">降</div><h2>Yield this battle?</h2><p class="sub">It counts as a loss on your record.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="yieldok">Yield</button><button class="btn ghost-dark" data-act="yieldno">Keep fighting</button></div></div></div>`;
   layer+=bannerHTML()+`<button class="qbtn" data-act="menu" aria-label="Battle menu"><span class="mk">退</span><small>Menu</small></button>`+(G.menu?menuHTML():'');
   layer+=aiCallHTML()+historyHTML();
-  if(toast)layer+=`<div class="toast" role="status">${toast.c?`<div class="tcard">${card(toast.c,{mini:true})}</div>`:`<div class="tk">${toast.k}</div>`}<div><b>${toast.t}</b><p>${toast.x}</p></div></div>`;
+  if(toast)layer+=`<div class="toast ${toast.amb?'amb':''}" role="status">${toast.c?`<div class="tcard">${card(toast.c,{mini:true})}</div>`:`<div class="tk">${toast.k}</div>`}<div><b>${toast.t}</b><p>${toast.x}</p></div></div>`;
   $('#layer').innerHTML=layer;
   const fxs=G.fx;G.fx=[];
   if(fxs.length&&!showIntro){const has=(k,t)=>fxs.some(f=>f.k===k&&(t==null||t(f)));
@@ -2956,7 +2978,9 @@ function seppuku(){
   G.rec=true;G.menu=false;G.mode=null;G.sel=null;showIntro=false;toast=null;
   go('dojo');
 }
-function showToast(k,t,x,c){if(/^Ambush!/.test(t))SFX.play('ambush');toast={k,t,x,c};clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toast=null;render()},2000)}
+/* pacing: everything the rival does waits a little longer so players can follow it */
+const PACE=1.45;
+function showToast(k,t,x,c){const amb=/^Ambush!/.test(t);if(amb){SFX.play('ambush');if(G)G.ambushHit=(G.ambushHit||0)+1}toast={k,t,x,c,amb};clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toast=null;render()},amb?4200:2600)}
 UI.toast=showToast;
 UI.peek=(p,c)=>{if(p===0)showToast(C[c].v,'Lookout: their next card',C[c].n,c)};
 
@@ -3013,7 +3037,7 @@ function historyHTML(){
   const peek=G.histCard&&C[G.histCard]?`<div class="inspect histpeek" data-act="histpeekclose" role="dialog" aria-label="${C[G.histCard].n}">${card(G.histCard)}<div class="info"><div class="btns"><button class="btn" data-act="histpeekclose">Close</button></div></div></div>`:'';
   return `<div class="modal" data-act="histclose"><div class="scroll hist" role="dialog" aria-label="Battle history"><h2>Battle history</h2><ol class="histlist" id="histlist">${rows}</ol><p class="histtip">Tap a <u>card name</u> to see the card.</p><div class="btns"><button class="btn pri" data-act="histclose">Back to battle</button></div></div></div>${peek}`;
 }
-const aiWait=ms=>new Promise(r=>{const t=setTimeout(()=>{aiSkip=null;r()},ms);aiSkip=()=>{clearTimeout(t);aiSkip=null;r()}});
+const aiWait=ms=>new Promise(r=>{const t=setTimeout(()=>{aiSkip=null;r()},ms*PACE);aiSkip=()=>{clearTimeout(t);aiSkip=null;r()}});
 function aiCallHTML(){
   const c=G.aiCall||(G.online&&REMOTE.cur);if(!c)return '';
   return `<div class="aicall" data-act="aiskip" role="status" aria-live="polite"><div class="aic-in">
@@ -3092,7 +3116,7 @@ document.addEventListener('click',e=>{
     case 'tutagain':startTutorial();return;
     case 'storyretry':startStoryBattle(G.boss);return;
     case 'storymap':G=null;go('story');return;
-    case 'powerinfo':{const sd=+b.dataset.side,P=G.pl[sd],PI=PATH_INFO[P.path],pw=PI.power;clearTimeout(toastTimer);toast={k:PI.k,t:`${sd?'Foe’s':'Your'} Path Power · ${pw.n}`,x:`${pw.x} Costs ${POWER_COST} Ki, usable once per turn.<small class="tclose">Tap anywhere to close</small>`,sticky:true};render();return}
+    case 'powerinfo':{const sd=+b.dataset.side,P=G.pl[sd],PI=PATH_INFO[P.path],pw=PI.power;clearTimeout(toastTimer);toast={k:PI.k,t:`${sd?'Foe’s':'Your'} Path Power · ${pw.n}`,x:`${pw.x} Costs ${POWER_COST} Ki, usable once per turn. If you strike first, it costs only 1 Ki on your opening turn.<small class="tclose">Tap anywhere to close</small>`,sticky:true};render();return}
     case 'bossrule':{const b=bossById(G.boss);showToast('掟','Boss Rule · '+b.rule,b.rx);return}
     case 'dojo':if(G&&G.online){stopOnline();clearMatch()}G=null;go('dojo');return;
     case 'yield':if(!G.over){G.yieldAsk=true;render()}return;
@@ -3282,8 +3306,10 @@ async function cast(p,s){
   const u=G.pl[p].board[s];if(!u||REDUCED)return;const a=fxEl(u.uid);if(!a||!a.animate)return;
   try{await a.animate([{filter:'brightness(1)',transform:'none'},{filter:'brightness(1.7) drop-shadow(0 0 14px #ffd27a)',transform:'translateY(-8px) scale(1.06)'},{filter:'brightness(1)',transform:'none'}],{duration:620,easing:'ease-in-out'}).finished}catch(e){}
 }
-async function doStrike(p,s,t){await lunge(p,s,t);strike(p,s,t);render();await sleep(650);render()}
-async function doAbility(p,s,t){await cast(p,s);useTech(p,s,t);render();await sleep(700);render()}
+async function doStrike(p,s,t){const before=G.ambushHit||0;await lunge(p,s,t);strike(p,s,t);render();await sleep(950);
+  /* an ambush sprang: hold so the reveal can be read */
+  if((G.ambushHit||0)>before)await sleep(2600);render()}
+async function doAbility(p,s,t){await cast(p,s);useTech(p,s,t);render();await sleep(1000);render()}
 function bannerHTML(){if(!banner)return '';return `<div class="tbanner" key="${banner.id}"><div class="tb-in"><b>${banner.t}</b>${banner.sub?`<small>${banner.sub}</small>`:''}</div></div>`}
 
 /* ===== Two-player duel on one device + turn timer ===== */
@@ -3574,7 +3600,7 @@ const TSTEPS=[
   {sel:'.side.foe',t:'The rival clan',x:'Their name and Path, how many cards are in their <b>hand</b> and <b>deck</b>, their Ki, and their <b>Honor</b>. The red bar of pips is their Honor too, one pip per point.'},
   {sel:'.side.me .honor .v',t:'Your Honor',x:'This number is your life. When an enemy samurai strikes your Honor directly, it drops. At <b>0</b> you lose.'},
   {sel:'.side.me .ki',t:'Ki (気): your energy',x:'Every card costs Ki, shown in the <b>blue gem</b> on the card. You get <b>1 more Ki each turn</b>, up to 10, and it refills at the start of your turn. This practice turn starts with 4 Ki.'},
-  {sel:'.side.me .pwr',t:'Path Power',x:'Every deck follows a Path, and each Path has a power you can use <b>once per turn for 2 Ki</b>, no card needed. Way of the Banner’s power is <b>Muster</b>: summon a 1/1 Levy soldier. It lights up when you can use it.'},
+  {sel:'.side.me .pwr',t:'Path Power',x:'Every deck follows a Path, and each Path has a power you can use <b>once per turn for 2 Ki</b>, no card needed. Way of the Banner’s power is <b>Muster</b>: summon a 1/1 Levy soldier. It lights up when you can use it. <b>Bonus:</b> if you strike first, your Path Power costs only <b>1 Ki</b> on your opening turn, so you can use it right away.'},
   {sel:'.handwrap',t:'Your hand',x:'The cards you can play. Swipe sideways to see them all. Cards you can afford right now glow; cards you can’t are dimmed. You draw a card at the start of each turn (10 cards at most).'},
   {sel:()=>handCard('recruit'),t:'Reading a card',x:'<b>Top right</b>: Ki cost. <b>Middle</b>: its type and ability text. <b>Bottom left ⚔</b>: Strength, the damage it deals. <b>Bottom right 🛡</b>: Vitality, the damage it can take before it falls. The small shield badge means <b>Guardian</b>.'},
   {sel:()=>handCard('recruit')||myUnit('recruit'),act:true,allow:['.hand','.inspect','.my-board','.bar'],done:()=>G.pl[0].board.some(u=>u&&u.c==='recruit'),
