@@ -4203,6 +4203,175 @@ function bossIntroHTML(){
     <p class="srule"><b>Boss Rule · ${b.rule}:</b> ${b.rx}</p>
     <button class="btn pri" data-act="intronext">Toss the dice</button>`)}</div>`;
 }
+/* ===== Ryō (coins) and the Store: card packs, gear, music ===== */
+const RYO_K='両';
+const EARN={feudWin:50,feudLoss:10,dailyFirst:25,storyFirst:150,storyWin:40,storyLoss:10,duelWin:40,duelLoss:10};
+const DUPE_REFUND={C:5,R:15,E:40,L:100};
+const PACKS=[
+  {id:'path',n:'Path Pack',k:'道',price:150,size:5,x:'5 cards from one Path (and Neutral), including one you don’t own yet. Pick the Path below.'},
+  {id:'warlord',n:'Warlord Pack',k:'将',price:220,size:5,x:'5 cards from any Path, including one you don’t own yet. At least one Rare or better.'},
+  {id:'legend',n:'Legend Chest',k:'宝',price:600,size:3,x:'3 cards, every one Epic or Legendary — new ones first.'}
+];
+const MUSIC=[
+  {id:'temple',n:'Temple Garden',x:'Calm koto and bamboo flute. The classic dojo theme.',price:0},
+  {id:'night',n:'Moonlit Shakuhachi',x:'Slow, haunting flute over a dark minor scale.',price:250},
+  {id:'war',n:'Taiko War Camp',x:'Driving taiko drums and a fierce koto line.',price:250},
+  {id:'rain',n:'Rain on the Shrine',x:'Soft rain, distant chimes and a gentle pad.',price:250}
+];
+const gearPrice=it=>it.lv*40;
+const ryo=()=>ACC?(ACC.ryo||0):0;
+function addRyo(n){if(!ACC||!n)return 0;ACC.ryo=(ACC.ryo||0)+n;return n}
+function ownsGear(slot,id){return !!(ACC&&Array.isArray(ACC.gearOwned)&&ACC.gearOwned.includes(slot+':'+id))}
+function gearOK(slot,it,lv){return it.lv<=lv||ownsGear(slot,it.id)}
+function ownsMusic(id){const m=MUSIC.find(x=>x.id===id);return !!m&&(!m.price||(ACC&&(ACC.musicOwned||[]).includes(id)))}
+
+/* ---- rewards ---- */
+function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function rewardFeud(r){let n=r==='win'?EARN.feudWin:EARN.feudLoss,bonus=0;
+  if(r==='win'&&ACC.lastWinDay!==today()){ACC.lastWinDay=today();bonus=EARN.dailyFirst}
+  addRyo(n+bonus);return {n:n+bonus,bonus}}
+function rewardStory(win,first){const n=win?(first?EARN.storyFirst:EARN.storyWin):EARN.storyLoss;addRyo(n);return {n,bonus:0}}
+function rewardDuel(win){const n=win?EARN.duelWin:EARN.duelLoss;addRyo(n);return {n,bonus:0}}
+const coinPill=(n,extra)=>`<span class="coinpill"><i>${RYO_K}</i><b>${n}</b>${extra?`<small>${extra}</small>`:''}</span>`;
+function coinResultHTML(c){if(!c||!c.n)return '';return `<div class="coinres"><span class="cr-k">${RYO_K}</span><b>+${c.n} Ryō</b>${c.bonus?`<small>includes +${c.bonus} first win of the day</small>`:''}<small>Balance ${ryo()} · spend it in the Store</small></div>`}
+
+/* ---- pack rolls ---- */
+function packPool(pk,path){return ORDER.filter(id=>{const c=C[id];if(c.tok||c.story)return false;if(pk==='path')return c.p===path||c.p==='n';return true})}
+function rollRarity(pk,slot){
+  if(pk==='legend')return Math.random()<.35?'L':'E';
+  const r=Math.random()*100;let x=r<60?'C':r<88?'R':r<97?'E':'L';
+  if(pk==='warlord'&&slot===0&&x==='C')x=Math.random()<.8?'R':'E';
+  return x;
+}
+function rollPack(pk,path){
+  const pool=packPool(pk,path),out=[],got=new Set();
+  const n=(PACKS.find(p=>p.id===pk)||{}).size||5;
+  /* every pack guarantees one card you don't own yet (while any are left in its pool) */
+  const unowned=pool.filter(id=>!ACC.unlocked.includes(id)&&(pk!=='legend'||'EL'.includes(C[id].rar)));
+  if(unowned.length){const id=unowned[Math.floor(Math.random()*unowned.length)];got.add(id);out.push(id)}
+  for(let i=out.length;i<n;i++){
+    let rar=rollRarity(pk,i),cands=pool.filter(id=>C[id].rar===rar&&!got.has(id));
+    while(!cands.length&&rar){rar={L:'E',E:'R',R:'C',C:null}[rar];cands=rar?pool.filter(id=>C[id].rar===rar&&!got.has(id)):[]}
+    if(!cands.length)break;
+    const fresh=cands.filter(id=>!ACC.unlocked.includes(id));
+    const src=(fresh.length&&(pk==='legend'||Math.random()<.7))?fresh:cands,id=src[Math.floor(Math.random()*src.length)];
+    got.add(id);out.push(id);
+  }
+  for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}
+  return out.map(id=>{const isNew=!ACC.unlocked.includes(id);if(isNew)ACC.unlocked.push(id);const refund=isNew?0:DUPE_REFUND[C[id].rar]||5;if(refund)addRyo(refund);return {id,isNew,refund,shown:false}});
+}
+
+/* ---- screen ---- */
+function storeHTML(){
+  const tab=S.stab||'packs',bal=ryo();
+  const tabs=[['packs','Card Packs'],['gear','Gear'],['music','Music']].map(([k,l])=>`<button class="seg ${tab===k?'on':''}" data-a="stab" data-v="${k}">${l}</button>`).join('');
+  let body='';
+  if(tab==='packs'){
+    const pp=S.packPath||(ACC.decks.find(d=>d.id===ACC.active)||{}).path||'banner';
+    body=PACKS.map(pk=>{const can=bal>=pk.price;
+      return `<section class="spack sp-${pk.id}"><div class="sp-box ${IMG['pack_'+pk.id]?'art':''}">${IMG['pack_'+pk.id]?`<img src="${IMG['pack_'+pk.id]}" alt="">`:`<div class="sp-face">${BACK}</div><span class="sp-k">${pk.k}</span>`}</div>
+        <div class="sp-tx"><b>${pk.n}</b><small>${pk.x}</small>
+        ${pk.id==='path'?`<div class="sp-paths">${PATHS4.map(p=>`<button class="chip ${pp===p?'on':''}" data-a="ppath" data-v="${p}">${PATH_INFO[p].k} ${PATH_INFO[p].n.replace(/^Way of (the )?/,'')}</button>`).join('')}</div>`:''}
+        <button class="buy ${can?'':'no'}" data-a="buypack" data-v="${pk.id}" ${can?'':'disabled'}>${coinPill(pk.price)}${can?'Buy':`Need ${pk.price-bal} more`}</button></div></section>`}).join('')+
+      `<p class="muted center">New cards join your collection. A card you already own is traded in for Ryō: Common ${DUPE_REFUND.C}, Rare ${DUPE_REFUND.R}, Epic ${DUPE_REFUND.E}, Legendary ${DUPE_REFUND.L}.</p>`;
+  }else if(tab==='gear'){
+    const lv=levelOf(ACC.xp||0),items=[];
+    GEAR_SLOTS.forEach(slot=>GEAR[slot].items.forEach(it=>{if(it.lv>1)items.push({slot,it})}));
+    body=items.length?`<p class="muted">Gear normally unlocks as you level up. Buy it now to wear it early. Gear you already have is marked ✓.</p><div class="sgear">${items.map(({slot,it})=>{const own=ownsGear(slot,it.id)||it.lv<=lv,pr=gearPrice(it),can=bal>=pr;
+      return `<div class="sg ${own?'own':''}"><div class="sg-ic">${gearIcon(slot,it.id,ACC.look,accentOf(ACC),ACC.mon)}</div><b>${it.n}</b><small>${GEAR[slot].label} · unlocks at Lv ${it.lv}</small>
+        ${own?`<span class="sg-own">✓ ${it.lv<=lv&&!ownsGear(slot,it.id)?'Unlocked by level':'Owned'}</span>`:`<button class="buy ${can?'':'no'}" data-a="buygear" data-k="${slot}" data-v="${it.id}" ${can?'':'disabled'}>${coinPill(pr)}${can?'Buy':'Not enough'}</button>`}</div>`}).join('')}</div>`
+      :'<p class="muted center">You already have every piece of gear. Nothing left to buy here.</p>';
+  }else{
+    const cur=ACC.musicTheme||'temple';
+    body=`<p class="muted">Background music for the dojo and battles. Tap ▶ to hear a 15-second sample. ${SFX.music?'':'<b>Music is switched off</b> — turn it on with the ♪ button to hear your theme.'}</p>`+MUSIC.map(m=>{const own=ownsMusic(m.id),can=bal>=m.price;
+      const pl=S.sample===m.id;
+      return `<div class="smus ${cur===m.id?'on':''}"><button class="sm-k ${pl?'pl':''}" data-a="sample" data-v="${m.id}" aria-label="${pl?'Stop sample':'Play a sample of '+m.n}">${pl?'■':'▶'}</button><div class="sm-tx"><b>${m.n}</b><small>${m.x}</small>${pl?'<em class="sm-pl">Sample playing…</em>':''}</div>
+        ${own?(cur===m.id?'<span class="sg-own">Playing</span>':`<button class="buy" data-a="eqmusic" data-v="${m.id}">Use</button>`):`<button class="buy ${can?'':'no'}" data-a="buymusic" data-v="${m.id}" ${can?'':'disabled'}>${coinPill(m.price)}${can?'Buy':'Not enough'}</button>`}</div>`}).join('');
+  }
+  return `<div class="screen store">
+    <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Store</h1>${coinPill(bal)}</header>
+    <div class="earnbox"><b>Earn Ryō ${RYO_K}</b><span>Clan Feud win +${EARN.feudWin} (loss +${EARN.feudLoss}) · first win each day +${EARN.dailyFirst} · new Story boss +${EARN.storyFirst} (rematch win +${EARN.storyWin}) · online duel win +${EARN.duelWin}</span></div>
+    <div class="segtabs">${tabs}</div>
+    ${body}
+  </div>${packOverlayHTML()}`;
+}
+function packOverlayHTML(){
+  const r=S.packRes;if(!r)return '';
+  const all=r.every(x=>x.shown),pk=PACKS.find(p=>p.id===S.packKind)||PACKS[0],art=IMG['pack_'+pk.id];
+  if(art&&S.packStage!=='open'){const rip=S.packStage==='rip';
+    return `<div class="packov p-${pk.id} ${rip?'ripping':''}"><div class="po-in"><h2>${pk.n}</h2><p class="sub">${rip?'&nbsp;':'Tap the pack to tear it open.'}</p>
+      <button class="ripk" data-a="packrip" aria-label="Tear open the ${pk.n}">
+        <span class="rp-glow"></span>
+        <img class="rp-bot" src="${art}" alt=""><img class="rp-top" src="${art}" alt="">
+        <span class="rp-burst"></span><span class="rp-sparks">${'<i></i>'.repeat(14)}</span>
+        ${rip?'':'<span class="rp-hint">✂</span>'}
+      </button></div></div>`}
+  return `<div class="packov ${art?'fresh':''}"><div class="po-in"><h2>${pk.n}</h2><p class="sub">${all?'Here’s what you pulled.':'Tap each card to reveal it.'}</p>
+    <div class="po-cards">${r.map((x,i)=>`<button class="po-c ${x.shown?'shown r-'+C[x.id].rar:''}" data-a="packflip" data-v="${i}" aria-label="${x.shown?C[x.id].n:'Reveal card '+(i+1)}">
+      ${x.shown?card(x.id,{mini:true})+(x.isNew?'<span class="newbadge">New</span>':`<span class="po-ref">+${x.refund} ${RYO_K}</span>`):`<span class="po-back">${BACK}</span>`}</button>`).join('')}</div>
+    <div class="btns">${all?'<button class="btn pri" data-a="packclose">Done</button>':'<button class="btn pri" data-a="packall">Reveal all</button>'}</div></div></div>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b||!ACC||S.screen!=='store')return;
+  const a=b.dataset.a,v=b.dataset.v;
+  const done=()=>{save();render()};
+  switch(a){
+    case 'nav':if(S.sample){SFX.stopPreview(ACC.musicTheme||'temple');S.sample=null}break;
+    case 'stab':if(S.sample){SFX.stopPreview(ACC.musicTheme||'temple');S.sample=null}S.stab=v;render();break;
+    case 'ppath':S.packPath=v;render();break;
+    case 'buypack':{const pk=PACKS.find(p=>p.id===v);if(!pk||ryo()<pk.price)return;ACC.ryo-=pk.price;
+      S.packKind=v;S.packStage=null;S.packRes=rollPack(v,S.packPath||(ACC.decks.find(d=>d.id===ACC.active)||{}).path||'banner');done();if(typeof SFX!=='undefined')SFX.play('power');break}
+    case 'packflip':{const x=S.packRes&&S.packRes[+v];if(x&&!x.shown){x.shown=true;if(x.isNew&&ACC.seenCards&&!ACC.seenCards.includes(x.id))ACC.seenCards.push(x.id);render();if(typeof SFX!=='undefined')SFX.play('tap')}else if(x)S.peek=x.id,render();break}
+    case 'packall':(S.packRes||[]).forEach(x=>{x.shown=true;if(x.isNew&&ACC.seenCards&&!ACC.seenCards.includes(x.id))ACC.seenCards.push(x.id)});done();break;
+    case 'packclose':S.packRes=null;S.packStage=null;done();break;
+    case 'packrip':if(S.packStage)return;S.packStage='rip';render();if(typeof SFX!=='undefined')SFX.play('power');setTimeout(()=>{S.packStage='open';render()},REDUCED?150:1150);break;
+    case 'buygear':{const it=(GEAR[b.dataset.k]||{items:[]}).items.find(x=>x.id===v);if(!it)return;const pr=gearPrice(it);if(ryo()<pr||ownsGear(b.dataset.k,v))return;
+      ACC.ryo-=pr;ACC.gearOwned=ACC.gearOwned||[];ACC.gearOwned.push(b.dataset.k+':'+v);done();break}
+    case 'buymusic':{const m=MUSIC.find(x=>x.id===v);if(!m||ownsMusic(v)||ryo()<m.price)return;ACC.ryo-=m.price;ACC.musicOwned=ACC.musicOwned||[];ACC.musicOwned.push(v);ACC.musicTheme=v;if(SFX.setTheme)SFX.setTheme(v);done();break}
+    case 'sample':{const base=ACC.musicTheme||'temple';if(S.sample===v){SFX.stopPreview(base);S.sample=null;render();break}S.sample=v;SFX.preview(v,base,()=>{S.sample=null;if(S.screen==='store')render()});render();break}
+    case 'eqmusic':if(ownsMusic(v)){ACC.musicTheme=v;if(SFX.setTheme)SFX.setTheme(v);done()}break;
+  }
+});
+/* ===== Home screen: painted province map ===== */
+const MAP_SPOTS=[
+  {k:'story',x:16,al:'l',y:19,n:'Mountain Pass',sub:'Story Mode',kj:'旅',act:'data-a="quest"',x2:()=>`The Road to Honnō-ji · ${storyCount()}/12 legends pledged`},
+  {k:'feud',x:76,al:'r',y:31,n:'War Camp',sub:'Clan Feud',kj:'戦',act:'data-a="skirmish"',badge:()=>titleOf(feudWins()),x2:()=>{const nt=nextTitle(feudWins());return `Fight the Unoshotto Clan · Rank ${titleOf(feudWins())}${nt?` · ${nt[0]-feudWins()} more win${nt[0]-feudWins()>1?'s':''} to ${nt[1]}`:''}`}},
+  {k:'dojo',x:50,y:47,n:'Your Dojo',sub:'Samurai & Armory',kj:'道',act:'data-a="editprofile"',x2:()=>`Your samurai, armor, gear and look`},
+  {k:'friend',x:68,y:58,n:'Red Bridge',sub:'Battle a Friend',kj:'対',act:'data-a="friend"',x2:()=>'Duel someone on this phone or online'},
+  {k:'tut',x:30,y:72,n:'Training Fields',sub:'Tutorial',kj:'学',act:'data-a="tutorial"',badge:()=>ACC.tutDone?'':'Start',x2:()=>ACC.tutDone?'Replay the guided walkthrough':'New here? Learn to play in 2 minutes'},
+  {k:'decks',x:24,al:'l',y:81,n:'Pagoda Library',sub:'Decks & Collection',kj:'札',act:'data-a="nav" data-v="decks"',badge:()=>{const n=ORDER.filter(isNewCard).length;return n?n+' new':''},x2:()=>`${ACC.decks.length} of ${MAX_DECKS} decks · ${ACC.unlocked.length}/${ORDER.length} cards`},
+  {k:'store',x:60,y:88,n:'Merchant Town',sub:'Store',kj:'店',act:'data-a="nav" data-v="store"',x2:()=>`Card packs, gear and music · you have ${ryo()} Ryō`}
+];
+function mapHTML(){
+  const a=ACC,sel=MAP_SPOTS.find(s=>s.k===S.mapSel);
+  const spots=MAP_SPOTS.map(s=>{const bd=s.badge?s.badge():'';
+    return `<button class="mspot ms-${s.k} ${s.al?'al-'+s.al:''} ${S.mapSel===s.k?'on':''}" style="left:${s.x}%;top:${s.y}%" data-a="mapsel" data-v="${s.k}" aria-label="${s.n}: ${s.sub}">
+      <span class="ms-ring"></span><span class="ms-k">${s.kj}</span>${bd?`<span class="ms-b">${bd}</span>`:''}<span class="ms-l"><b>${s.n}</b><small>${s.sub}</small></span></button>`}).join('');
+  return `<div class="mapscreen" style="--mapbg:url(${IMG.worldmap})">
+    <div class="mapwrap"><img class="mapimg" src="${IMG.worldmap}" alt="A map of your province">${spots}</div>
+    <span class="mapfog f1"></span><span class="mapfog f2"></span>
+    <header class="maptop">
+      <button class="mt-me" data-a="editprofile" aria-label="Your samurai"><span class="mt-av">${figureHTML(a.look,accentOf(a),a.mon,{bg:false})}<span class="mt-mon">${monIcon(a.mon)}</span></span>
+        <span class="mt-tx"><b>${esc(a.name)}</b><small>${esc(a.clan)} · Lv ${levelOf(a.xp||0)}</small></span></button>
+      <span class="mt-r">${coinPill(ryo())}${sfxBtnHTML()}</span>
+    </header>
+    ${liveListHTML()}
+    <button class="mapmenu" data-a="mapmenu" aria-label="Menu" aria-expanded="${!!S.mapMenu}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    ${S.mapMenu?`<div class="mmenu" role="menu"><button class="mm-i" data-a="rules">How to play</button><button class="mm-i" data-a="nav" data-v="grounds">Record &amp; card unlocks</button>
+      <div class="mm-test"><small>Testing</small><button class="btn danger" data-a="resetask">Reset everything</button><button class="btn danger" data-a="adminask">Admin</button></div></div>`:''}
+    ${sel?`<div class="mpanel" role="dialog" aria-label="${sel.n}"><span class="mp-k">${sel.kj}</span><div class="mp-tx"><b>${sel.n}</b><small>${sel.sub} · ${sel.x2()}</small></div>
+      <button class="mp-go" ${sel.act}>Enter</button><button class="mp-x" data-a="mapsel" data-v="" aria-label="Close"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>`
+      :''}
+  </div>`;
+}
+document.addEventListener('click',e=>{
+  if(!ACC||S.screen!=='dojo')return;
+  const b=e.target.closest('[data-a="mapsel"]');
+  if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
+  if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
+  if(b){S.mapSel=b.dataset.v||null;render();return}
+  if(S.mapSel&&e.target.closest('.mapwrap')&&!e.target.closest('.mspot')){S.mapSel=null;render()}
+});
 
 /* ===== Account, collection, decks ===== */
 const MIN_SAMURAI=12, MAX_DECKS=6;
@@ -4760,175 +4929,11 @@ function boot(data){
   render();connect();
 }
 window.claude?.hot?.snapshot?.(()=>({ACC,screen:S.screen,deckId:S.deckId,G:(S.screen==='battle'&&G&&!G.online&&G.turn===0&&!G.busy&&!G.mode)?G:null}));
-window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
-/* ===== Ryō (coins) and the Store: card packs, gear, music ===== */
-const RYO_K='両';
-const EARN={feudWin:50,feudLoss:10,dailyFirst:25,storyFirst:150,storyWin:40,storyLoss:10,duelWin:40,duelLoss:10};
-const DUPE_REFUND={C:5,R:15,E:40,L:100};
-const PACKS=[
-  {id:'path',n:'Path Pack',k:'道',price:150,size:5,x:'5 cards from one Path (and Neutral), including one you don’t own yet. Pick the Path below.'},
-  {id:'warlord',n:'Warlord Pack',k:'将',price:220,size:5,x:'5 cards from any Path, including one you don’t own yet. At least one Rare or better.'},
-  {id:'legend',n:'Legend Chest',k:'宝',price:600,size:3,x:'3 cards, every one Epic or Legendary — new ones first.'}
-];
-const MUSIC=[
-  {id:'temple',n:'Temple Garden',x:'Calm koto and bamboo flute. The classic dojo theme.',price:0},
-  {id:'night',n:'Moonlit Shakuhachi',x:'Slow, haunting flute over a dark minor scale.',price:250},
-  {id:'war',n:'Taiko War Camp',x:'Driving taiko drums and a fierce koto line.',price:250},
-  {id:'rain',n:'Rain on the Shrine',x:'Soft rain, distant chimes and a gentle pad.',price:250}
-];
-const gearPrice=it=>it.lv*40;
-const ryo=()=>ACC?(ACC.ryo||0):0;
-function addRyo(n){if(!ACC||!n)return 0;ACC.ryo=(ACC.ryo||0)+n;return n}
-function ownsGear(slot,id){return !!(ACC&&Array.isArray(ACC.gearOwned)&&ACC.gearOwned.includes(slot+':'+id))}
-function gearOK(slot,it,lv){return it.lv<=lv||ownsGear(slot,it.id)}
-function ownsMusic(id){const m=MUSIC.find(x=>x.id===id);return !!m&&(!m.price||(ACC&&(ACC.musicOwned||[]).includes(id)))}
-
-/* ---- rewards ---- */
-function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
-function rewardFeud(r){let n=r==='win'?EARN.feudWin:EARN.feudLoss,bonus=0;
-  if(r==='win'&&ACC.lastWinDay!==today()){ACC.lastWinDay=today();bonus=EARN.dailyFirst}
-  addRyo(n+bonus);return {n:n+bonus,bonus}}
-function rewardStory(win,first){const n=win?(first?EARN.storyFirst:EARN.storyWin):EARN.storyLoss;addRyo(n);return {n,bonus:0}}
-function rewardDuel(win){const n=win?EARN.duelWin:EARN.duelLoss;addRyo(n);return {n,bonus:0}}
-const coinPill=(n,extra)=>`<span class="coinpill"><i>${RYO_K}</i><b>${n}</b>${extra?`<small>${extra}</small>`:''}</span>`;
-function coinResultHTML(c){if(!c||!c.n)return '';return `<div class="coinres"><span class="cr-k">${RYO_K}</span><b>+${c.n} Ryō</b>${c.bonus?`<small>includes +${c.bonus} first win of the day</small>`:''}<small>Balance ${ryo()} · spend it in the Store</small></div>`}
-
-/* ---- pack rolls ---- */
-function packPool(pk,path){return ORDER.filter(id=>{const c=C[id];if(c.tok||c.story)return false;if(pk==='path')return c.p===path||c.p==='n';return true})}
-function rollRarity(pk,slot){
-  if(pk==='legend')return Math.random()<.35?'L':'E';
-  const r=Math.random()*100;let x=r<60?'C':r<88?'R':r<97?'E':'L';
-  if(pk==='warlord'&&slot===0&&x==='C')x=Math.random()<.8?'R':'E';
-  return x;
-}
-function rollPack(pk,path){
-  const pool=packPool(pk,path),out=[],got=new Set();
-  const n=(PACKS.find(p=>p.id===pk)||{}).size||5;
-  /* every pack guarantees one card you don't own yet (while any are left in its pool) */
-  const unowned=pool.filter(id=>!ACC.unlocked.includes(id)&&(pk!=='legend'||'EL'.includes(C[id].rar)));
-  if(unowned.length){const id=unowned[Math.floor(Math.random()*unowned.length)];got.add(id);out.push(id)}
-  for(let i=out.length;i<n;i++){
-    let rar=rollRarity(pk,i),cands=pool.filter(id=>C[id].rar===rar&&!got.has(id));
-    while(!cands.length&&rar){rar={L:'E',E:'R',R:'C',C:null}[rar];cands=rar?pool.filter(id=>C[id].rar===rar&&!got.has(id)):[]}
-    if(!cands.length)break;
-    const fresh=cands.filter(id=>!ACC.unlocked.includes(id));
-    const src=(fresh.length&&(pk==='legend'||Math.random()<.7))?fresh:cands,id=src[Math.floor(Math.random()*src.length)];
-    got.add(id);out.push(id);
-  }
-  for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}
-  return out.map(id=>{const isNew=!ACC.unlocked.includes(id);if(isNew)ACC.unlocked.push(id);const refund=isNew?0:DUPE_REFUND[C[id].rar]||5;if(refund)addRyo(refund);return {id,isNew,refund,shown:false}});
-}
-
-/* ---- screen ---- */
-function storeHTML(){
-  const tab=S.stab||'packs',bal=ryo();
-  const tabs=[['packs','Card Packs'],['gear','Gear'],['music','Music']].map(([k,l])=>`<button class="seg ${tab===k?'on':''}" data-a="stab" data-v="${k}">${l}</button>`).join('');
-  let body='';
-  if(tab==='packs'){
-    const pp=S.packPath||(ACC.decks.find(d=>d.id===ACC.active)||{}).path||'banner';
-    body=PACKS.map(pk=>{const can=bal>=pk.price;
-      return `<section class="spack sp-${pk.id}"><div class="sp-box ${IMG['pack_'+pk.id]?'art':''}">${IMG['pack_'+pk.id]?`<img src="${IMG['pack_'+pk.id]}" alt="">`:`<div class="sp-face">${BACK}</div><span class="sp-k">${pk.k}</span>`}</div>
-        <div class="sp-tx"><b>${pk.n}</b><small>${pk.x}</small>
-        ${pk.id==='path'?`<div class="sp-paths">${PATHS4.map(p=>`<button class="chip ${pp===p?'on':''}" data-a="ppath" data-v="${p}">${PATH_INFO[p].k} ${PATH_INFO[p].n.replace(/^Way of (the )?/,'')}</button>`).join('')}</div>`:''}
-        <button class="buy ${can?'':'no'}" data-a="buypack" data-v="${pk.id}" ${can?'':'disabled'}>${coinPill(pk.price)}${can?'Buy':`Need ${pk.price-bal} more`}</button></div></section>`}).join('')+
-      `<p class="muted center">New cards join your collection. A card you already own is traded in for Ryō: Common ${DUPE_REFUND.C}, Rare ${DUPE_REFUND.R}, Epic ${DUPE_REFUND.E}, Legendary ${DUPE_REFUND.L}.</p>`;
-  }else if(tab==='gear'){
-    const lv=levelOf(ACC.xp||0),items=[];
-    GEAR_SLOTS.forEach(slot=>GEAR[slot].items.forEach(it=>{if(it.lv>1)items.push({slot,it})}));
-    body=items.length?`<p class="muted">Gear normally unlocks as you level up. Buy it now to wear it early. Gear you already have is marked ✓.</p><div class="sgear">${items.map(({slot,it})=>{const own=ownsGear(slot,it.id)||it.lv<=lv,pr=gearPrice(it),can=bal>=pr;
-      return `<div class="sg ${own?'own':''}"><div class="sg-ic">${gearIcon(slot,it.id,ACC.look,accentOf(ACC),ACC.mon)}</div><b>${it.n}</b><small>${GEAR[slot].label} · unlocks at Lv ${it.lv}</small>
-        ${own?`<span class="sg-own">✓ ${it.lv<=lv&&!ownsGear(slot,it.id)?'Unlocked by level':'Owned'}</span>`:`<button class="buy ${can?'':'no'}" data-a="buygear" data-k="${slot}" data-v="${it.id}" ${can?'':'disabled'}>${coinPill(pr)}${can?'Buy':'Not enough'}</button>`}</div>`}).join('')}</div>`
-      :'<p class="muted center">You already have every piece of gear. Nothing left to buy here.</p>';
-  }else{
-    const cur=ACC.musicTheme||'temple';
-    body=`<p class="muted">Background music for the dojo and battles. Tap ▶ to hear a 15-second sample. ${SFX.music?'':'<b>Music is switched off</b> — turn it on with the ♪ button to hear your theme.'}</p>`+MUSIC.map(m=>{const own=ownsMusic(m.id),can=bal>=m.price;
-      const pl=S.sample===m.id;
-      return `<div class="smus ${cur===m.id?'on':''}"><button class="sm-k ${pl?'pl':''}" data-a="sample" data-v="${m.id}" aria-label="${pl?'Stop sample':'Play a sample of '+m.n}">${pl?'■':'▶'}</button><div class="sm-tx"><b>${m.n}</b><small>${m.x}</small>${pl?'<em class="sm-pl">Sample playing…</em>':''}</div>
-        ${own?(cur===m.id?'<span class="sg-own">Playing</span>':`<button class="buy" data-a="eqmusic" data-v="${m.id}">Use</button>`):`<button class="buy ${can?'':'no'}" data-a="buymusic" data-v="${m.id}" ${can?'':'disabled'}>${coinPill(m.price)}${can?'Buy':'Not enough'}</button>`}</div>`}).join('');
-  }
-  return `<div class="screen store">
-    <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Store</h1>${coinPill(bal)}</header>
-    <div class="earnbox"><b>Earn Ryō ${RYO_K}</b><span>Clan Feud win +${EARN.feudWin} (loss +${EARN.feudLoss}) · first win each day +${EARN.dailyFirst} · new Story boss +${EARN.storyFirst} (rematch win +${EARN.storyWin}) · online duel win +${EARN.duelWin}</span></div>
-    <div class="segtabs">${tabs}</div>
-    ${body}
-  </div>${packOverlayHTML()}`;
-}
-function packOverlayHTML(){
-  const r=S.packRes;if(!r)return '';
-  const all=r.every(x=>x.shown),pk=PACKS.find(p=>p.id===S.packKind)||PACKS[0],art=IMG['pack_'+pk.id];
-  if(art&&S.packStage!=='open'){const rip=S.packStage==='rip';
-    return `<div class="packov p-${pk.id} ${rip?'ripping':''}"><div class="po-in"><h2>${pk.n}</h2><p class="sub">${rip?'&nbsp;':'Tap the pack to tear it open.'}</p>
-      <button class="ripk" data-a="packrip" aria-label="Tear open the ${pk.n}">
-        <span class="rp-glow"></span>
-        <img class="rp-bot" src="${art}" alt=""><img class="rp-top" src="${art}" alt="">
-        <span class="rp-burst"></span><span class="rp-sparks">${'<i></i>'.repeat(14)}</span>
-        ${rip?'':'<span class="rp-hint">✂</span>'}
-      </button></div></div>`}
-  return `<div class="packov ${art?'fresh':''}"><div class="po-in"><h2>${pk.n}</h2><p class="sub">${all?'Here’s what you pulled.':'Tap each card to reveal it.'}</p>
-    <div class="po-cards">${r.map((x,i)=>`<button class="po-c ${x.shown?'shown r-'+C[x.id].rar:''}" data-a="packflip" data-v="${i}" aria-label="${x.shown?C[x.id].n:'Reveal card '+(i+1)}">
-      ${x.shown?card(x.id,{mini:true})+(x.isNew?'<span class="newbadge">New</span>':`<span class="po-ref">+${x.refund} ${RYO_K}</span>`):`<span class="po-back">${BACK}</span>`}</button>`).join('')}</div>
-    <div class="btns">${all?'<button class="btn pri" data-a="packclose">Done</button>':'<button class="btn pri" data-a="packall">Reveal all</button>'}</div></div></div>`;
-}
-document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-a]');if(!b||!ACC||S.screen!=='store')return;
-  const a=b.dataset.a,v=b.dataset.v;
-  const done=()=>{save();render()};
-  switch(a){
-    case 'nav':if(S.sample){SFX.stopPreview(ACC.musicTheme||'temple');S.sample=null}break;
-    case 'stab':if(S.sample){SFX.stopPreview(ACC.musicTheme||'temple');S.sample=null}S.stab=v;render();break;
-    case 'ppath':S.packPath=v;render();break;
-    case 'buypack':{const pk=PACKS.find(p=>p.id===v);if(!pk||ryo()<pk.price)return;ACC.ryo-=pk.price;
-      S.packKind=v;S.packStage=null;S.packRes=rollPack(v,S.packPath||(ACC.decks.find(d=>d.id===ACC.active)||{}).path||'banner');done();if(typeof SFX!=='undefined')SFX.play('power');break}
-    case 'packflip':{const x=S.packRes&&S.packRes[+v];if(x&&!x.shown){x.shown=true;if(x.isNew&&ACC.seenCards&&!ACC.seenCards.includes(x.id))ACC.seenCards.push(x.id);render();if(typeof SFX!=='undefined')SFX.play('tap')}else if(x)S.peek=x.id,render();break}
-    case 'packall':(S.packRes||[]).forEach(x=>{x.shown=true;if(x.isNew&&ACC.seenCards&&!ACC.seenCards.includes(x.id))ACC.seenCards.push(x.id)});done();break;
-    case 'packclose':S.packRes=null;S.packStage=null;done();break;
-    case 'packrip':if(S.packStage)return;S.packStage='rip';render();if(typeof SFX!=='undefined')SFX.play('power');setTimeout(()=>{S.packStage='open';render()},REDUCED?150:1150);break;
-    case 'buygear':{const it=(GEAR[b.dataset.k]||{items:[]}).items.find(x=>x.id===v);if(!it)return;const pr=gearPrice(it);if(ryo()<pr||ownsGear(b.dataset.k,v))return;
-      ACC.ryo-=pr;ACC.gearOwned=ACC.gearOwned||[];ACC.gearOwned.push(b.dataset.k+':'+v);done();break}
-    case 'buymusic':{const m=MUSIC.find(x=>x.id===v);if(!m||ownsMusic(v)||ryo()<m.price)return;ACC.ryo-=m.price;ACC.musicOwned=ACC.musicOwned||[];ACC.musicOwned.push(v);ACC.musicTheme=v;if(SFX.setTheme)SFX.setTheme(v);done();break}
-    case 'sample':{const base=ACC.musicTheme||'temple';if(S.sample===v){SFX.stopPreview(base);S.sample=null;render();break}S.sample=v;SFX.preview(v,base,()=>{S.sample=null;if(S.screen==='store')render()});render();break}
-    case 'eqmusic':if(ownsMusic(v)){ACC.musicTheme=v;if(SFX.setTheme)SFX.setTheme(v);done()}break;
-  }
-});
-/* ===== Home screen: painted province map ===== */
-const MAP_SPOTS=[
-  {k:'story',x:16,al:'l',y:19,n:'Mountain Pass',sub:'Story Mode',kj:'旅',act:'data-a="quest"',x2:()=>`The Road to Honnō-ji · ${storyCount()}/12 legends pledged`},
-  {k:'feud',x:76,al:'r',y:31,n:'War Camp',sub:'Clan Feud',kj:'戦',act:'data-a="skirmish"',badge:()=>titleOf(feudWins()),x2:()=>{const nt=nextTitle(feudWins());return `Fight the Unoshotto Clan · Rank ${titleOf(feudWins())}${nt?` · ${nt[0]-feudWins()} more win${nt[0]-feudWins()>1?'s':''} to ${nt[1]}`:''}`}},
-  {k:'dojo',x:50,y:47,n:'Your Dojo',sub:'Samurai & Armory',kj:'道',act:'data-a="editprofile"',x2:()=>`Your samurai, armor, gear and look`},
-  {k:'friend',x:68,y:58,n:'Red Bridge',sub:'Battle a Friend',kj:'対',act:'data-a="friend"',x2:()=>'Duel someone on this phone or online'},
-  {k:'tut',x:30,y:72,n:'Training Fields',sub:'Tutorial',kj:'学',act:'data-a="tutorial"',badge:()=>ACC.tutDone?'':'Start',x2:()=>ACC.tutDone?'Replay the guided walkthrough':'New here? Learn to play in 2 minutes'},
-  {k:'decks',x:24,al:'l',y:81,n:'Pagoda Library',sub:'Decks & Collection',kj:'札',act:'data-a="nav" data-v="decks"',badge:()=>{const n=ORDER.filter(isNewCard).length;return n?n+' new':''},x2:()=>`${ACC.decks.length} of ${MAX_DECKS} decks · ${ACC.unlocked.length}/${ORDER.length} cards`},
-  {k:'store',x:60,y:88,n:'Merchant Town',sub:'Store',kj:'店',act:'data-a="nav" data-v="store"',x2:()=>`Card packs, gear and music · you have ${ryo()} Ryō`}
-];
-function mapHTML(){
-  const a=ACC,sel=MAP_SPOTS.find(s=>s.k===S.mapSel);
-  const spots=MAP_SPOTS.map(s=>{const bd=s.badge?s.badge():'';
-    return `<button class="mspot ms-${s.k} ${s.al?'al-'+s.al:''} ${S.mapSel===s.k?'on':''}" style="left:${s.x}%;top:${s.y}%" data-a="mapsel" data-v="${s.k}" aria-label="${s.n}: ${s.sub}">
-      <span class="ms-ring"></span><span class="ms-k">${s.kj}</span>${bd?`<span class="ms-b">${bd}</span>`:''}<span class="ms-l"><b>${s.n}</b><small>${s.sub}</small></span></button>`}).join('');
-  return `<div class="mapscreen" style="--mapbg:url(${IMG.worldmap})">
-    <div class="mapwrap"><img class="mapimg" src="${IMG.worldmap}" alt="A map of your province">${spots}</div>
-    <span class="mapfog f1"></span><span class="mapfog f2"></span>
-    <header class="maptop">
-      <button class="mt-me" data-a="editprofile" aria-label="Your samurai"><span class="mt-av">${figureHTML(a.look,accentOf(a),a.mon,{bg:false})}<span class="mt-mon">${monIcon(a.mon)}</span></span>
-        <span class="mt-tx"><b>${esc(a.name)}</b><small>${esc(a.clan)} · Lv ${levelOf(a.xp||0)}</small></span></button>
-      <span class="mt-r">${coinPill(ryo())}${sfxBtnHTML()}</span>
-    </header>
-    ${liveListHTML()}
-    <button class="mapmenu" data-a="mapmenu" aria-label="Menu" aria-expanded="${!!S.mapMenu}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-    ${S.mapMenu?`<div class="mmenu" role="menu"><button class="mm-i" data-a="rules">How to play</button><button class="mm-i" data-a="nav" data-v="grounds">Record &amp; card unlocks</button>
-      <div class="mm-test"><small>Testing</small><button class="btn danger" data-a="resetask">Reset everything</button><button class="btn danger" data-a="adminask">Admin</button></div></div>`:''}
-    ${sel?`<div class="mpanel" role="dialog" aria-label="${sel.n}"><span class="mp-k">${sel.kj}</span><div class="mp-tx"><b>${sel.n}</b><small>${sel.sub} · ${sel.x2()}</small></div>
-      <button class="mp-go" ${sel.act}>Enter</button><button class="mp-x" data-a="mapsel" data-v="" aria-label="Close"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>`
-      :''}
-  </div>`;
-}
-document.addEventListener('click',e=>{
-  if(!ACC||S.screen!=='dojo')return;
-  const b=e.target.closest('[data-a="mapsel"]');
-  if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
-  if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
-  if(b){S.mapSel=b.dataset.v||null;render();return}
-  if(S.mapSel&&e.target.closest('.mapwrap')&&!e.target.closest('.mspot')){S.mapSel=null;render()}
-});
+/* safety net: if a screen fails to draw, fall back instead of leaving a blank page (saved progress is never touched) */
+function safeRender(){try{render()}catch(e){console.error(e);
+  try{S.screen=ACC?'grounds':'create';S.splash=false;render()}catch(e2){console.error(e2);
+    const r=document.getElementById('root');if(r)r.innerHTML='<div class="screen" style="padding:40px 20px;text-align:center"><h2>Something went wrong loading the game</h2><p class="muted">Your samurai is saved. Tap below to try again.</p><button class="btn pri" onclick="location.reload()">Reload</button></div>'}}}
+const bootSafe=d=>setTimeout(()=>{try{boot(d)}catch(e){console.error(e);safeRender()}},0);
+window.claude?.hot?.ready?window.claude.hot.ready(bootSafe):bootSafe(window.claude?.hot?.data??{});
 </script>
 </body></html>
