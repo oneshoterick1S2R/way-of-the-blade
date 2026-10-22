@@ -520,6 +520,12 @@ body.artbg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 .splash2::after{background:radial-gradient(ellipse at 50% 45%,rgba(12,7,5,.1),rgba(12,7,5,.72) 78%)}
 .sp-fan{margin:-84px auto 14px}
 .rung .rs{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.rematch{min-height:36px;padding:0 12px;border-radius:99px;border:1px solid var(--gold);background:rgba(0,0,0,.35);color:var(--gold);font-family:var(--f-card);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.rematch:hover{background:var(--gold);color:#1a1210}
+.cslot{position:relative}
+.cslot.isnew .tcg{box-shadow:0 0 0 2px var(--gold),0 0 18px rgba(201,162,78,.75);animation:newglow 1.8s ease-in-out infinite}
+@keyframes newglow{50%{box-shadow:0 0 0 2px var(--gold),0 0 30px rgba(230,190,90,.95)}}
+.newbadge{position:absolute;top:-7px;right:-5px;z-index:5;font-family:var(--f-card);font-weight:800;font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:#c7432c;color:#fff4e2;padding:3px 8px;border-radius:99px;box-shadow:0 2px 8px rgba(0,0,0,.6)}
+.newdot{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:5px;border-radius:99px;background:#c7432c;color:#fff4e2;font-family:var(--f-card);font-size:10px;font-weight:800;vertical-align:middle;letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){.cslot.isnew .tcg{animation:none}}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -4007,7 +4013,7 @@ const starterFor=path=>({id:uid(),name:PATH_INFO[path].n,path,cards:starterDeck(
 function newAccount(dr){
   const decks=[starterFor(dr.path)];
   return {v:2,name:dr.name.trim()||'Nameless',clan:dr.clan.trim()||'House of the Blade',look:clone(dr.look),xp:0,mon:dr.mon,color:dr.color,path:dr.path,
-    stats:{wins:0,losses:0,played:0},unlocked:[...BASE_UNLOCKED],decks,active:decks.find(d=>d.path===dr.path).id,seenRules:false,story:{unlocked:false,beaten:{}},created:Date.now(),updated:Date.now()};
+    stats:{wins:0,losses:0,played:0},unlocked:[...BASE_UNLOCKED],seenCards:[...BASE_UNLOCKED],decks,active:decks.find(d=>d.path===dr.path).id,seenRules:false,story:{unlocked:false,beaten:{}},created:Date.now(),updated:Date.now()};
 }
 function recordResult(r){
   const st=ACC.stats;st.played++;if(r==='win')st.wins++;else st.losses++;
@@ -4035,6 +4041,7 @@ function migrate(a){
   if(!a.pvp||typeof a.pvp!=='object')a.pvp={w:0,l:0};
   if(!Array.isArray(a.decks)||!a.decks.length){a.decks=PATHS4.map(starterFor);a.active=a.decks[0].id}
   if(!a.stats)a.stats={wins:0,losses:0,played:0};
+  if(!Array.isArray(a.seenCards))a.seenCards=(a.unlocked||[]).filter(id=>C[id]&&!C[id].extra);
   BASE_UNLOCKED.forEach(id=>{if(!a.unlocked.includes(id))a.unlocked.push(id)});
   a.decks.forEach(d=>{if(!PATHS4.includes(d.path))d.path=a.path;for(const k in d.cards)if(!C[k])delete d.cards[k]});
   /* decks grew from 30 to 40 cards: top up complete old decks with cards the player owns */
@@ -4209,7 +4216,7 @@ function dojoHTML(){
       <button class="battle" data-a="skirmish"><span class="mk">戦</span><span><b>Clan Feud</b><small>vs the Unoshotto Clan \u00B7 ${esc(d.name)} \u00B7 ${v.ok?'ready':'needs fixing'}</small><small class="feudrank"><span class="mk">${a.mon}</span> Rank: <b>${titleOf(feudWins())}</b> \u00B7 ${nt?`${nt[0]-feudWins()} more win${nt[0]-feudWins()>1?'s':''} to ${nt[1]}`:'highest rank reached'}</small></span></button>
     </div>
     <div class="tiles">
-      <button class="tile" data-a="nav" data-v="decks"><span class="mk">札</span><b>Decks</b><small>${a.decks.length} of ${MAX_DECKS} built \u00B7 ${a.unlocked.length}/${ORDER.length} cards</small></button>
+      <button class="tile" data-a="nav" data-v="decks"><span class="mk">札</span><b>Decks${(()=>{const n=ORDER.filter(isNewCard).length;return n?` <span class="newdot">${n} new</span>`:''})()}</b><small>${a.decks.length} of ${MAX_DECKS} built \u00B7 ${a.unlocked.length}/${ORDER.length} cards</small></button>
       <button class="tile" data-a="friend"><span class="mk">対</span><b>Battle a Friend</b><small>Same phone or online</small></button>
       <button class="tile tuttile ${ACC.tutDone?'':'new'}" data-a="tutorial"><span class="mk">学</span><b>Tutorial</b><small>${ACC.tutDone?'Replay the guided walkthrough':'New here? Learn to play in 2 minutes'}</small>${ACC.tutDone?'':'<em>Start here</em>'}</button>
     </div>
@@ -4232,7 +4239,7 @@ function deckRow(d){
       <button class="btn sm" data-a="del" data-v="${d.id}" ${ACC.decks.length<=1?'disabled':''}>Delete</button>
     </div></div>`;
 }
-function decksTabs(){return `<div class="segtabs"><button class="seg ${S.dtab!=='col'?'on':''}" data-a="dtab" data-v="decks">My decks</button><button class="seg ${S.dtab==='col'?'on':''}" data-a="dtab" data-v="col">Collection <small>${ACC.unlocked.length}/${ORDER.length}</small></button></div>`}
+function decksTabs(){return `<div class="segtabs"><button class="seg ${S.dtab!=='col'?'on':''}" data-a="dtab" data-v="decks">My decks</button><button class="seg ${S.dtab==='col'?'on':''}" data-a="dtab" data-v="col">Collection <small>${ACC.unlocked.length}/${ORDER.length}</small>${(()=>{const n=ORDER.filter(isNewCard).length;return n?`<span class="newdot">${n}</span>`:''})()}</button></div>`}
 function decksHTML(){
   if(S.dtab==='col')return collectionHTML();
   const full=ACC.decks.length>=MAX_DECKS,np=S.newPath;
@@ -4271,10 +4278,11 @@ function builderHTML(){
     <div class="btns left"><button class="btn" data-a="clear" ${v.total?'':'disabled'}>Remove all cards</button></div>
   </div>`;
 }
+const isNewCard=id=>ACC&&ACC.unlocked.includes(id)&&Array.isArray(ACC.seenCards)&&!ACC.seenCards.includes(id)&&!C[id].tok;
 function collectionHTML(){
   const cp=S.colPath;
-  const tabs=[...PATHS4,'n'].map(p=>{const ids=ORDER.filter(id=>C[id].p===p),have=ids.filter(id=>ACC.unlocked.includes(id)).length;
-    return `<button class="chip ${cp===p?'on':''}" data-a="colpath" data-v="${p}">${p==='n'?'Neutral':PATH_INFO[p].n.replace(/^Way of (the )?/,'')} <small>${have}/${ids.length}</small></button>`}).join('');
+  const tabs=[...PATHS4,'n'].map(p=>{const ids=ORDER.filter(id=>C[id].p===p),have=ids.filter(id=>ACC.unlocked.includes(id)).length,nw=ids.filter(isNewCard).length;
+    return `<button class="chip ${cp===p?'on':''}" data-a="colpath" data-v="${p}">${p==='n'?'Neutral':PATH_INFO[p].n.replace(/^Way of (the )?/,'')} <small>${have}/${ids.length}</small>${nw?`<span class="newdot" aria-label="${nw} new">${nw}</span>`:''}</button>`}).join('');
   const groups=[['s','Samurai'],['w','Weapons'],['a','Ambushes']];
   return `<div class="screen">
     <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Decks</h1></header>
@@ -4282,7 +4290,7 @@ function collectionHTML(){
     <div class="chips">${tabs}</div>
     ${cp!=='n'?`<p class="muted">${PATH_INFO[cp].x} Path Power · <b>${PATH_INFO[cp].power.n}</b>: ${PATH_INFO[cp].power.x}</p>`:'<p class="muted">Neutral cards can go in any deck.</p>'}
     ${groups.map(([t,l])=>{const ids=sortIds(ORDER.filter(id=>C[id].p===cp&&C[id].t===t));return `<section class="sect"><h2>${l} <small class="muted">${ids.length}</small></h2><div class="cgrid">${ids.map(id=>{const lock=!ACC.unlocked.includes(id);
-      return `<button class="cslot ${lock?'locked':''}" data-a="peek" data-v="${id}">${card(id,{mini:true})}${lock?`<span class="lockv"><b>\u{1F512}</b>${RAR[C[id].rar]}<br>Win battles to unlock</span>`:''}</button>`}).join('')}</div></section>`}).join('')}
+      const nw=isNewCard(id);return `<button class="cslot ${lock?'locked':''} ${nw?'isnew':''}" data-a="peek" data-v="${id}">${nw?'<span class="newbadge">New</span>':''}${card(id,{mini:true})}${lock?`<span class="lockv"><b>\u{1F512}</b>${RAR[C[id].rar]}<br>Win battles to unlock</span>`:''}</button>`}).join('')}</div></section>`}).join('')}
   </div>`;
 }
 function prebattleHTML(){
@@ -4438,7 +4446,7 @@ document.addEventListener('click',e=>{
     case 'create':if(!S.draft.name.trim()){S.ctab='clan';render();setTimeout(()=>{const n=document.getElementById('f-name');if(n){n.focus();n.placeholder='Give your samurai a name'}},50);return}ACC=newAccount(S.draft);S.draft=null;save();go('dojo');return;
     case 'editprofile':S.ctab='gear';S.draft={name:ACC.name,clan:ACC.clan,look:clone(ACC.look),xp:ACC.xp,mon:ACC.mon,color:ACC.color,path:ACC.path,stats:ACC.stats,active:ACC.active};go('profile');return;
     case 'saveprofile':Object.assign(ACC,{name:S.draft.name.trim()||ACC.name,clan:S.draft.clan.trim()||ACC.clan,look:clone(S.draft.look),active:ACC.decks.some(x=>x.id===S.draft.active)?S.draft.active:ACC.active,mon:S.draft.mon,color:S.draft.color,path:S.draft.path});save();go('dojo');return;
-    case 'peek':S.peek=v;render();return;
+    case 'peek':S.peek=v;if(ACC&&Array.isArray(ACC.seenCards)&&!ACC.seenCards.includes(v)&&ACC.unlocked.includes(v)){ACC.seenCards.push(v);save()}render();return;
     case 'peekclose':if(e.target===b||b.tagName==='BUTTON'){S.peek=null;render()}return;
     case 'edit':S.editId=v;S.filter='all';go('build');return;
     case 'dup':{const d=ACC.decks.find(x=>x.id===v);if(d&&ACC.decks.length<MAX_DECKS){ACC.decks.push({id:uid(),name:(d.name+' copy').slice(0,28),path:d.path,cards:clone(d.cards)});save();render()}return}
