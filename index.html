@@ -538,6 +538,18 @@ body.artbg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 .mt-av .dollwrap{border-radius:50%;overflow:hidden}
 .mt-mon{position:absolute;right:-5px;bottom:-5px;width:20px;height:20px;border-radius:50%;background:#140c08;border:1.5px solid var(--gold);color:var(--gold);display:grid;place-items:center;z-index:2}
 .mt-mon .kamon{width:80%;height:80%}
+.archbox{margin:10px 0;padding:10px 12px;border-radius:8px;border:1px solid rgba(201,162,78,.5);background:rgba(0,0,0,.35);display:flex;flex-direction:column;gap:8px}
+.ab-h b{display:block;font-family:var(--f-card);font-size:15px;color:var(--gold)}.ab-h small{color:#c9b48c;font-size:12.5px}
+.ab-f{display:flex;flex-wrap:wrap;gap:6px}
+.famchip{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:0 10px 0 4px;border-radius:99px;border:1px solid rgba(201,162,78,.45);background:rgba(0,0,0,.3);color:#f3e6c6;font-family:var(--f-card);font-size:12px;cursor:pointer}
+.famchip span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#2a1d14;color:var(--gold);font-family:var(--f-brush)}
+.famchip b{color:var(--gold)}
+.ab-s{display:flex;flex-wrap:wrap;gap:5px;align-items:center}.ab-s small{width:100%;color:#a8936c;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.ab-s span{font-size:12px;padding:2px 8px;border-radius:99px;border:1px dashed rgba(201,162,78,.35);color:#c9b48c}
+.ab-s span.on{border-style:solid;border-color:var(--gold);color:#1a1210;background:var(--gold)}
+.famtag{font-style:normal;color:#d9c08a}.paytag{font-style:normal;color:#f0a08a}
+.archname{color:var(--gold)}
+.payline{color:#c7432c;font-weight:700;margin:0 0 2px}
 
 /* ---------- intro scroll ---------- */
 .stage{position:fixed;inset:0;z-index:35;display:grid;place-items:center;overflow-y:auto;
@@ -1945,6 +1957,57 @@ const ORDER=Object.keys(C).filter(id=>!C[id].tok);
 const TYPE={s:'Samurai',w:'Weapon',a:'Ambush'};
 const wText=d=>[d.a?`+${d.a} Strength`:'',d.h?`+${d.h} Vitality`:''].filter(Boolean).join(', ')||'No stat bonus';
 Object.keys(C).forEach(k=>{if(C[k].story&&!C[k].tok){C[k].own=1;C[k].ap='50% 30%'}});
+/* ===== Deck archetypes: card families + payoff cards ===== */
+const FAMILY={
+  ashigaru:{n:'Ashigaru',k:'足',ids:['ashi','recruit','vetashi','conscript','kashira','bugyo','levy','mantlet','flagpage','drumboy','militia','farmhand','cook','gokenin','st_hideyoshi']},
+  swordsman:{n:'Swordsman',k:'剣',ids:['deshi','iaido','wduelist','twinblade','instructor','onna','champion','ironronin','soke','kensei','undefeated','shugyosha','wakazamurai','ronin','st_kojiro','st_musashi','st_tadakatsu']},
+  ninja:{n:'Ninja',k:'忍',ids:['lookout','kunoichi','smokerunner','shinobi','rooftop','shuriken','kusa','signalscout','spy','firestarter','assassin','raider','thousand','jonin','roofspy','st_chiyome','st_fuma','st_hanzo']},
+  monk:{n:'Monk',k:'僧',ids:['novice','incense','chanter','sohei','yamabushi','abbot','enlightened','thousandsteps','acolyte','pilgrim','sensei','herbalist','miko','gateguard','st_kennyo','st_ikko']},
+  archer:{n:'Archer',k:'弓',ids:['yumi','yabusame','volley','firearrow','marksman','bowapp','templearcher','master10k','teppo']}
+};
+const ARCH={
+  horde:{n:'Ashigaru Horde',f:'ashigaru',x:'Flood the field with foot soldiers, then make them all stronger.'},
+  blade:{n:'Blade Masters',f:'swordsman',x:'Few samurai, many weapons. Every blade makes them deadlier.'},
+  web:{n:'Shinobi Web',f:'ninja',x:'Keep ambushes set at all times and let your ninja feed on them.'},
+  sorrow:{n:'Temple of Sorrow',f:'monk',x:'Monks who welcome death. Every fallen monk fuels the next.'},
+  bowline:{n:'Bow Line',f:'archer',x:'Guardians hold the line while Archers rain damage on Honor.'},
+  ronin:{n:'Lone Rōnin',f:null,x:'One warrior on the field, made unstoppable by standing alone.'}
+};
+/* --- payoff cards --- */
+const arch={arch:1};
+S_('drillsgt','banner',3,'R','Drill Sergeant','Banner — Ashigaru Captain','鬼軍曹',2,3,{...arch,ac:'horde',aura:'ashiStr',x:'Your other Ashigaru have +1 Strength.',fl:'Left foot! Right foot! Spear up!'});
+A_('spearwall','banner',3,'R','Wall of Spears','槍衾','When an enemy strikes, each of your Ashigaru deals 1 damage to the attacker.',{...arch,ac:'horde',fl:'Ten spears for every sword.'});
+S_('ashitaisho','banner',5,'E','Ashigaru Taishō','Banner — Ashigaru General','足軽大将',3,5,{...arch,ac:'horde',arr:{k:'famBuff',f:'ashigaru',a:1,h:1},x:'Arrival: give your other Ashigaru +1/+1.',fl:'An army of peasants is still an army.'});
+S_('smithapp','steel',2,'C','Swordsmith’s Apprentice','Steel — Smith','鍛冶見習',1,3,{...arch,ac:'blade',aura:'equipDraw',x:'The first time you equip a weapon each turn, draw a card.',fl:'Fold, hammer, quench. Again.'});
+S_('nitoduel','steel',3,'R','Nitō Duelist','Steel — Swordsman','二刀流',2,3,{...arch,ac:'blade',ab:{n:'Blade Storm',c:2,k:'perWeapon',v:2,tg:'enemy',x:'Deal 2 damage to an enemy samurai for each weapon this samurai carries.'},fl:'One blade parries, the other answers.'});
+S_('armorymaster','steel',4,'E','Armory Master','Steel — Sword Master','武具奉行',3,4,{...arch,ac:'blade',aura:'swordArm',x:'Your Swordsmen carrying 2 or more weapons have +2 Strength.',fl:'A blade for every hand, a hand for every blade.'});
+S_('spymaster','shadow',3,'R','Spymaster','Shadow — Ninja','忍頭',1,2,{...arch,ac:'web',aura:'trapScale',x:'Has +1/+1 for each ambush you have set.',fl:'Every shadow reports to me.'});
+S_('hiddennet','shadow',2,'C','Hidden Network','Shadow — Ninja','隠れ網',2,2,{...arch,ac:'web',aura:'netDraw',x:'Whenever one of your ambushes springs, draw a card.',fl:'A whisper travels faster than a horse.'});
+S_('matriarch','shadow',5,'E','Kunoichi Matriarch','Shadow — Ninja','女首領',3,4,{...arch,ac:'web',aura:'matriarch',x:'Once per turn, when one of your ambushes springs, set a random Shadow ambush.',fl:'For every trap you find, two more wait.'});
+S_('funeralbell','temple',2,'C','Funeral Bell Keeper','Temple — Monk','弔鐘',1,3,{...arch,ac:'sorrow',aura:'funeral',x:'Whenever another of your Monks falls, restore 2 Honor.',fl:'One toll for every soul.'});
+S_('lanternmonk','temple',3,'R','Lantern Monk','Temple — Monk','灯籠僧',2,3,{...arch,ac:'sorrow',dp:{k:'deckMonk'},x:'Death Poem: summon a Monk costing 2 or less from your deck.',fl:'When my light goes out, carry it on.'});
+S_('lastrite','temple',5,'E','Abbot of the Last Rite','Temple — Monk','引導',3,5,{...arch,ac:'sorrow',aura:'dpTwice',x:'Your Death Poems trigger twice.',fl:'Death is a door. I hold it open.'});
+S_('quiver','n',2,'C','Quiver Bearer','Neutral — Archer','矢筒持',1,3,{...arch,ac:'bowline',aura:'archerStr',x:'Your other Archers have +1 Strength.',fl:'Never let an archer run dry.'});
+S_('arrowmaster','n',4,'E','Arrow Master','Neutral — Archer','弓聖',2,4,{...arch,ac:'bowline',aura:'arrowMaster',x:'At the start of your turn, deal 1 damage to the rival’s Honor for each of your Archers (up to 3).',fl:'Release, and the sky answers.'});
+S_('masterless','n',3,'R','Masterless Blade','Neutral — Rōnin','浪人刀',2,3,{...arch,ac:'ronin',aura:'lone',x:'Has +3/+3 while it is your only samurai.',fl:'No lord. No clan. No mercy.'});
+S_('wanderer','n',2,'C','Lone Wanderer','Neutral — Rōnin','一匹狼',2,2,{...arch,ac:'ronin',arr:{k:'loneDraw'},x:'Arrival: if you control no other samurai, draw 2 cards.',fl:'The road is long. The company is short.'});
+Object.keys(C).forEach(id=>{if(C[id].arch&&!ORDER.includes(id))ORDER.push(id)});
+FAMILY.ashigaru.ids.push('drillsgt','ashitaisho');FAMILY.swordsman.ids.push('nitoduel','armorymaster');
+FAMILY.ninja.ids.push('spymaster','hiddennet','matriarch');FAMILY.monk.ids.push('funeralbell','lanternmonk','lastrite');
+FAMILY.archer.ids.push('quiver','arrowmaster');
+for(const f in FAMILY)FAMILY[f].ids.forEach(id=>{if(C[id]){C[id].tr=C[id].tr||[];if(!C[id].tr.includes(f))C[id].tr.push(f)}});
+const fam=(c,f)=>!!(C[c]&&C[c].tr&&C[c].tr.includes(f));
+const famLabel=d=>(d.tr||[]).map(f=>FAMILY[f].n).join(' · ');
+/* borrowed paintings until their own art is made */
+[['drillsgt','bugyo'],['spearwall','pikewall'],['ashitaisho','taisho'],['smithapp','swordsmith'],['nitoduel','twinblade'],['armorymaster','soke'],['spymaster','thousand'],['hiddennet','kusa'],['matriarch','kunoichi'],['funeralbell','chanter'],['lanternmonk','pilgrim'],['lastrite','abbot'],['quiver','yumi'],['arrowmaster','marksman'],['masterless','ronin'],['wanderer','ironronin']]
+  .forEach(([a,b])=>{if(IMG[b]&&!IMG[a]){IMG[a]=IMG[b];C[a].own=C[b].own;C[a].borrowed=b}});
+/* deck analysis for the builder */
+function deckArch(cards){
+  const cnt={};for(const id in cards){const n=cards[id]||0;if(!n||!C[id])continue;(C[id].tr||[]).forEach(f=>cnt[f]=(cnt[f]||0)+n)}
+  const pay={};for(const id in cards){if(cards[id]&&C[id]&&C[id].ac)pay[C[id].ac]=(pay[C[id].ac]||0)+cards[id]}
+  let best=null,bv=0;for(const a in ARCH){const A=ARCH[a],members=A.f?cnt[A.f]||0:0,p=pay[a]||0;if(!p)continue;const v=p*3+members;if(v>bv){bv=v;best=a}}
+  return {cnt,best,pay};
+}
 /* ===== Game engine (shared by the game and the balance simulator) ===== */
 let G=null;
 const MAX_KI=10,HAND_MAX=10,SLOTS=5,TRAP_MAX=3,HONOR_MAX=20;
@@ -1969,7 +2032,7 @@ function fillDeck(d,path,ok){
   return d;
 }
 function starterDeck(path,legends){
-  const d={};ORDER.forEach(id=>{const c=C[id];if(c.p===path&&!c.story&&!c.extra&&(c.rar!=='L'||legends))d[id]=1});
+  const d={};ORDER.forEach(id=>{const c=C[id];if(c.p===path&&!c.story&&!c.extra&&!c.arch&&(c.rar!=='L'||legends))d[id]=1});
   Object.assign(d,STARTER_NEUTRALS);
   if(legends){delete d.teamaster;delete d.gatekeeper}
   return fillDeck(d,path);
@@ -2017,7 +2080,11 @@ function auraStr(u){
     if(C[o.c].aura==='guardStr'&&isGuard(u))n++;
     if(o!==u&&C[o.c].aura==='templeStr'&&C[u.c].p==='temple')n++;
     if(C[o.c].aura==='levyBuff'&&u.c==='levy')n++;
+    if(o!==u&&C[o.c].aura==='ashiStr'&&fam(u.c,'ashigaru'))n++;
+    if(o!==u&&C[o.c].aura==='archerStr'&&fam(u.c,'archer'))n++;
+    if(C[o.c].aura==='swordArm'&&fam(u.c,'swordsman')&&u.w.length>=2)n+=2;
   }
+  n+=selfScale(u);
   if(stanceOf(u.owner)==='fire')n+=2;
   if(G.boss)n+=bossStr(u);
   return n;
@@ -2029,7 +2096,9 @@ function bossStr(u){
   if(G.boss==='musashi'&&u.owner===0&&!G.bossArrived)return -1;
   return 0;
 }
-function auraVit(u){let n=0;if(isGuard(u))for(const o of units(u.owner))if(o!==u&&C[o.c].aura==='guardVit')n+=2;
+function selfScale(u){const a=C[u.c].aura;if(a==='trapScale')return G.pl[u.owner].traps.length;if(a==='lone')return units(u.owner).filter(x=>hp0(x)).length===1?3:0;return 0}
+const hp0=u=>!u.dead&&C[u.c].h+u.hb-u.dmg>-50;
+function auraVit(u){let n=selfScale(u);if(isGuard(u))for(const o of units(u.owner))if(o!==u&&C[o.c].aura==='guardVit')n+=2;
   if(u.c==='levy')for(const o of units(u.owner))if(C[o.c].aura==='levyBuff')n++;
   if(isGuard(u)&&stanceOf(u.owner)==='mountain')n+=3;return n}
 const str=u=>Math.max(0,C[u.c].a+u.buff+u.w.reduce((s,w)=>s+C[w].a,0)+auraStr(u));
@@ -2093,7 +2162,8 @@ function cleanup(){
     const dying=[];
     G.pl.forEach((P,p)=>P.board.forEach((u,s)=>{if(u&&hp(u)<=0){dying.push(u);P.board[s]=null}}));
     if(!dying.length)break;
-    dying.forEach(u=>{log(`${C[u.c].n} has fallen.`);const dp=C[u.c].dp;if(dp)deathPoem(u.owner,dp)});
+    dying.forEach(u=>{log(`${C[u.c].n} has fallen.`);const dp=C[u.c].dp,me=units(u.owner);if(dp){deathPoem(u.owner,dp);if(me.some(x=>C[x.c].aura==='dpTwice'&&hp(x)>0)){log('The Last Rite: the Death Poem echoes.');deathPoem(u.owner,dp)}}
+      if(fam(u.c,'monk'))me.forEach(x=>{if(C[x.c].aura==='funeral'&&hp(x)>0){healHonor(u.owner,2);log('The funeral bell tolls.')}})});
   }
   checkOver();
 }
@@ -2105,6 +2175,7 @@ function deathPoem(p,dp){
     case 'setAmbush':setTrap(p,dp.id);break;
     case 'draw':draw(p,dp.v);break;
     case 'honor':healHonor(p,dp.v);break;
+    case 'deckMonk':{const P=G.pl[p],i=P.deck.findIndex(c=>fam(c,'monk')&&C[c].t==='s'&&C[c].ki<=2);if(i>=0){const c=P.deck.splice(i,1)[0];summon(p,c,true);log(`${C[c].n} takes up the lantern.`)}break}
   }
 }
 
@@ -2167,6 +2238,8 @@ function arrival(p,src,ar,t){
       if(bi>=0){const c=h.splice(bi,1)[0];log(`${C[src.c].n} reads the enemy’s hand and discards ${o===0?C[c].n:'a card'}.`)}else log(`${C[src.c].n} finds no Ambush or weapon to discard.`);break}
     case 'addCard':addHand(p,ar.id);break;
     case 'equipTwo':src.w.push(pick(NEUTRAL_SWORDS),pick(NEUTRAL_SWORDS));break;
+    case 'famBuff':units(p).forEach(u=>{if(u!==src&&fam(u.c,ar.f))buff(u,ar.a,ar.h)});break;
+    case 'loneDraw':if(units(p).filter(u=>u!==src).length===0)draw(p,2);break;
     case 'burnTemple':G.pl.forEach((P,q)=>units(q).forEach(u=>{if(u!==src)dmg(u,2)}));log('The temple burns!');break;
   }
 }
@@ -2193,6 +2266,7 @@ function playCard(p,i,o={}){
     if(G.boss&&typeof bossHook==='function')bossHook('summon',p,u);
   }else if(d.t==='w'){
     const u=P.board[o.slot];u.w.push(c);P.wPlayed++;
+    if(units(p).some(x=>C[x.c].aura==='equipDraw')&&P.eqR!==G.round){P.eqR=G.round;draw(p,1);log('The apprentice hands over a fresh blade: draw a card.')}
     if(kw(u,'growEquip'))buff(u,1,1);else fx(u.uid,d.a?'+'+d.a:'+'+d.h,d.a?'buff':'heal');
     log(`${nm(p)} ${G.duel?'equips':'equip'} ${C[u.c].n} with ${d.n}.`);
     if(d.arr){const tl=targetsFor(p,d.arr.tg,u);if(!d.arr.tg||validT(tl,o.target))arrival(p,u,d.arr,o.target)}
@@ -2228,6 +2302,7 @@ function useTech(p,s,t){
   if(p===1)UI.toast(C[u.c].v,`${C[u.c].n}: ${ab.n}`,ab.x);
   switch(ab.k){
     case 'snipe':dmg(tu,ab.v);break;
+    case 'perWeapon':dmg(tu,ab.v*Math.max(1,u.w.length));break;
     case 'twin':dmg(tu,str(u)*2);break;
     case 'sweep':units(o).forEach(f=>dmg(f,ab.v));break;
     case 'heal':units(p).forEach(a=>heal(a,ab.v));break;
@@ -2273,7 +2348,10 @@ function springAmbush(o,u,t){
     case 'ofuda':u.w=[];u.buff=Math.min(0,u.buff);u.hb=0;break;
     case 'sanctuary':res.cancel=1;healHonor(o,3);break;
     case 'mist':res.cancel=1;u.frz=1;break;
+    case 'spearwall':units(o).forEach(x=>{if(fam(x.c,'ashigaru')&&hp(x)>0)dmg(u,1)});break;
   }
+  units(o).forEach(x=>{if(C[x.c].aura==='netDraw'&&hp(x)>0)draw(o,1)});
+  if(units(o).some(x=>C[x.c].aura==='matriarch'&&hp(x)>0)&&P.matR!==G.round){P.matR=G.round;const pool=ORDER.filter(id=>C[id].p==='shadow'&&C[id].t==='a'&&!C[id].story);if(setTrap(o,pick(pool)))log('The Matriarch sets another trap.')}
   return res;
 }
 function strike(p,s,t){
@@ -2321,6 +2399,7 @@ function turnAuras(p){
   const P=G.pl[p],o=1-p;
   if(units(p).some(u=>C[u.c].aura==='furinkazan')||(G.boss==='shingen'&&p===1)){P.stI=((P.stI??-1)+1)%4;P.stance=STANCES[P.stI];log(`${p?'Their':'Your'} army takes the ${P.stance[0].toUpperCase()+P.stance.slice(1)} stance.`)}else P.stance=null;
   units(p).forEach(u=>{if(C[u.c].aura==='ikko')summon(p,'st_ikko',true)});
+  if(units(p).some(u=>C[u.c].aura==='arrowMaster')){const n=Math.min(3,units(p).filter(u=>fam(u.c,'archer')).length);if(n){hurtHonor(o,n);log(`Arrows fall on the enemy’s Honor (-${n}).`)}}
   units(o).forEach(u=>{if(C[u.c].aura==='nobunaga'){const n=Math.min(3,units(o).filter(x=>x.c==='levy'||/Archer/.test(C[x.c].ty)).length);
     for(let i=0;i<n;i++){const l=units(p).filter(x=>hp(x)>0);if(l.length)dmg(pick(l),1)}}});
   if(G.boss&&typeof bossHook==='function')bossHook('start',p);
@@ -2965,6 +3044,7 @@ function rulesHTML(d){
   let h='';
   if(kws.length)h+=`<p><b>${kws.join('. ')}.</b></p>`;
   if(d.t==='w')h+=`<p><b>Equip:</b> ${wText(d)}.</p>`;
+  if(d.ac)h+=`<p class="payline">★ ${ARCH[d.ac].n}</p>`;
   if(d.x)h+=`<p>${d.x}</p>`;
   if(d.ab)h+=`<p><b>${d.ab.n}</b> (technique, needs ${d.ab.c} weapon${d.ab.c>1?'s':''}): ${d.ab.x}</p>`;
   return h;
@@ -3001,7 +3081,7 @@ function card(id,o={}){
     <div class="tin">
       <div class="tname pp"><span class="nm">${d.n}</span>${gem}</div>
       <div class="tart ${d.own?'own':''}" ${d.ap?`style="--ap:${d.ap}"`:''}>${art(id)}${myth?`<span class="lfx lfx-${LFX[id]||'glint'}" aria-hidden="true">${'<i></i>'.repeat(9)}</span><span class="gleam" aria-hidden="true"></span>`:''}${d.r?`<span class="rank">${d.r}</span>`:''}${d.own?'':`<span class="vk pp ${d.r?'low':''}">${d.v}</span>`}${extra}</div>
-      <div class="ttype pp"><span>${d.ty}</span><i class="rj r-${d.rar}" title="${RAR[d.rar]}"></i></div>
+      <div class="ttype pp"><span>${d.ty}${d.tr&&!d.tr.every(f=>d.ty.includes(FAMILY[f].n))?` · ${famLabel(d)}`:''}</span><i class="rj r-${d.rar}" title="${RAR[d.rar]}"></i></div>
       <div class="ttext pp">${rulesHTML(d)}<p class="fl">“${d.fl}”</p></div>
       ${stats?`<div class="tstats">${stats}</div>`:''}
       ${holo?'<span class="foil" aria-hidden="true"></span><span class="glare" aria-hidden="true"></span><span class="lotus" aria-hidden="true">❀</span>':''}${myth?'<span class="prism" aria-hidden="true"></span><span class="sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>':''}
@@ -4649,7 +4729,7 @@ function deckRow(d){
   const v=validate(d),isA=d.id===ACC.active;
   return `<div class="drow ${isA?'act':''}">
     <div class="dmain"><b>${esc(d.name)}</b>${isA?'<span class="pill gold">Active</span>':''}<span class="pill ${v.ok?'ok':'bad'}">${v.ok?'Valid':'Invalid'}</span>
-      <small>${pathTag(d.path)} ${v.total}/${DECK_SIZE} cards · ${v.s} samurai · ${v.w} weapons · ${v.a} ambushes</small></div>
+      <small>${pathTag(d.path)} ${(()=>{const A=deckArch(d.cards);return A.best?`<b class="archname">${ARCH[A.best].n}</b> · `:''})()}${v.total}/${DECK_SIZE} cards · ${v.s} samurai · ${v.w} weapons · ${v.a} ambushes</small></div>
     <div class="btns left">
       <button class="btn sm pri" data-a="edit" data-v="${d.id}">Edit</button>
       ${isA?'':`<button class="btn sm" data-a="setactive" data-v="${d.id}" ${v.ok?'':'disabled'}>Set as active</button>`}
@@ -4675,12 +4755,12 @@ function builderHTML(){
   const d=ACC.decks.find(x=>x.id===S.editId);if(!d){S.screen='decks';return decksHTML()}
   const v=validate(d),f=S.filter;
   const pool=sortIds(ORDER.filter(id=>C[id].p==='n'||C[id].p===d.path));
-  const ids=pool.filter(id=>f==='all'||(f==='deck'?d.cards[id]>0:f==='path'?C[id].p===d.path:f==='n'?C[id].p==='n':C[id].t===f));
+  const ids=pool.filter(id=>f==='all'||(f&&f.startsWith('fam:')?fam(id,f.slice(4)):f==='arch'?!!C[id].ac:f==='deck'?d.cards[id]>0:f==='path'?C[id].p===d.path:f==='n'?C[id].p==='n':C[id].t===f));
   const rows=ids.map(id=>{const c=C[id],n=d.cards[id]||0,lock=!ACC.unlocked.includes(id),lim=limitOf(id);
     const st=`${c.ki} Ki · `+(c.t==='s'?`${c.a}/${c.h}${c.kw.includes('guard')?' · Guardian':''}${c.kw.includes('swift')?' · Swift':''}${c.ab?` · ${c.ab.n}`:''}`:c.t==='w'?wText(c):'Ambush');
     return `<div class="crow ${lock?'locked':''} ${n?'in':''}">
       <button class="cthumb" data-a="peek" data-v="${id}" aria-label="Read ${c.n}">${avatar(id,'sq')}<i class="rj r-${c.rar}"></i></button>
-      <button class="cinfo" data-a="peek" data-v="${id}"><b>${c.n}</b><small>${c.p==='n'?'Neutral':PATH_INFO[c.p].n} · ${RAR[c.rar]}</small><small>${lock?'\u{1F512} Locked · win battles to unlock':st}</small></button>
+      <button class="cinfo" data-a="peek" data-v="${id}"><b>${c.n}</b><small>${c.p==='n'?'Neutral':PATH_INFO[c.p].n} · ${RAR[c.rar]}${c.tr?` · <em class="famtag">${famLabel(c)}</em>`:''}${c.ac?' · <em class="paytag">★ '+ARCH[c.ac].n+'</em>':''}</small><small>${lock?'\u{1F512} Locked · win battles to unlock':st}</small></button>
       <div class="ctr">${lock?'':`<button class="pm" data-a="minus" data-v="${id}" ${n?'':'disabled'} aria-label="Remove ${c.n}">−</button><span class="n">${n}<small>/${lim}</small></span><button class="pm" data-a="plus" data-v="${id}" ${n>=lim||v.total>=DECK_SIZE?'disabled':''} aria-label="Add ${c.n}">+</button>`}</div>
     </div>`}).join('');
   const chip=(k,l)=>`<button class="chip ${f===k?'on':''}" data-a="filter" data-v="${k}">${l}</button>`;
@@ -4691,7 +4771,12 @@ function builderHTML(){
     <div>${pathTag(d.path)}</div>
     <div class="vbox ${v.ok?'ok':''}">${v.ok?'<b>Deck is valid and ready for battle.</b>':`<b>Fix before battle:</b><ul>${v.errs.slice(0,6).map(e=>`<li>${e}</li>`).join('')}</ul>`}
       <div class="split"><span>${v.s} samurai</span><span>${v.w} weapons</span><span>${v.a} ambushes</span></div></div>
-    <div class="chips">${chip('all','All')}${chip('deck','In deck')}${chip('path',PATH_INFO[d.path].n.replace(/^Way of (the )?/,''))}${chip('n','Neutral')}${chip('s','Samurai')}${chip('w','Weapons')}${chip('a','Ambushes')}</div>
+    ${(()=>{const A=deckArch(d.cards),fams=Object.entries(A.cnt).sort((x,y)=>y[1]-x[1]);
+      const sugg=Object.entries(ARCH).filter(([k,X])=>ORDER.some(id=>C[id].ac===k&&(C[id].p===d.path||C[id].p==='n')));
+      return `<section class="archbox"><div class="ab-h"><b>${A.best?'Archetype: '+ARCH[A.best].n:'No archetype yet'}</b><small>${A.best?ARCH[A.best].x:'Add a ★ payoff card plus cards of its family to build around a strategy.'}</small></div>
+        ${fams.length?`<div class="ab-f">${fams.map(([f,n])=>`<button class="famchip" data-a="filter" data-v="fam:${f}"><span>${FAMILY[f].k}</span>${FAMILY[f].n} <b>${n}</b></button>`).join('')}</div>`:''}
+        <div class="ab-s"><small>Strategies for this deck:</small>${sugg.map(([k,X])=>`<span class="${A.best===k?'on':''}">${X.n}</span>`).join('')}</div></section>`})()}
+    <div class="chips">${chip('all','All')}${chip('deck','In deck')}${chip('path',PATH_INFO[d.path].n.replace(/^Way of (the )?/,''))}${chip('n','Neutral')}${chip('s','Samurai')}${chip('w','Weapons')}${chip('a','Ambushes')}${chip('arch','★ Payoffs')}</div>
     <div class="clist">${rows||'<p class="muted">No cards here yet.</p>'}</div>
     <div class="btns left"><button class="btn" data-a="clear" ${v.total?'':'disabled'}>Remove all cards</button></div>
   </div>`;
