@@ -3163,12 +3163,12 @@ function overHTML(){
     ${xr.gear.length?`<div class="newgear"><small>New gear in your armory:</small>${xr.gear.map(g=>`<span>${GEAR[g.slot].label}: <b>${g.n}</b></span>`).join('')}</div>`:''}`;
   return `<div class="modal"><div class="scroll" role="dialog">
     <div class="big">${win?'勝':'敗'}</div><h2>${win?'Victory':'Defeat'}</h2>
-    <p class="sub">${win?'The Unoshotto Clan bows. Your banners fly over the field.':'Your clan’s Honor is spent. Sharpen your blades and return.'}</p>
+    <p class="sub">${G.ronin?(win?`${esc(G.pl[1].who.name)} bows and walks on. Another rōnin waits on the road.`:`${esc(G.pl[1].who.name)} sheathes their blade. Try the road again.`):win?'The Unoshotto Clan bows. Your banners fly over the field.':'Your clan’s Honor is spent. Sharpen your blades and return.'}</p>
     <p style="margin:0 0 12px;font-size:14px">Record: ${ACC.stats.wins} wins · ${ACC.stats.losses} losses · Title: ${titleOf(feudWins())}</p>
     ${xpBlock}
     ${coinResultHTML(G.coin)}
     ${un}
-    <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="again">Fight again</button><button class="btn ghost-dark" data-act="dojo">Return to dojo</button></div>
+    <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="again">${G.ronin?'Next rōnin':'Fight again'}</button><button class="btn ghost-dark" data-act="dojo">Return to map</button></div>
   </div></div>`;
 }
 function renderBattle(){
@@ -3431,6 +3431,14 @@ function phaseHTML(){
       <div class="match"><div><div class="mfig">${figureHTML(A.look,A.accent,A.mon,{bg:false})}</div><b>${esc(A.name)}</b><small>${PATH_INFO[G.pl[0].path].n}</small></div>
         <em>vs</em><div><div class="mfig foe">${figureHTML(B.look,B.accent,B.mon,{bg:false})}</div><b>${esc(B.name)}</b><small>${PATH_INFO[G.pl[1].path].n}</small></div></div>
       <p class="sub">Two players, one device. Pass it over when your turn ends.</p>
+      <button class="btn pri" data-act="intronext">Toss the dice</button>`)}</div>`;
+  }
+  if(G.phase==='intro'&&G.ronin){const B=G.pl[1].who;
+    return `<div class="stage">${scrollHTML(`
+      <div class="kanji-title">浪人</div><h2 class="ttl">A Rōnin Blocks the Road</h2>
+      <div class="match"><div><div class="mfig">${figureHTML(ACC.look,accentOf(ACC),ACC.mon,{bg:false})}</div><b>${esc(ACC.clan)}</b><small>${esc(ACC.name)} · Lv ${levelOf(ACC.xp||0)}</small></div>
+        <em>vs</em><div><div class="mfig foe">${figureHTML(B.look,B.accent,B.mon,{bg:false})}</div><b>${esc(B.name)}</b><small>${PATH_INFO[G.pl[1].path].n} · Lv ${levelOf(ACC.xp||0)}</small></div></div>
+      <p class="sub">A masterless warrior of your strength. Win for Ryō, XP and rank.</p>
       <button class="btn pri" data-act="intronext">Toss the dice</button>`)}</div>`;
   }
   if(G.phase==='intro'){
@@ -3794,9 +3802,9 @@ function onlineHTML(){
 }
 function friendHTML(){
   return `<div class="screen">
-    <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Battle a Friend</h1></header>
+    <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Red Bridge</h1></header>
     <div class="modes">
-      <button class="mode" data-a="frlocal"><span class="mk">対</span><b>Same device</b><small>Pass one phone back and forth</small></button>
+      <button class="mode ronin" data-a="frronin"><span class="mk">浪</span><b>Wandering Rōnin</b><small>Quick match vs the computer, matched to your level and rank · Win +${EARN.roninWin} Ryō, XP and rank</small></button>
       <button class="mode" data-a="fronline"><span class="mk">遠</span><b>Online</b><small>Each player on their own phone</small></button>
     </div></div>`;
 }
@@ -4205,7 +4213,7 @@ function bossIntroHTML(){
 }
 /* ===== Ryō (coins) and the Store: card packs, gear, music ===== */
 const RYO_K='両';
-const EARN={feudWin:50,feudLoss:10,dailyFirst:25,storyFirst:150,storyWin:40,storyLoss:10,duelWin:40,duelLoss:10};
+const EARN={roninWin:30,roninLoss:8,feudWin:50,feudLoss:10,dailyFirst:25,storyFirst:150,storyWin:40,storyLoss:10,duelWin:40,duelLoss:10};
 const DUPE_REFUND={C:5,R:15,E:40,L:100};
 const PACKS=[
   {id:'path',n:'Path Pack',k:'道',price:150,size:5,x:'5 cards from one Path (and Neutral), including one you don’t own yet. Pick the Path below.'},
@@ -4227,7 +4235,7 @@ function ownsMusic(id){const m=MUSIC.find(x=>x.id===id);return !!m&&(!m.price||(
 
 /* ---- rewards ---- */
 function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
-function rewardFeud(r){let n=r==='win'?EARN.feudWin:EARN.feudLoss,bonus=0;
+function rewardFeud(r){let n=r==='win'?(G&&G.ronin?EARN.roninWin:EARN.feudWin):(G&&G.ronin?EARN.roninLoss:EARN.feudLoss),bonus=0;
   if(r==='win'&&ACC.lastWinDay!==today()){ACC.lastWinDay=today();bonus=EARN.dailyFirst}
   addRyo(n+bonus);return {n:n+bonus,bonus}}
 function rewardStory(win,first){const n=win?(first?EARN.storyFirst:EARN.storyWin):EARN.storyLoss;addRyo(n);return {n,bonus:0}}
@@ -4290,7 +4298,7 @@ function storeHTML(){
   }
   return `<div class="screen store">
     <header class="topbar"><button class="back" data-a="nav" data-v="dojo">← Dojo</button><h1>Store</h1>${coinPill(bal)}</header>
-    <div class="earnbox"><b>Earn Ryō ${RYO_K}</b><span>Clan Feud win +${EARN.feudWin} (loss +${EARN.feudLoss}) · first win each day +${EARN.dailyFirst} · new Story boss +${EARN.storyFirst} (rematch win +${EARN.storyWin}) · online duel win +${EARN.duelWin}</span></div>
+    <div class="earnbox"><b>Earn Ryō ${RYO_K}</b><span>Clan Feud win +${EARN.feudWin} (loss +${EARN.feudLoss}) · Rōnin quick match win +${EARN.roninWin} · first win each day +${EARN.dailyFirst} · new Story boss +${EARN.storyFirst} (rematch win +${EARN.storyWin}) · online duel win +${EARN.duelWin}</span></div>
     <div class="segtabs">${tabs}</div>
     ${body}
   </div>${packOverlayHTML()}`;
@@ -4337,7 +4345,7 @@ const MAP_SPOTS=[
   {k:'story',x:16,al:'l',y:19,n:'Mountain Pass',sub:'Story Mode',kj:'旅',act:'data-a="quest"',x2:()=>`The Road to Honnō-ji · ${storyCount()}/12 legends pledged`},
   {k:'feud',x:76,al:'r',y:31,n:'War Camp',sub:'Clan Feud',kj:'戦',act:'data-a="skirmish"',badge:()=>titleOf(feudWins()),x2:()=>{const nt=nextTitle(feudWins());return `Fight the Unoshotto Clan · Rank ${titleOf(feudWins())}${nt?` · ${nt[0]-feudWins()} more win${nt[0]-feudWins()>1?'s':''} to ${nt[1]}`:''}`}},
   {k:'dojo',x:50,y:47,n:'Your Dojo',sub:'Samurai & Armory',kj:'道',act:'data-a="editprofile"',x2:()=>`Your samurai, armor, gear and look`},
-  {k:'friend',x:68,y:58,n:'Red Bridge',sub:'Battle a Friend',kj:'対',act:'data-a="friend"',x2:()=>'Duel someone on this phone or online'},
+  {k:'friend',x:68,y:58,n:'Red Bridge',sub:'Quick Match & Friends',kj:'対',act:'data-a="friend"',x2:()=>'Fight a rōnin at your level for Ryō and XP, or duel a friend online'},
   {k:'tut',x:30,y:72,n:'Training Fields',sub:'Tutorial',kj:'学',act:'data-a="tutorial"',badge:()=>ACC.tutDone?'':'Start',x2:()=>ACC.tutDone?'Replay the guided walkthrough':'New here? Learn to play in 2 minutes'},
   {k:'decks',x:24,al:'l',y:81,n:'Pagoda Library',sub:'Decks & Collection',kj:'札',act:'data-a="nav" data-v="decks"',badge:()=>{const n=ORDER.filter(isNewCard).length;return n?n+' new':''},x2:()=>`${ACC.decks.length} of ${MAX_DECKS} decks · ${ACC.unlocked.length}/${ORDER.length} cards`},
   {k:'store',x:60,y:88,n:'Merchant Town',sub:'Store',kj:'店',act:'data-a="nav" data-v="store"',x2:()=>`Card packs, gear and music · you have ${ryo()} Ryō`}
@@ -4420,7 +4428,7 @@ function recordResult(r){
   const gear=[];for(let l=before+1;l<=after;l++)gear.push(...gearAt(l));
   G.xpRes={gain,before,after,gear};
   G.coin=rewardFeud(r);
-  if(r==='win'){
+  if(r==='win'&&!G.ronin){
     const locked=LOCKABLE.filter(id=>!ACC.unlocked.includes(id));
     const mine=locked.filter(id=>C[id].p===G.pl[0].path||C[id].p==='n');
     const pool=mine.length?mine:locked;
@@ -4699,7 +4707,7 @@ function prebattleHTML(){
   const d=ACC.decks.find(x=>x.id===S.deckId),v=validate(d);
   const list=sortIds(Object.keys(d.cards).filter(id=>d.cards[id]>0&&C[id])).map(id=>`<button class="li" data-a="peek" data-v="${id}"><span class="lt t-${C[id].t}"></span><span class="ln">${C[id].n}</span><em>×${d.cards[id]}</em></button>`).join('');
   return `<div class="screen">
-    <header class="topbar"><button class="back" data-a="nav" data-v="${S.mode==='duel'?'friend':'ladder'}">← Back</button><h1>${S.mode==='duel'?'Battle a Friend':S.feudRank!=null?'Rematch · '+TITLES[S.feudRank][1]:'Clan Feud'}</h1></header>
+    <header class="topbar"><button class="back" data-a="nav" data-v="${S.mode==='duel'||S.mode==='ronin'?'friend':'ladder'}">← Back</button><h1>${S.mode==='ronin'?'Wandering Rōnin':S.mode==='duel'?'Battle a Friend':S.feudRank!=null?'Rematch · '+TITLES[S.feudRank][1]:'Clan Feud'}</h1></header>
     <section class="sect"><h2>Your active deck</h2>
       <div class="activedeck"><span class="mk dp-k p-${d.path}">${PATH_INFO[d.path].k}</span><div><b>${esc(d.name)}</b><small>${PATH_INFO[d.path].n}</small></div><span class="pill ${v.ok?'ok':'bad'}">${v.ok?'Valid':'Invalid'}</span></div>
       <button class="link" data-a="nav" data-v="decks">Change your active deck in Decks</button></section>
@@ -4709,7 +4717,7 @@ function prebattleHTML(){
       <div class="decklist">${list||'<p class="muted">This deck is empty.</p>'}</div>
     </section>
     ${S.mode==='duel'?`<section class="sect"><h2>Player 2</h2>${p2HTML()}</section>`:''}
-    <section class="sect vs"><div><span class="mk" style="color:var(--clan)">${monIcon(ACC.mon)}</span><b>${esc(ACC.clan)}</b><small>${PATH_INFO[d.path].n}</small></div><em>vs</em><div><span class="mk" style="color:var(--shu)">${S.mode==='duel'?monIcon(S.p2.mon):'闇'}</span><b>${S.mode==='duel'?esc(S.p2.name||'Player 2'):'Unoshotto Clan'}</b><small>${S.mode==='duel'?PATH_INFO[S.p2.path].n:'Random Path'}</small></div></section>
+    <section class="sect vs"><div><span class="mk" style="color:var(--clan)">${monIcon(ACC.mon)}</span><b>${esc(ACC.clan)}</b><small>${PATH_INFO[d.path].n}</small></div><em>vs</em><div><span class="mk" style="color:var(--shu)">${S.mode==='duel'?monIcon(S.p2.mon):'闇'}</span><b>${S.mode==='duel'?esc(S.p2.name||'Player 2'):S.mode==='ronin'?'A wandering rōnin':'Unoshotto Clan'}</b><small>${S.mode==='duel'?PATH_INFO[S.p2.path].n:S.mode==='ronin'?'Your level · your card pool · random Path':'Random Path'}</small></div></section>
     <div class="btns left"><button class="btn pri big" data-a="begin" ${v.ok?'':'disabled'}>Begin the duel</button><button class="btn" data-a="edit" data-v="${d.id}">Edit this deck</button></div>
   </div>`;
 }
@@ -4812,6 +4820,13 @@ function render(){
   if(ACC&&typeof SFX!=='undefined'&&SFX.setTheme&&render._th!==(ACC.musicTheme||'temple')){render._th=ACC.musicTheme||'temple';SFX.setTheme(render._th)}
   if(typeof narrAuto==='function')narrAuto();
 }
+const RONIN_NAMES=['Kenji of the Crossroads','Masa the Drifter','Ryū Without a Lord','Old Tetsu','Hayato the Nameless','Sora of the Rain','Daigo Ironhand','Jin of the Burned Hall','Kaito Half-Mask','Shiro the Wolf','Gonbei the Patient','Akane of the Red Road'];
+function roninFoe(){const lv=levelOf(ACC.xp||0),path=pick(PATHS4);
+  /* same card pool as you: only cards you have unlocked, legendaries only once you hold rank */
+  const d={};const legs=ORDER.filter(id=>C[id].p===path&&C[id].rar==='L'&&!C[id].story&&ACC.unlocked.includes(id));
+  if(feudWins()>=10&&legs.length)d[pick(legs)]=1;
+  fillDeck(d,path,id=>ACC.unlocked.includes(id));
+  return {name:pick(RONIN_NAMES),path,mon:pick(MONS),look:Object.assign(randomLook(lv),{banner:'none'}),accent:pick(Object.values(COLORS).map(c=>c[1])),deck:d,lv}}
 function startBattle(deckId){
   const d=ACC.decks.find(x=>x.id===deckId);if(!d||!validate(d).ok){go('prebattle');return}
   S.deckId=deckId;S.screen='battle';
@@ -4820,6 +4835,10 @@ function startBattle(deckId){
     const p2=S.p2;
     newGame(clone(d.cards),d.path,starterDeck(p2.path,true),p2.path,[ACC.name,p2.name.trim()||'Player 2']);
     G.duel=true;G.pl[0].who=me;G.pl[1].who={name:p2.name.trim()||'Player 2',mon:p2.mon,look:p2.look,accent:'#5f86c4'};
+  }else if(S.mode==='ronin'){
+    const f=roninFoe();S.ronin=f;
+    newGame(clone(d.cards),d.path,f.deck,f.path,[ACC.clan||'Your Clan',f.name]);
+    G.ronin=true;G.pl[1].who={name:f.name,mon:f.mon,look:f.look,accent:f.accent};
   }else{
     const foePath=pick(PATHS4);
     const rk=S.feudRank,strong=rk!=null?TITLES[rk][0]>=5:feudWins()>=5;
@@ -4890,6 +4909,7 @@ document.addEventListener('click',e=>{
     case 'oncancel':cancelHost();return;
     case 'onrejoin':rejoinMatch();return;
     case 'onback':if(S.on&&S.on.step==='hosting')cancelHost();else if(S.on&&S.on.step==='joining'){stopOnline();clearMatch()}S.on={step:'menu'};go('friend');return;
+    case 'frronin':S.mode='ronin';S.feudRank=null;go('prebattle');return;
     case 'frlocal':S.mode='duel';if(!S.p2)S.p2={name:'Player 2',path:pick(PATHS4),mon:pick(MONS),look:randomLook(10)};go('prebattle');return;
     case 'dtab':S.dtab=v==='col'?'col':'decks';render();return;
     case 'armorydeck':S.draft={name:ACC.name,clan:ACC.clan,look:clone(ACC.look),xp:ACC.xp,mon:ACC.mon,color:ACC.color,path:ACC.path,stats:ACC.stats,active:ACC.active};S.ctab='deck';go('profile');return;
