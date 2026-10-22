@@ -1751,11 +1751,22 @@ const NEUTRAL_SWORDS=['tanto','bokken','waki','katana','chokuto','tachi','nodach
 
 /* ---------- decks ---------- */
 const STARTER_NEUTRALS={katana:1,waki:1,tanto:1,smoke:1,makibishi:1,teamaster:1,gatekeeper:1};
+const DECK_SIZE=40;
+/* top a deck up to DECK_SIZE: first new 1-Ki commons, then second copies of cheap commons (samurai first) */
+function fillDeck(d,path,ok){
+  ok=ok||(()=>true);const tot=()=>Object.values(d).reduce((a,b)=>a+b,0);
+  const pool=ORDER.filter(id=>{const c=C[id];return (c.p===path||c.p==='n')&&!c.story&&!c.tok&&c.rar!=='L'&&ok(id)});
+  const lim=id=>C[id].rar==='L'?1:2;
+  const score=id=>{const c=C[id];return (c.p===path?0:100)+(c.t==='s'?0:c.t==='w'?20:40)+c.ki*3+(c.rar==='C'?0:c.rar==='R'?5:10)};
+  const order=[...pool.filter(id=>C[id].extra&&!d[id]),...pool.sort((a,b)=>score(a)-score(b))];
+  for(let pass=0;pass<2&&tot()<DECK_SIZE;pass++)for(const id of order){if(tot()>=DECK_SIZE)break;if((d[id]||0)<lim(id)&&(pass||!d[id]||C[id].extra))d[id]=(d[id]||0)+1}
+  return d;
+}
 function starterDeck(path,legends){
   const d={};ORDER.forEach(id=>{const c=C[id];if(c.p===path&&!c.story&&!c.extra&&(c.rar!=='L'||legends))d[id]=1});
   Object.assign(d,STARTER_NEUTRALS);
   if(legends){delete d.teamaster;delete d.gatekeeper}
-  return d;
+  return fillDeck(d,path);
 }
 function mkP(name,path,counts){
   const deck=[];for(const k in counts)for(let i=0;i<counts[k];i++)if(C[k])deck.push(k);
@@ -3958,7 +3969,7 @@ function bossIntroHTML(){
 }
 
 /* ===== Account, collection, decks ===== */
-const DECK_SIZE=30, MIN_SAMURAI=12, MAX_DECKS=6;
+const MIN_SAMURAI=12, MAX_DECKS=6;
 const limitOf=id=>C[id].rar==='L'?1:2;
 /* Commons, Rares and Path Epics are open from the start. Legendaries and Neutral Epics unlock through victories. */
 const LOCKABLE=ORDER.filter(id=>!C[id].story&&(C[id].rar==='L'||(C[id].p==='n'&&C[id].rar==='E')));
@@ -4025,6 +4036,8 @@ function migrate(a){
   if(!a.stats)a.stats={wins:0,losses:0,played:0};
   BASE_UNLOCKED.forEach(id=>{if(!a.unlocked.includes(id))a.unlocked.push(id)});
   a.decks.forEach(d=>{if(!PATHS4.includes(d.path))d.path=a.path;for(const k in d.cards)if(!C[k])delete d.cards[k]});
+  /* decks grew from 30 to 40 cards: top up complete old decks with cards the player owns */
+  if((a.dv||0)<40){a.decks.forEach(d=>{const t=Object.values(d.cards).reduce((x,y)=>x+y,0);if(t===30)fillDeck(d.cards,d.path,id=>a.unlocked.includes(id))});a.dv=40}
   a.look=cleanLook(Object.assign({},DEFAULT_LOOK,a.look||{}));
   if(a.xp==null)a.xp=(a.stats.wins||0)*XP_WIN+(a.stats.losses||0)*XP_LOSS;
   return a;
