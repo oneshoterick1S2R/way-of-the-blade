@@ -2430,7 +2430,10 @@ function aiTurnSync(p){for(let n=0;n<40&&!G.over;n++){const a=aiPlan(p);if(!a||!
 
 /* ===== Your samurai: layered ink figure, gear and levels ===== */
 const XP_WIN=100,XP_LOSS=40;
-const LEVELS=[0,100,250,450,700,1000,1350,1750,2200,2700]; /* XP needed for level 1..10 */
+/* 30 levels: each level needs 30 XP more than the last (100, 130, 160 …) — about 150 wins to Level 30 */
+const LEVELS=Array.from({length:30},(_,i)=>i*100+15*i*(i-1));
+/* gear was designed for levels 1-10; spread it across 1-30 */
+const LV_MAP={1:1,2:4,3:7,4:11,5:14,6:17,7:20,8:24,9:27,10:30};
 const levelOf=xp=>{let l=1;LEVELS.forEach((n,i)=>{if(xp>=n)l=i+1});return l};
 const GEAR={
   helmet:{label:'Helmet',items:[
@@ -2446,6 +2449,7 @@ const GEAR={
   banner:{label:'Back banner',items:[{id:'none',n:'No banner',lv:1},{id:'crest',n:'Clan Sashimono',lv:2},{id:'war',n:'War Banner',lv:6},{id:'nobori',n:'Nobori Standard',lv:3},{id:'pennant',n:'Twin Pennants',lv:5},{id:'horo',n:'Horo War Cape',lv:7},{id:'fan',n:'Golden Fan Standard',lv:9}]},
 };
 const GEAR_SLOTS=Object.keys(GEAR);
+GEAR_SLOTS.forEach(k=>GEAR[k].items.forEach(it=>{it.lv=LV_MAP[it.lv]||it.lv}));
 const APPEAR={
   sex:{label:'Body',opts:[['m','Male'],['f','Female']]},
   build:{label:'Build',opts:[['slim','Slim'],['std','Standard'],['broad','Broad']]},
@@ -4213,6 +4217,7 @@ function bossIntroHTML(){
 }
 /* ===== Ryō (coins) and the Store: card packs, gear, music ===== */
 const RYO_K='両';
+const LEVEL_UP_RYO=50;
 const EARN={roninWin:30,roninLoss:8,feudWin:50,feudLoss:10,dailyFirst:25,storyFirst:150,storyWin:40,storyLoss:10,duelWin:40,duelLoss:10};
 const DUPE_REFUND={C:5,R:15,E:40,L:100};
 const PACKS=[
@@ -4226,7 +4231,7 @@ const MUSIC=[
   {id:'war',n:'Taiko War Camp',x:'Driving taiko drums and a fierce koto line.',price:250},
   {id:'rain',n:'Rain on the Shrine',x:'Soft rain, distant chimes and a gentle pad.',price:250}
 ];
-const gearPrice=it=>it.lv*40;
+const gearPrice=it=>it.lv*25;
 const ryo=()=>ACC?(ACC.ryo||0):0;
 function addRyo(n){if(!ACC||!n)return 0;ACC.ryo=(ACC.ryo||0)+n;return n}
 function ownsGear(slot,id){return !!(ACC&&Array.isArray(ACC.gearOwned)&&ACC.gearOwned.includes(slot+':'+id))}
@@ -4241,7 +4246,7 @@ function rewardFeud(r){let n=r==='win'?(G&&G.ronin?EARN.roninWin:EARN.feudWin):(
 function rewardStory(win,first){const n=win?(first?EARN.storyFirst:EARN.storyWin):EARN.storyLoss;addRyo(n);return {n,bonus:0}}
 function rewardDuel(win){const n=win?EARN.duelWin:EARN.duelLoss;addRyo(n);return {n,bonus:0}}
 const coinPill=(n,extra)=>`<span class="coinpill"><i>${RYO_K}</i><b>${n}</b>${extra?`<small>${extra}</small>`:''}</span>`;
-function coinResultHTML(c){if(!c||!c.n)return '';return `<div class="coinres"><span class="cr-k">${RYO_K}</span><b>+${c.n} Ryō</b>${c.bonus?`<small>includes +${c.bonus} first win of the day</small>`:''}<small>Balance ${ryo()} · spend it in the Store</small></div>`}
+function coinResultHTML(c){const lb=(G&&G.lvBonus)||0;if((!c||!c.n)&&!lb)return '';const n=(c?c.n:0)+lb;return `<div class="coinres"><span class="cr-k">${RYO_K}</span><b>+${n} Ryō</b>${c&&c.bonus?`<small>includes +${c.bonus} first win of the day</small>`:''}${lb?`<small>includes +${lb} level-up reward</small>`:''}<small>Balance ${ryo()} · spend it in the Store</small></div>`}
 
 /* ---- pack rolls ---- */
 function packPool(pk,path){return ORDER.filter(id=>{const c=C[id];if(c.tok||c.story)return false;if(pk==='path')return c.p===path||c.p==='n';return true})}
@@ -4419,7 +4424,7 @@ const starterFor=path=>({id:uid(),name:PATH_INFO[path].n,path,cards:starterDeck(
 function newAccount(dr){
   const decks=[starterFor(dr.path)];
   return {v:2,name:dr.name.trim()||'Nameless',clan:dr.clan.trim()||'House of the Blade',look:clone(dr.look),xp:0,mon:dr.mon,color:dr.color,path:dr.path,
-    stats:{wins:0,losses:0,played:0},unlocked:[...BASE_UNLOCKED],seenCards:[...BASE_UNLOCKED],ryo:300,decks,active:decks.find(d=>d.path===dr.path).id,seenRules:false,story:{unlocked:false,beaten:{}},created:Date.now(),updated:Date.now()};
+    stats:{wins:0,losses:0,played:0},unlocked:[...BASE_UNLOCKED],seenCards:[...BASE_UNLOCKED],ryo:300,lv30:1,decks,active:decks.find(d=>d.path===dr.path).id,seenRules:false,story:{unlocked:false,beaten:{}},created:Date.now(),updated:Date.now()};
 }
 function recordResult(r){
   const st=ACC.stats;st.played++;if(r==='win')st.wins++;else st.losses++;
@@ -4427,7 +4432,8 @@ function recordResult(r){
   const before=levelOf(ACC.xp||0),gain=r==='win'?XP_WIN:XP_LOSS;ACC.xp=(ACC.xp||0)+gain;const after=levelOf(ACC.xp);
   const gear=[];for(let l=before+1;l<=after;l++)gear.push(...gearAt(l));
   G.xpRes={gain,before,after,gear};
-  G.coin=rewardFeud(r);
+  if(!G.story)G.coin=rewardFeud(r);
+  G.lvBonus=after>before?addRyo((after-before)*LEVEL_UP_RYO):0;
   if(r==='win'&&!G.ronin){
     const locked=LOCKABLE.filter(id=>!ACC.unlocked.includes(id));
     const mine=locked.filter(id=>C[id].p===G.pl[0].path||C[id].p==='n');
@@ -4448,6 +4454,9 @@ function migrate(a){
   if(!a.pvp||typeof a.pvp!=='object')a.pvp={w:0,l:0};
   if(!Array.isArray(a.decks)||!a.decks.length){a.decks=PATHS4.map(starterFor);a.active=a.decks[0].id}
   if(!a.stats)a.stats={wins:0,losses:0,played:0};
+  /* levels went 10 -> 30: keep every piece of gear a player had already unlocked */
+  if(!a.lv30){const OLD=[0,100,250,450,700,1000,1350,1750,2200,2700],ol=OLD.filter(x=>(a.xp||0)>=x).length,inv={};for(const k in LV_MAP)inv[LV_MAP[k]]=+k;
+    a.gearOwned=a.gearOwned||[];GEAR_SLOTS.forEach(sl=>GEAR[sl].items.forEach(it=>{if((inv[it.lv]||1)<=ol&&!a.gearOwned.includes(sl+':'+it.id))a.gearOwned.push(sl+':'+it.id)}));a.lv30=1}
   if(a.ryo==null)a.ryo=300+Math.min(1200,10*((a.stats&&a.stats.wins)||0));
   if(!Array.isArray(a.seenCards))a.seenCards=(a.unlocked||[]).filter(id=>C[id]&&!C[id].extra);
   BASE_UNLOCKED.forEach(id=>{if(!a.unlocked.includes(id))a.unlocked.push(id)});
