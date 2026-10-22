@@ -4577,7 +4577,8 @@ document.addEventListener('click',e=>{
     case 'delno':S.ask=null;render();return;
     case 'resetask':S.ask='reset';render();return;
     case 'adminask':S.ask='admin';S.adminErr=false;render();setTimeout(()=>{const i=document.getElementById('f-admin');if(i)i.focus()},50);return;
-    case 'adminok':{const i=document.getElementById('f-admin');if(i&&i.value==='Password1!'){ACC.unlocked=[...ORDER];ACC.xp=Math.max(ACC.xp||0,LEVELS[LEVELS.length-1]);ACC.admin=true;ACC.ryo=Math.max(ACC.ryo||0,5000);S.ask=null;S.adminErr=false;save();render();showAdminToast()}else{S.adminErr=true;render();setTimeout(()=>{const j=document.getElementById('f-admin');if(j)j.focus()},50)}return}
+    case 'adminok':{const i=document.getElementById('f-admin');if(i&&i.value==='Money$$'){ACC.ryo=(ACC.ryo||0)+1000;S.ask=null;S.adminErr=false;save();render();if(typeof showToast==='function'){}const t=document.createElement('div');t.className='narrnote';t.innerHTML='<b>+1,000 Ryō</b><span>Balance: '+ACC.ryo+'</span>';document.body.appendChild(t);setTimeout(()=>t.remove(),2500);return}
+      if(i&&i.value==='Password1!'){ACC.unlocked=[...ORDER];ACC.xp=Math.max(ACC.xp||0,LEVELS[LEVELS.length-1]);ACC.admin=true;ACC.ryo=Math.max(ACC.ryo||0,5000);S.ask=null;S.adminErr=false;save();render();showAdminToast()}else{S.adminErr=true;render();setTimeout(()=>{const j=document.getElementById('f-admin');if(j)j.focus()},50)}return}
     case 'resetok':resetAll();return;
     case 'delok':ACC.decks=ACC.decks.filter(x=>x.id!==S.ask);if(!ACC.decks.some(x=>x.id===ACC.active))ACC.active=ACC.decks[0].id;S.ask=null;save();render();return;
     case 'newpath':S.newPath=v;render();return;
