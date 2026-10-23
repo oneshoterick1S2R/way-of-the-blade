@@ -4768,16 +4768,15 @@ function applyBackdrop(){
    At most one Legendary a day; if you own nearly everything, the merchant offers foil versions instead. */
 function stallToday(){
   const t=today();
-  if(!ACC.stall||ACC.stall.day!==t||!Array.isArray(ACC.stall.items)){
+  if(!ACC.stall||ACC.stall.day!==t||!Array.isArray(ACC.stall.items)||ACC.stall.v!==2){
     const pick=a=>a.splice(Math.floor(Math.random()*a.length),1)[0];
     const un=ORDER.filter(id=>!C[id].tok&&!C[id].story&&!ACC.unlocked.includes(id));
     const nonL=un.filter(id=>C[id].rar!=='L'),L=un.filter(id=>C[id].rar==='L'),items=[];
     if(L.length&&(Math.random()<.35||!nonL.length))items.push({id:pick(L),k:'card'});
-    while(items.length<2&&nonL.length)items.push({id:pick(nonL),k:'card'});
-    const fo=ORDER.filter(id=>!C[id].tok&&!C[id].story&&C[id].rar!=='L'&&ACC.unlocked.includes(id)&&!isFoil(id));
-    while(items.length<3&&fo.length)items.push({id:pick(fo),k:'foil'});
+    while(items.length<3&&nonL.length)items.push({id:pick(nonL),k:'card'});
+    while(items.length<3&&L.length)items.push({id:pick(L),k:'card'});
     for(let i=items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]]}
-    ACC.stall={day:t,items,bought:[]};
+    ACC.stall={day:t,items,bought:[],v:2};
   }
   return ACC.stall;
 }
@@ -4791,10 +4790,10 @@ function stallHTML(){
   const rows=st.items.filter(it=>C[it.id]).map(it=>{const id=it.id,pr=stallPrice(it),got=stallGot(st,it),can=bal>=pr;
     return `<div class="stc ${got?'got':''}"><span class="stc-tag r-${C[id].rar}">${it.k==='foil'?'✦ Foil upgrade':RAR[C[id].rar]}</span><button class="stc-card" data-a="peek" data-v="${id}" aria-label="Read ${esc(C[id].n)}">${card(id,{mini:true,foil:it.k==='foil'})}</button>
       ${got?'<span class="sg-own">✓ Bought</span>':`<button class="buy ${can?'':'no'}" data-a="buystall" data-v="${id}" ${can?'':'disabled'}>${coinPill(pr)}</button>`}</div>`}).join('');
-  return `<section class="stall"><div class="stall-h"><b>Today’s Stall</b><small>New stock every day · price depends on rarity. Foil upgrade = a shiny version of a card you already own.</small></div>
+  return `<section class="stall"><div class="stall-h"><b>Today’s Stall</b><small>Cards you don’t own yet · new stock every day · price depends on rarity</small></div>
     ${rows?`<div class="stall-row">${rows}</div>
       ${B.left.length>1?`<button class="buy stall-all ${bal>=B.price?'':'no'}" data-a="buystallall" ${bal>=B.price?'':'disabled'}>${coinPill(B.price)}Buy all ${B.left.length} · save ${B.full-B.price}</button>`:''}`
-      :'<p class="muted">The merchant has nothing new for you today.</p>'}</section>`;
+      :'<p class="muted">You own every card the merchant sells. Nothing new today.</p>'}</section>`;
 }
 function foilHTML(){
   const bal=ryo(),fp=S.foilPath||'banner';
