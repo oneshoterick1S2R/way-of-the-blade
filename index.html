@@ -4514,7 +4514,7 @@ const storyBeaten=id=>!!(ACC&&ACC.story&&ACC.story.beaten&&ACC.story.beaten[id])
 const storyCount=()=>BOSSES.filter(b=>storyBeaten(b.id)).length;
 function bossOpen(b){
   if(ACC&&ACC.admin)return true;
-  if(b.ch===4&&BOSSES.filter(x=>x.ch<4).some(x=>!storyBeaten(x.id)))return false;
+  if(b.ch>1&&BOSSES.filter(x=>x.ch===b.ch-1).some(x=>!storyBeaten(x.id)))return false;
   const prev=BOSSES.filter(x=>x.ch===b.ch);const i=prev.indexOf(b);return i===0||storyBeaten(prev[i-1].id);
 }
 function bossDeck(b){
@@ -4591,7 +4591,7 @@ function stStartPage(){
   const i=CHAPTERS.findIndex(ch=>BOSSES.some(b=>b.ch===ch.id&&bossOpen(b)&&!storyBeaten(b.id)));return i<0?0:i;
 }
 function chapterPage(ch,ci){
-    const bs=BOSSES.filter(b=>b.ch===ch.id),locked=ch.id===4&&!bossOpen(bs[0])&&!storyBeaten(bs[0].id);
+    const bs=BOSSES.filter(b=>b.ch===ch.id),locked=!bossOpen(bs[0])&&!storyBeaten(bs[0].id);
     const next=bs.find(b=>bossOpen(b)&&!storyBeaten(b.id));
     let sel=bs.find(b=>b.id===S.stSel&&(bossOpen(b)||storyBeaten(b.id)));if(!sel)sel=next||bs[bs.length-1];
     const tint=ST_TINT[ch.path]||'#c9a24e',selWon=storyBeaten(sel.id),selOpen=bossOpen(sel)||selWon,d=active(),v=validate(d),rc=C[sel.card];
@@ -4611,7 +4611,7 @@ function chapterPage(ch,ci){
       <div class="stin">
         <div class="sttop"><small>Chapter ${['I','II','III','IV'][ci]} of IV · ${PATH_INFO[ch.path].n}</small>
           <h2>${ch.t}</h2>
-          ${locked?'<p class="stlock">Unlocks after you defeat all 9 bosses in Chapters I–III.</p>':''}
+          ${locked?`<p class="stlock">Unlocks after you defeat all 3 bosses in Chapter ${['I','II','III'][ch.id-2]}.</p>`:''}
         </div>
         ${info}
         <div class="stcards">${cards}</div>
@@ -4619,7 +4619,7 @@ function chapterPage(ch,ci){
         ${locked||!selOpen?'':`<button class="stface" data-a="bossgo" data-v="${sel.id}" ${v.ok?'':'disabled'}>${selWon?'Fight '+esc(sel.n)+' again':'Face '+esc(sel.n)}</button>
           ${v.ok?'':'<p class="why sb-err">Your active deck isn’t valid. Fix it in the Pagoda Library.</p>'}`}
       </div></section>`}
-function chapterState(ch){const bs=BOSSES.filter(b=>b.ch===ch.id);return {bs,won:bs.filter(b=>storyBeaten(b.id)).length,locked:ch.id===4&&!bossOpen(bs[0])&&!storyBeaten(bs[0].id),next:bs.find(b=>bossOpen(b)&&!storyBeaten(b.id))}}
+function chapterState(ch){const bs=BOSSES.filter(b=>b.ch===ch.id);return {bs,won:bs.filter(b=>storyBeaten(b.id)).length,locked:!bossOpen(bs[0])&&!storyBeaten(bs[0].id),next:bs.find(b=>bossOpen(b)&&!storyBeaten(b.id))}}
 function storyHTML(){
   const n=storyCount();
   if(S.stCh!=null&&CHAPTERS[S.stCh]){const ci=S.stCh,ch=CHAPTERS[ci];
@@ -4631,7 +4631,7 @@ function storyHTML(){
     return `<button class="stchap ${st.locked?'lock':''} ${done?'done':''} ${ci===cur?'cur':''}" data-a="stpop" data-v="${ci}" style="--tint:${tint}" aria-label="Chapter ${ch.id}: ${esc(ch.t)}${st.locked?', locked':''}">
       <img class="sc-bg" src="${IMG[hero.card]||''}" alt=""><span class="sc-shade"></span><span class="sc-k" aria-hidden="true">${ch.k}</span>
       <span class="sc-tx"><small>Chapter ${['I','II','III','IV'][ci]} · ${PATH_INFO[ch.path].n.replace(/^Way of (the )?/,'')}</small><b>${ch.t}</b>
-        <span class="sc-pr">${st.locked?'Locked · beat Chapters I–III':done?'✓ Complete':ci===cur?`Next: ${esc(st.next.n)}`:`${st.won} of 3 legends`}</span></span>
+        <span class="sc-pr">${st.locked?`Locked · beat Chapter ${['I','II','III'][ch.id-2]}`:done?'✓ Complete':ci===cur?`Next: ${esc(st.next.n)}`:`${st.won} of 3 legends`}</span></span>
       <span class="sc-pips" aria-hidden="true">${st.bs.map(b=>`<i class="${storyBeaten(b.id)?'on':''}"></i>`).join('')}</span>
       ${st.locked?'<span class="sc-lock" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg></span>':''}
     </button>`}).join('');
@@ -4644,7 +4644,7 @@ function storyHTML(){
       return `<div class="stpop-bg" data-a="stpop" data-v=""></div><div class="stpop" role="dialog" aria-label="Chapter ${ch.id}" style="--tint:${tint}">
         <img class="stp-bg" src="${IMG[hero.card]||''}" alt=""><span class="stp-shade"></span><span class="stkanji" aria-hidden="true">${ch.k}</span>
         <div class="stp-in"><small>Chapter ${['I','II','III','IV'][ci]} of IV · ${PATH_INFO[ch.path].n}</small><h2>${ch.t}</h2>
-          ${st.locked?'<p class="stlock">Unlocks after you defeat all 9 bosses in Chapters I–III.</p>':`<p class="stx">${ch.x}</p>
+          ${st.locked?`<p class="stlock">Unlocks after you defeat all 3 bosses in Chapter ${['I','II','III'][ch.id-2]}.</p>`:`<p class="stx">${ch.x}</p>
           <button class="sthear" data-say="ch${ch.id}" data-txt="${esc(ch.x)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Hear the tale</button>`}
           <div class="stp-btns">${st.locked?'':`<button class="stface" data-a="stch" data-v="${ci}">Enter Chapter ${['I','II','III','IV'][ci]}</button>`}<button class="stp-x" data-a="stpop" data-v="">Close</button></div>
         </div></div>`})()}
