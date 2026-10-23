@@ -3354,7 +3354,7 @@ function card(id,o={}){
   }else if(d.t==='s'&&(o.mini||o.tiny)&&d.kw.includes('guard'))extra+=`<span class="kwb"><i>${ICON_GUARD}</i></span>`;
   const tag=o.btn?'button':'div';
   const size=o.tiny?'mini tiny':o.mini?'mini':'full';
-  const holo=d.rar==='L'||(typeof isFoil==='function'&&isFoil(id)&&(!u||u.owner===0)),myth=false;
+  const holo=d.rar==='L'||o.foil||(typeof isFoil==='function'&&isFoil(id)&&(!u||u.owner===0)),myth=false;
   return `<${tag} class="tcg f-${d.fr} ${size} ${holo?'holo':''} ${myth?'mythic':''} ${o.cls||''}" ${o.attrs||''}>
     <div class="tin">
       <div class="tname pp"><span class="nm">${d.n}</span>${gem}</div>
@@ -4789,9 +4789,9 @@ function stallBundle(){const st=stallToday(),left=st.items.filter(it=>C[it.id]&&
 function stallHTML(){
   const st=stallToday(),bal=ryo(),B=stallBundle();
   const rows=st.items.filter(it=>C[it.id]).map(it=>{const id=it.id,pr=stallPrice(it),got=stallGot(st,it),can=bal>=pr;
-    return `<div class="stc ${got?'got':''}"><span class="stc-tag r-${C[id].rar}">${it.k==='foil'?'✦ Foil · ':''}${RAR[C[id].rar]}</span><button class="stc-card" data-a="peek" data-v="${id}" aria-label="Read ${esc(C[id].n)}">${card(id,{mini:true})}</button>
+    return `<div class="stc ${got?'got':''}"><span class="stc-tag r-${C[id].rar}">${it.k==='foil'?'✦ Foil upgrade':RAR[C[id].rar]}</span><button class="stc-card" data-a="peek" data-v="${id}" aria-label="Read ${esc(C[id].n)}">${card(id,{mini:true,foil:it.k==='foil'})}</button>
       ${got?'<span class="sg-own">✓ Bought</span>':`<button class="buy ${can?'':'no'}" data-a="buystall" data-v="${id}" ${can?'':'disabled'}>${coinPill(pr)}</button>`}</div>`}).join('');
-  return `<section class="stall"><div class="stall-h"><b>Today’s Stall</b><small>3 cards, new stock every day · price depends on rarity</small></div>
+  return `<section class="stall"><div class="stall-h"><b>Today’s Stall</b><small>New stock every day · price depends on rarity. Foil upgrade = a shiny version of a card you already own.</small></div>
     ${rows?`<div class="stall-row">${rows}</div>
       ${B.left.length>1?`<button class="buy stall-all ${bal>=B.price?'':'no'}" data-a="buystallall" ${bal>=B.price?'':'disabled'}>${coinPill(B.price)}Buy all ${B.left.length} · save ${B.full-B.price}</button>`:''}`
       :'<p class="muted">The merchant has nothing new for you today.</p>'}</section>`;
@@ -4849,9 +4849,9 @@ function buyInfo(q){
   if(a==='buypack'){const pk=PACKS.find(p=>p.id===v);if(pk){price=pk.price;what=pk.n+(v==='path'?` (${PATH_INFO[S.packPath||(ACC.decks.find(d=>d.id===ACC.active)||{}).path||'banner'].n.replace(/^Way of (the )?/,'')})`:'');if(IMG['pack_'+v])pic=`<img class="ba-pack" src="${IMG['pack_'+v]}" alt="">`}}
   else if(a==='buygear'){const it=(GEAR[k]||{items:[]}).items.find(x=>x.id===v);if(it){price=gearPrice(it);what=`${it.n} (${GEAR[k].label})`}}
   else if(a==='buymusic'){const m=MUSIC.find(x=>x.id===v);if(m){price=m.price;what=`${m.n} music`}}
-  else if(a==='buystall'){const st=stallToday(),it=st.items.find(x=>x.id===v);if(it){price=stallPrice(it);what=(it.k==='foil'?'Foil ':'')+C[v].n+` (${RAR[C[v].rar]})`;pic=`<div class="ba-card">${card(v,{mini:true})}</div>`}}
+  else if(a==='buystall'){const st=stallToday(),it=st.items.find(x=>x.id===v);if(it){price=stallPrice(it);what=(it.k==='foil'?'Foil ':'')+C[v].n+` (${RAR[C[v].rar]})`;pic=`<div class="ba-card">${card(v,{mini:true,foil:it.k==='foil'})}</div>`}}
   else if(a==='buystallall'){const B=stallBundle();price=B.price;what=`all ${B.left.length} stall cards: ${B.left.map(it=>(it.k==='foil'?'Foil ':'')+C[it.id].n).join(', ')}`}
-  else if(a==='buyfoil'){if(C[v]){price=FOIL_PRICE[C[v].rar]||100;what=`a foil ${C[v].n}`;pic=`<div class="ba-card">${card(v,{mini:true})}</div>`}}
+  else if(a==='buyfoil'){if(C[v]){price=FOIL_PRICE[C[v].rar]||100;what=`a foil ${C[v].n}`;pic=`<div class="ba-card">${card(v,{mini:true,foil:true})}</div>`}}
   else if(a==='buycb'){const x=CARDBACKS.find(q=>q.id===v);if(x){price=x.price;what=`the ${x.n} card back`;pic=`<div class="ba-back">${backHTML(v)}</div>`}}
   else if(a==='buybd'){const x=BACKDROPS.find(q=>q.id===v);if(x){price=x.price;what=`the ${x.n} battlefield`}}
   else if(a==='buyti'){const x=NAME_TITLES.find(q=>q.id===v);if(x){price=x.price;what=`the title “${x.n}”`}}
