@@ -2220,7 +2220,7 @@ function targetsFor(p,tg,src){
   return out;
 }
 function strikeTargets(p,s){
-  const u=G.pl[p].board[s],o=1-p,out=[];if(!u)return out;
+  const u=G.pl[p].board[s],o=1-p,out=[];if(!u||str(u)<=0)return out;
   const sneak=kw(u,'sneak')||(kw(u,'sneakAmbush')&&G.pl[p].traps.length>0)||stanceOf(p)==='wind',guarded=hasGuard(o)&&!sneak;
   G.pl[o].board.forEach((f,i)=>{if(f&&hp(f)>0&&(!guarded||isGuard(f)))out.push(T(o,i))});
   if(!guarded)out.push(T(o,'h'));
@@ -3151,7 +3151,7 @@ function trapsHTML(p){
 function unitHTML(u,side,slot){
   let cls='';
   if(hp(u)<=0)cls+=' dying';
-  else{if(u.sick&&!kw(u,'swift')&&side===0)cls+=' sick';else if(side===G.turn&&!canAct(u)&&side===0)cls+=' spent';if(side===0&&myTurn()&&!G.mode&&canAct(u))cls+=' can'}
+  else{if(u.sick&&!kw(u,'swift')&&side===0)cls+=' sick';else if(side===G.turn&&!canAct(u)&&side===0)cls+=' spent';if(side===0&&myTurn()&&!G.mode&&canAct(u)&&(strikeTargets(0,slot).length||techReady(u)))cls+=' can'}
   if(hp(u)>0&&isGuard(u))cls+=' guardian';
   if(hp(u)>0&&u.w.length)cls+=' armed';
   if(modeHas(side,slot))cls+=' target';
@@ -3224,7 +3224,8 @@ function inspectHTML(){
     if(s.side===0){
       let ws='';
       if(!myTurn())ws='Wait for your turn.';else if(u.sick&&!kw(u,'swift'))ws='Just arrived. It can act on your next turn.';else if(!canAct(u))ws=u.acts>=99?'It can’t act this turn.':'Already acted this turn.';
-      btns=`<button class="btn pri" data-act="strike" ${ws?'disabled':''}>Strike</button>`;
+      const ss=!ws&&str(u)<=0?'It has 0 Strength, so it can’t strike.':ws;
+      btns=`<button class="btn pri" data-act="strike" ${ss?'disabled':''}>Strike</button>`;if(!ab)ws=ss;
       if(ab){let wa=ws;
         if(!wa&&weaponCount(u)<techNeed(u))wa=`${ab.n} needs ${techNeed(u)} weapon${techNeed(u)>1?'s':''} equipped. This samurai has ${weaponCount(u)}.`;
         if(!wa&&ab.tg&&!techTargets(0,s.slot).length)wa='No valid target.';
