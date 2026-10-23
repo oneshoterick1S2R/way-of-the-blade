@@ -4692,8 +4692,8 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a="mapsel"]');
   if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
   if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
-  const ZOOM_TO={tut:'training',store:'store',decks:'decks',friend:'friend',dojo:'profile'};
-  if(b&&ZOOM_TO[b.dataset.v]){const v=b.dataset.v,dest=ZOOM_TO[v],w=document.querySelector('.mapwrap'),sp=MAP_SPOTS.find(x=>x.k===v);S.tguide=null;S.packRes=null;if(v==='decks')S.dtab='decks';if(v==='dojo')profileDraft();if(!w||REDUCED||S.mapZooming){go(dest);return}
+  const ZOOM_TO={tut:'training',store:'store',decks:'decks',friend:'friend',dojo:'profile',story:'story',feud:'ladder'};
+  if(b&&ZOOM_TO[b.dataset.v]){const v=b.dataset.v,dest=ZOOM_TO[v],w=document.querySelector('.mapwrap'),sp=MAP_SPOTS.find(x=>x.k===v);S.tguide=null;S.packRes=null;if(v==='decks')S.dtab='decks';if(v==='dojo')profileDraft();if(v==='story'){if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true}if(v==='feud'){S.mode='ai';S.feudRank=null}if(!w||REDUCED||S.mapZooming){go(dest);return}
     S.mapZooming=true;document.querySelectorAll('.maptop,.mapmenu,.mpanel').forEach(x=>x.style.opacity='0');
     w.style.transformOrigin=`${sp.x}% ${sp.y}%`;w.style.transition='transform .7s cubic-bezier(.5,0,.3,1),filter .7s';w.style.transform='translate(-50%,-50%) scale(3.2)';w.style.filter='blur(1.5px)';
     setTimeout(()=>{S.mapZooming=false;go(dest)},680);return}
