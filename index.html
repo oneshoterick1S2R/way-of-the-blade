@@ -1651,7 +1651,14 @@ button.tface{cursor:pointer}
 .bfilt{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:22px;border:1px solid rgba(201,162,78,.55);background:rgba(0,0,0,.45);color:var(--paper,#e9dcc0);font:inherit;font-size:15px;cursor:pointer}
 .bfilt svg{width:16px;height:16px;color:var(--gold,#c9a24e)}
 .bfilt small{opacity:.7}
-.bfsheet{display:flex;flex-wrap:wrap;gap:6px;padding:10px;margin:-4px 0 10px;border:1px solid rgba(201,162,78,.4);border-radius:10px;background:rgba(15,10,7,.92);animation:lsin .2s ease-out}
+.bfsheet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px;padding:12px 14px;margin:-4px 0 12px;max-width:460px;box-sizing:border-box;border:1px solid rgba(201,162,78,.35);border-radius:10px;background:rgba(15,10,7,.95);box-shadow:0 10px 30px rgba(0,0,0,.6);animation:lsin .18s ease-out}
+.bf-g{display:flex;flex-direction:column;gap:1px;min-width:0}
+.bf-g small{font-family:var(--f-body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9c8a68;margin:4px 0 2px}
+.bf-o{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:38px;padding:0 10px;border:0;border-radius:6px;background:none;color:#e9dcc0;font-family:var(--f-body);font-size:15px;text-align:left;cursor:pointer}
+.bf-o span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bf-o em{font-style:normal;font-size:12px;color:#9c8a68}
+.bf-o:hover{background:rgba(255,255,255,.05)}
+.bf-o.on{background:rgba(226,184,96,.16);color:#f3d48a}.bf-o.on em{color:#e2b860}
 .binder{position:relative;border-radius:12px;background:#2b1a10;border:2px solid #4a2e1b;box-shadow:inset 0 0 30px rgba(0,0,0,.65),0 10px 30px rgba(0,0,0,.6);padding:12px 10px 8px 16px;touch-action:pan-y}
 .brings{position:absolute;left:-3px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:space-around;pointer-events:none}
 .brings i{display:block;width:9px;height:22px;border-radius:0 5px 5px 0;background:linear-gradient(90deg,#5c5c5c,#a9a9a9 60%,#6e6e6e)}
@@ -5075,15 +5082,18 @@ function decksHTML(){
 }
 const BIND_PER=9;
 function builderFilters(d){
-  const L=[['all','All cards'],['deck','In my deck'],['path',PATH_INFO[d.path].n.replace(/^Way of (the )?/,'')+' cards'],['n','Neutral cards'],['s','Samurai'],['w','Weapons'],['a','Ambushes'],['arch','★ Payoff cards']];
-  Object.keys(FAMILY).forEach(f=>{if(ORDER.some(id=>fam(id,f)&&(C[id].p===d.path||C[id].p==='n')))L.push(['fam:'+f,FAMILY[f].n+' family'])});
-  return L;
+  const G=[['Show',[['all','All cards'],['deck','In my deck']]],
+    ['Type',[['s','Samurai'],['w','Weapons'],['a','Ambushes']]],
+    ['Path',[['path',PATH_INFO[d.path].n.replace(/^Way of (the )?/,'')],['n','Neutral']]],
+    ['Strategy',[['arch','★ Payoff cards'],...Object.keys(FAMILY).filter(f=>ORDER.some(id=>fam(id,f)&&(C[id].p===d.path||C[id].p==='n'))).map(f=>['fam:'+f,FAMILY[f].n])]]];
+  return G;
 }
 function builderHTML(){
   const d=ACC.decks.find(x=>x.id===S.editId);if(!d){S.screen='decks';return decksHTML()}
   const v=validate(d),f=S.filter||'all';
   const pool=sortIds(ORDER.filter(id=>C[id].p==='n'||C[id].p===d.path));
-  const ids=pool.filter(id=>f==='all'||(f.startsWith('fam:')?fam(id,f.slice(4)):f==='arch'?!!C[id].ac:f==='deck'?d.cards[id]>0:f==='path'?C[id].p===d.path:f==='n'?C[id].p==='n':C[id].t===f));
+  const match=(id,k)=>k==='all'||(k.startsWith('fam:')?fam(id,k.slice(4)):k==='arch'?!!C[id].ac:k==='deck'?d.cards[id]>0:k==='path'?C[id].p===d.path:k==='n'?C[id].p==='n':C[id].t===k);
+  const ids=pool.filter(id=>match(id,f));
   const pages=Math.max(1,Math.ceil(ids.length/BIND_PER));S.bpage=Math.min(Math.max(0,S.bpage||0),pages-1);
   const full=v.total>=DECK_SIZE;
   const sleeves=ids.slice(S.bpage*BIND_PER,(S.bpage+1)*BIND_PER).map(id=>{const c=C[id],n=d.cards[id]||0,lock=!ACC.unlocked.includes(id),lim=limitOf(id),canAdd=!lock&&n<lim&&!full;
@@ -5096,7 +5106,7 @@ function builderHTML(){
     </div>`}).join('');
   const pad=ids.length?(BIND_PER-Math.min(BIND_PER,ids.length-S.bpage*BIND_PER)):0;
   const blanks='<div class="bsleeve empty" aria-hidden="true"><span class="bs-art"></span><span class="bs-name"></span></div>'.repeat(pad);
-  const fl=builderFilters(d),fcur=(fl.find(x=>x[0]===f)||fl[0])[1];
+  const fg=builderFilters(d),fl=fg.flatMap(g=>g[1]),fcur=(fl.find(x=>x[0]===f)||fl[0])[1];
   const dots=pages<=11?Array.from({length:pages},(_,i)=>`<button class="bdot ${i===S.bpage?'on':''}" data-a="bpage" data-v="${i}" aria-label="Page ${i+1}"></button>`).join(''):'';
   const fan=Object.keys(d.cards).sort((a,b)=>C[b].ki-C[a].ki).slice(0,5);
   const deckIds=sortIds(Object.keys(d.cards).filter(id=>C[id]));
@@ -5105,7 +5115,7 @@ function builderHTML(){
       <input id="f-deckname" class="dname" maxlength="28" value="${esc(d.name)}" aria-label="Deck name">
       <span class="count ${v.total===DECK_SIZE?'ok':''}">${v.total}/${DECK_SIZE}</span></header>
     <div class="bbar"><button class="bfilt" data-a="bfilt" aria-expanded="${!!S.bfilt}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>${fcur} <small>${ids.length}</small></button>${pathTag(d.path)}</div>
-    ${S.bfilt?`<div class="bfsheet" role="menu">${fl.map(([k,l])=>`<button class="chip ${f===k?'on':''}" data-a="filter" data-v="${k}" role="menuitemradio" aria-checked="${f===k}">${l}</button>`).join('')}</div>`:''}
+    ${S.bfilt?`<div class="bfsheet" role="menu">${fg.map(([h,opts])=>`<div class="bf-g"><small>${h}</small>${opts.map(([k,l])=>`<button class="bf-o ${f===k?'on':''}" data-a="filter" data-v="${k}" role="menuitemradio" aria-checked="${f===k}"><span>${l}</span><em>${pool.filter(id=>match(id,k)).length}</em></button>`).join('')}</div>`).join('')}</div>`:''}
     <div class="binder" data-dir="${S.bdir||''}">
       <span class="brings" aria-hidden="true"><i></i><i></i><i></i></span>
       <div class="bgrid" aria-live="polite">${sleeves?sleeves+blanks:'<p class="muted bempty">No cards here yet.</p>'}</div>
@@ -5122,11 +5132,6 @@ function builderHTML(){
       ${S.bdeck?`<div class="bd-body">
         <div class="vbox ${v.ok?'ok':''}">${v.ok?'<b>Deck is valid and ready for battle.</b>':`<b>Fix before battle:</b><ul>${v.errs.slice(0,6).map(e=>`<li>${e}</li>`).join('')}</ul>`}
           <div class="split"><span>${v.s} samurai</span><span>${v.w} weapons</span><span>${v.a} ambushes</span></div></div>
-        ${(()=>{const A=deckArch(d.cards),fams=Object.entries(A.cnt).sort((x,y)=>y[1]-x[1]);
-          const sugg=Object.entries(ARCH).filter(([k,X])=>ORDER.some(id=>C[id].ac===k&&(C[id].p===d.path||C[id].p==='n')));
-          return `<section class="archbox"><div class="ab-h"><b>${A.best?'Archetype: '+ARCH[A.best].n:'No archetype yet'}</b><small>${A.best?ARCH[A.best].x:'Add a ★ payoff card plus cards of its family to build around a strategy.'}</small></div>
-            ${fams.length?`<div class="ab-f">${fams.map(([f2,n])=>`<button class="famchip" data-a="filter" data-v="fam:${f2}"><span>${FAMILY[f2].k}</span>${FAMILY[f2].n} <b>${n}</b></button>`).join('')}</div>`:''}
-            <div class="ab-s"><small>Strategies for this deck:</small>${sugg.map(([k,X])=>`<span class="${A.best===k?'on':''}">${X.n}</span>`).join('')}</div></section>`})()}
         <div class="bd-list">${deckIds.map(id=>{const c=C[id],n=d.cards[id];return `<div class="bd-row"><button class="bd-r" data-a="peek" data-v="${id}"><span class="bs-ki">${c.ki}</span><span class="bd-art">${art(id)}</span><b>${c.n}</b></button><button class="pm" data-a="minus" data-v="${id}" aria-label="Remove one ${esc(c.n)}">−</button><span class="n">${n}</span><button class="pm" data-a="plus" data-v="${id}" ${n>=limitOf(id)||full?'disabled':''} aria-label="Add one ${esc(c.n)}">+</button></div>`}).join('')||'<p class="muted">Your deck is empty. Add cards from the binder.</p>'}</div>
         <div class="btns left"><button class="btn" data-a="clear" ${v.total?'':'disabled'}>Remove all cards</button></div>
       </div>`:''}
