@@ -1710,6 +1710,10 @@ button.tface{cursor:pointer}
 .pk-ctr .n{font-family:var(--f-card);font-weight:800;font-size:18px;color:#f3d48a}.pk-ctr .n small{font-weight:400;font-size:13px;color:#c9b894}
 .bd-row .pm,.pk-ctr .pm{width:42px;height:42px}
 .binder{max-width:520px;margin-left:auto;margin-right:auto}
+.binder{width:min(460px,100%);box-sizing:border-box}
+.bs-name{height:calc(2 * 1.15em + 11px);min-height:0;overflow:hidden;box-sizing:border-box;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.bgrid{grid-auto-rows:1fr}
+.bsleeve.empty{border-style:dashed;border-color:rgba(255,255,255,.08);background:rgba(0,0,0,.18)}.bsleeve.empty .bs-art{background:transparent;border-bottom-color:transparent}
 /* ---------- Red Bridge: sword split ---------- */
 .rbridge{position:fixed;inset:0;z-index:1;overflow:hidden;background:#0c0705;color:#e9dcc0}
 .rb-half{position:absolute;left:0;right:0;height:56%;overflow:hidden}
@@ -5090,6 +5094,8 @@ function builderHTML(){
         <span class="bs-name">${c.n}</span></button>
       ${canAdd?`<button class="bs-add ${n?'mini':''}" data-a="plus" data-v="${id}" aria-label="Add ${esc(c.n)}">+</button>`:''}
     </div>`}).join('');
+  const pad=ids.length?(BIND_PER-Math.min(BIND_PER,ids.length-S.bpage*BIND_PER)):0;
+  const blanks='<div class="bsleeve empty" aria-hidden="true"><span class="bs-art"></span><span class="bs-name"></span></div>'.repeat(pad);
   const fl=builderFilters(d),fcur=(fl.find(x=>x[0]===f)||fl[0])[1];
   const dots=pages<=11?Array.from({length:pages},(_,i)=>`<button class="bdot ${i===S.bpage?'on':''}" data-a="bpage" data-v="${i}" aria-label="Page ${i+1}"></button>`).join(''):'';
   const fan=Object.keys(d.cards).sort((a,b)=>C[b].ki-C[a].ki).slice(0,5);
@@ -5102,7 +5108,7 @@ function builderHTML(){
     ${S.bfilt?`<div class="bfsheet" role="menu">${fl.map(([k,l])=>`<button class="chip ${f===k?'on':''}" data-a="filter" data-v="${k}" role="menuitemradio" aria-checked="${f===k}">${l}</button>`).join('')}</div>`:''}
     <div class="binder" data-dir="${S.bdir||''}">
       <span class="brings" aria-hidden="true"><i></i><i></i><i></i></span>
-      <div class="bgrid" aria-live="polite">${sleeves||'<p class="muted bempty">No cards here yet.</p>'}</div>
+      <div class="bgrid" aria-live="polite">${sleeves?sleeves+blanks:'<p class="muted bempty">No cards here yet.</p>'}</div>
       <div class="bnav"><button class="bpg" data-a="bpage" data-v="${S.bpage-1}" ${S.bpage?'':'disabled'} aria-label="Previous page"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="bdots">${dots}</span><span class="bpgn">Page ${S.bpage+1} of ${pages}</span>
         <button class="bpg" data-a="bpage" data-v="${S.bpage+1}" ${S.bpage<pages-1?'':'disabled'} aria-label="Next page"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
