@@ -1909,10 +1909,10 @@ S_('pilgrim','temple',2,'C','Pilgrim','Temple — Pilgrim','巡礼者',2,2,{own,
 S_('chanter','temple',2,'R','Sutra Chanter','Temple — Monk','経の詠唱',2,4,{own,aura:'chant',x:'At the start of your turn, restore 1 Vitality to each of your samurai.',fl:'The words of the Sutra bring resilience.'});
 S_('herbalist','temple',3,'C','Herbalist Monk','Temple — Healer','薬師',2,3,{arr:{k:'healAlly',tg:'ally'},x:'Arrival: fully heal one of your samurai.',fl:'Every root is a remedy.'});
 S_('templearcher','temple',3,'C','Temple Archer','Temple — Archer','寺弓',2,4,{kw:['guard','thorns'],x:'Deals 1 damage to any samurai that strikes it.',fl:'The temple stands. So do its archers.'});
-S_('sohei','temple',3,'R','Sōhei','Temple — Warrior Monk','僧兵',2,5,{own,kw:['guard'],fl:'Through discipline, strength is born.',ab:{n:'Iron Body',c:1,k:'fort',v:2,x:'Gain +2 Vitality.'}});
+S_('sohei','temple',3,'R','Sōhei','Temple — Warrior Monk','僧兵',2,4,{own,kw:['guard'],fl:'Through discipline, strength is born.',ab:{n:'Iron Body',c:1,k:'fort',v:2,x:'Gain +2 Vitality.'}});
 S_('sensei','temple',3,'R','Sensei','Temple — Teacher','先生',2,4,{fl:'Empty the cup before you pour the tea.',ab:{n:'Teaching',c:1,k:'draw',v:2,x:'Draw 2 cards.'}});
 S_('yamabushi','temple',3,'E','Yamabushi','Temple — Mountain Ascetic','山伏',3,3,{kw:['noAmbush'],x:'Ambushes don’t trigger against him.',fl:'The mountain hides nothing from me.'});
-S_('gateguard','temple',4,'E','Gate Guardian Monk','Temple — Guardian','寺の守護',2,8,{own,kw:['guard'],fl:'The temple stands, protected by unwavering faith.'});
+S_('gateguard','temple',5,'E','Gate Guardian Monk','Temple — Guardian','寺の守護',2,6,{own,kw:['guard'],fl:'The temple stands, protected by unwavering faith.'});
 S_('abbot','temple',5,'E','Abbot','Temple — Abbot','住職',5,5,{arr:{k:'healAll',v:99},x:'Arrival: fully heal all your samurai.',fl:'Rest now. The temple keeps you.'});
 S_('enlightened','temple',6,'L','The Enlightened Monk','Temple — Master','悟り',4,6,{own,aura:'honorFloor',x:'While he stands, your Honor can’t drop below 1.',fl:'A path of peace can withstand any storm.'});
 S_('thousandsteps','temple',7,'L','Abbot of the Thousand Steps','Temple — Grand Abbot','千段',5,6,{arr:{k:'honor',v:8},x:'Arrival: restore 8 Honor.',fl:'Each step a prayer. Each prayer a shield.'});
@@ -1971,9 +1971,14 @@ S_('wakazamurai','steel',1,'C','Young Samurai','Steel — Swordsman','若侍',1,
 W_('tsuba','steel',1,'C','Iron Tsuba','Weapon — Sword Guard','鍔',0,2,{fl:'The blade that stops a blade.'});
 S_('roofspy','shadow',1,'C','Rooftop Spy','Shadow — Infiltrator','屋根の影',1,1,{arr:{k:'hurtHonor',v:1},x:'Arrival: deal 1 damage to the rival’s Honor.',fl:'Every tile a listening post.'});
 S_('acolyte','temple',1,'C','Temple Acolyte','Temple — Novice','小僧',0,3,{kw:['guard'],arr:{k:'honor',v:1},x:'Arrival: restore 1 Honor.',fl:'Sweep the steps, guard the gate.'});
+/* ---- card-draw commons (one per Path) so hands don't run dry ---- */
+S_('supplybearer','banner',2,'C','Supply Bearer','Banner — Ashigaru Porter','小荷駄',1,2,{arr:{k:'draw',v:2},x:'Arrival: draw 2 cards.',fl:'Rice, arrows, rumours. All of it on his back.'});
+S_('polisher','steel',2,'C','Sword Polisher','Steel — Smith','研ぎ師',2,2,{arr:{k:'draw',v:1},x:'Arrival: draw a card.',fl:'He reads a blade like a letter.'});
+S_('nightcourier','shadow',2,'C','Night Courier','Shadow — Ninja','闇飛脚',2,1,{dp:{k:'draw',v:2},x:'Death Poem: draw 2 cards.',fl:'If he falls, the message still arrives.'});
+S_('scribe','temple',2,'C','Sutra Scribe','Temple — Scribe','写経僧',1,3,{arr:{k:'draw',v:1},x:'Arrival: draw a card.',fl:'Every copied word is a prayer.'});
 /* borrowed paintings until their own art is made */
-[['hikyaku','courier'],['farmhand','militia'],['flagpage','sashimono'],['conscript','vetashi'],['drumboy','taiko'],['jingasaw','ironmantlet'],['shugyosha','deshi'],['wakazamurai','iaido'],['tsuba','kodachi'],['roofspy','rooftop'],['acolyte','novice']].forEach(([a,b])=>{if(IMG[b]&&!IMG[a]){IMG[a]=IMG[b];C[a].own=C[b].own;C[a].borrowed=b}});
-['hikyaku','farmhand','flagpage','conscript','drumboy','jingasaw','shugyosha','wakazamurai','tsuba','roofspy','acolyte'].forEach(id=>{C[id].extra=1;if(!C[id].borrowed)C[id].own=1});
+[['hikyaku','courier'],['farmhand','militia'],['flagpage','sashimono'],['conscript','vetashi'],['drumboy','taiko'],['jingasaw','ironmantlet'],['shugyosha','deshi'],['wakazamurai','iaido'],['tsuba','kodachi'],['roofspy','rooftop'],['acolyte','novice'],['supplybearer','cook'],['polisher','swordsmith'],['nightcourier','smokerunner'],['scribe','chanter']].forEach(([a,b])=>{if(IMG[b]&&!IMG[a]){IMG[a]=IMG[b];C[a].own=C[b].own;C[a].borrowed=b}});
+['hikyaku','farmhand','flagpage','conscript','drumboy','jingasaw','shugyosha','wakazamurai','tsuba','roofspy','acolyte','supplybearer','polisher','nightcourier','scribe'].forEach(id=>{C[id].extra=1;if(!C[id].borrowed)C[id].own=1});
 /* painted kanji already in these artworks, or none to hide */
 ['recruit','cook','mantlet','vetashi','kashira','yabusame','templearcher','yamabushi','abbot'].forEach(id=>C[id].own=1);
 ['templebell','ofuda','mist','sanctuary'].forEach(id=>C[id].own=0);
@@ -2009,7 +2014,7 @@ S_('armorymaster','steel',4,'E','Armory Master','Steel — Sword Master','武具
 S_('spymaster','shadow',3,'R','Spymaster','Shadow — Ninja','忍頭',1,2,{...arch,ac:'web',aura:'trapScale',x:'Has +1/+1 for each ambush you have set.',fl:'Every shadow reports to me.'});
 S_('hiddennet','shadow',2,'C','Hidden Network','Shadow — Ninja','隠れ網',2,2,{...arch,ac:'web',aura:'netDraw',x:'Whenever one of your ambushes springs, draw a card.',fl:'A whisper travels faster than a horse.'});
 S_('matriarch','shadow',5,'E','Kunoichi Matriarch','Shadow — Ninja','女首領',3,4,{...arch,ac:'web',aura:'matriarch',x:'Once per turn, when one of your ambushes springs, set a random Shadow ambush.',fl:'For every trap you find, two more wait.'});
-S_('funeralbell','temple',2,'C','Funeral Bell Keeper','Temple — Monk','弔鐘',1,3,{...arch,ac:'sorrow',aura:'funeral',x:'Whenever another of your Monks falls, restore 2 Honor.',fl:'One toll for every soul.'});
+S_('funeralbell','temple',2,'C','Funeral Bell Keeper','Temple — Monk','弔鐘',1,3,{...arch,ac:'sorrow',aura:'funeral',x:'Whenever another of your Monks falls, restore 1 Honor.',fl:'One toll for every soul.'});
 S_('lanternmonk','temple',3,'R','Lantern Monk','Temple — Monk','灯籠僧',2,3,{...arch,ac:'sorrow',dp:{k:'deckMonk'},x:'Death Poem: summon a Monk costing 2 or less from your deck.',fl:'When my light goes out, carry it on.'});
 S_('lastrite','temple',5,'E','Abbot of the Last Rite','Temple — Monk','引導',3,5,{...arch,ac:'sorrow',aura:'dpTwice',x:'Your Death Poems trigger twice.',fl:'Death is a door. I hold it open.'});
 S_('quiver','n',2,'C','Quiver Bearer','Neutral — Archer','矢筒持',1,3,{...arch,ac:'bowline',aura:'archerStr',x:'Your other Archers have +1 Strength.',fl:'Never let an archer run dry.'});
@@ -2018,7 +2023,7 @@ S_('masterless','n',3,'R','Masterless Blade','Neutral — Rōnin','浪人刀',2,
 S_('wanderer','n',2,'C','Lone Wanderer','Neutral — Rōnin','一匹狼',2,2,{...arch,ac:'ronin',arr:{k:'loneDraw'},x:'Arrival: if you control no other samurai, draw 2 cards.',fl:'The road is long. The company is short.'});
 Object.keys(C).forEach(id=>{if(C[id].arch&&!ORDER.includes(id))ORDER.push(id)});
 FAMILY.ashigaru.ids.push('drillsgt','ashitaisho');FAMILY.swordsman.ids.push('nitoduel','armorymaster');
-FAMILY.ninja.ids.push('spymaster','hiddennet','matriarch');FAMILY.monk.ids.push('funeralbell','lanternmonk','lastrite');
+FAMILY.ninja.ids.push('spymaster','hiddennet','matriarch');FAMILY.ninja.ids.push('nightcourier');FAMILY.ashigaru.ids.push('supplybearer');FAMILY.monk.ids.push('funeralbell','lanternmonk','lastrite');
 FAMILY.archer.ids.push('quiver','arrowmaster');
 for(const f in FAMILY)FAMILY[f].ids.forEach(id=>{if(C[id]){C[id].tr=C[id].tr||[];if(!C[id].tr.includes(f))C[id].tr.push(f)}});
 const fam=(c,f)=>!!(C[c]&&C[c].tr&&C[c].tr.includes(f));
@@ -2188,7 +2193,7 @@ function cleanup(){
     G.pl.forEach((P,p)=>P.board.forEach((u,s)=>{if(u&&hp(u)<=0){dying.push(u);P.board[s]=null}}));
     if(!dying.length)break;
     dying.forEach(u=>{log(`${C[u.c].n} has fallen.`);const dp=C[u.c].dp,me=units(u.owner);if(dp){deathPoem(u.owner,dp);if(me.some(x=>C[x.c].aura==='dpTwice'&&hp(x)>0)){log('The Last Rite: the Death Poem echoes.');deathPoem(u.owner,dp)}}
-      if(fam(u.c,'monk'))me.forEach(x=>{if(C[x.c].aura==='funeral'&&hp(x)>0){healHonor(u.owner,2);log('The funeral bell tolls.')}})});
+      if(fam(u.c,'monk'))me.forEach(x=>{if(C[x.c].aura==='funeral'&&hp(x)>0){healHonor(u.owner,1);log('The funeral bell tolls.')}})});
   }
   checkOver();
 }
