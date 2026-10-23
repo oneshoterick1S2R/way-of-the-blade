@@ -4692,8 +4692,8 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a="mapsel"]');
   if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
   if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
-  const ZOOM_TO={tut:'training',store:'store',decks:'decks',friend:'friend'};
-  if(b&&ZOOM_TO[b.dataset.v]){const v=b.dataset.v,dest=ZOOM_TO[v],w=document.querySelector('.mapwrap'),sp=MAP_SPOTS.find(x=>x.k===v);S.tguide=null;S.packRes=null;if(v==='decks')S.dtab='decks';if(!w||REDUCED||S.mapZooming){go(dest);return}
+  const ZOOM_TO={tut:'training',store:'store',decks:'decks',friend:'friend',dojo:'profile'};
+  if(b&&ZOOM_TO[b.dataset.v]){const v=b.dataset.v,dest=ZOOM_TO[v],w=document.querySelector('.mapwrap'),sp=MAP_SPOTS.find(x=>x.k===v);S.tguide=null;S.packRes=null;if(v==='decks')S.dtab='decks';if(v==='dojo')profileDraft();if(!w||REDUCED||S.mapZooming){go(dest);return}
     S.mapZooming=true;document.querySelectorAll('.maptop,.mapmenu,.mpanel').forEach(x=>x.style.opacity='0');
     w.style.transformOrigin=`${sp.x}% ${sp.y}%`;w.style.transition='transform .7s cubic-bezier(.5,0,.3,1),filter .7s';w.style.transform='translate(-50%,-50%) scale(3.2)';w.style.filter='blur(1.5px)';
     setTimeout(()=>{S.mapZooming=false;go(dest)},680);return}
@@ -4964,6 +4964,7 @@ async function connect(){
 }
 
 /* ----- screens ----- */
+function profileDraft(){S.ctab='gear';S.draft={name:ACC.name,clan:ACC.clan,look:clone(ACC.look),xp:ACC.xp,mon:ACC.mon,color:ACC.color,path:ACC.path,stats:ACC.stats,active:ACC.active}}
 function go(screen){S.screen=screen;S.peek=null;S.ask=null;S.newDeck=false;S.dmenu=null;S.mapSel=null;S.mapMenu=false;window.scrollTo(0,0);render()}
 const active=()=>ACC.decks.find(d=>d.id===ACC.active)||ACC.decks[0];
 function avatar(id,cls=''){return `<span class="ava ${cls}">${art(id)}</span>`}
@@ -5400,7 +5401,7 @@ document.addEventListener('click',e=>{
     case 'gcyc':{const slot=b.dataset.k,lv=S.screen==='profile'?levelOf(ACC.xp||0):1,items=GEAR[slot].items.filter(x=>gearOK(slot,x,lv));
       let i=items.findIndex(x=>x.id===S.draft.look[slot]);i=(i+(+v)+items.length)%items.length;S.draft.look[slot]=items[i].id;render();return}
     case 'create':if(AUTH.on&&AUTH.user)S.draft.name=authName();if(!S.draft.name.trim()){S.ctab='clan';render();setTimeout(()=>{const n=document.getElementById('f-name');if(n){n.focus();n.placeholder='Give your samurai a name'}},50);return}ACC=newAccount(S.draft);S.draft=null;save();go('dojo');return;
-    case 'editprofile':S.ctab='gear';S.draft={name:ACC.name,clan:ACC.clan,look:clone(ACC.look),xp:ACC.xp,mon:ACC.mon,color:ACC.color,path:ACC.path,stats:ACC.stats,active:ACC.active};go('profile');return;
+    case 'editprofile':profileDraft();go('profile');return;
     case 'saveprofile':Object.assign(ACC,{name:AUTH.on&&AUTH.user?authName():(S.draft.name.trim()||ACC.name),clan:S.draft.clan.trim()||ACC.clan,look:clone(S.draft.look),active:ACC.decks.some(x=>x.id===S.draft.active)?S.draft.active:ACC.active,mon:S.draft.mon,color:S.draft.color,path:S.draft.path});save();go('dojo');return;
     case 'peek':S.peek=v;if(ACC&&Array.isArray(ACC.seenCards)&&!ACC.seenCards.includes(v)&&ACC.unlocked.includes(v)){ACC.seenCards.push(v);save()}render();return;
     case 'peekclose':if(e.target===b||b.tagName==='BUTTON'){S.peek=null;render()}return;
