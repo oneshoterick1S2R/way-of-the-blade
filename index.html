@@ -4489,7 +4489,7 @@ function mapHTML(){
   </div>`;
 }
 document.addEventListener('click',e=>{
-  if(!ACC||S.screen!=='dojo')return;
+  if(!ACC||S.screen!=='dojo'||S.ask)return;
   const b=e.target.closest('[data-a="mapsel"]');
   if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
   if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
@@ -5044,9 +5044,18 @@ document.addEventListener('click',e=>{
     case 'dup':{const d=ACC.decks.find(x=>x.id===v);if(d&&ACC.decks.length<MAX_DECKS){ACC.decks.push({id:uid(),name:(d.name+' copy').slice(0,28),path:d.path,cards:clone(d.cards)});save();render()}return}
     case 'del':S.ask=v;render();return;
     case 'delno':S.ask=null;render();return;
-    case 'resetask':S.ask='reset';render();return;
-    case 'adminask':S.ask='admin';S.adminErr=false;render();setTimeout(()=>{const i=document.getElementById('f-admin');if(i)i.focus()},50);return;
+    case 'resetask':S.mapMenu=false;S.ask='reset';render();return;
+    case 'adminask':S.mapMenu=false;S.ask='admin';S.adminErr=false;render();setTimeout(()=>{const i=document.getElementById('f-admin');if(i)i.focus()},50);return;
     case 'adminok':{const i=document.getElementById('f-admin');if(i&&i.value==='Money$$'){ACC.ryo=(ACC.ryo||0)+1000;S.ask=null;S.adminErr=false;save();render();if(typeof showToast==='function'){}const t=document.createElement('div');t.className='narrnote';t.innerHTML='<b>+1,000 Ryō</b><span>Balance: '+ACC.ryo+'</span>';document.body.appendChild(t);setTimeout(()=>t.remove(),2500);return}
+      if(i&&i.value==='BMW'){const cards={"smithapp":2,"nitoduel":2,"armorymaster":2,"deshi":2,"iaido":2,"wduelist":2,"twinblade":2,"instructor":2,"onna":2,"champion":2,"ironronin":2,"soke":2,"kensei":1,"undefeated":1,"shugyosha":2,"wakazamurai":2,"ronin":2,"hikyaku":1,"farmhand":1,"tsuba":1,"polisher":2,"scavenger":1,"togishi":1,"marksman":1};
+        Object.keys(cards).forEach(id=>{if(!C[id])delete cards[id];else if(!ACC.unlocked.includes(id))ACC.unlocked.push(id)});
+        let d=ACC.decks.find(x=>x.name==='Blade Masters'),msg='';
+        if(d){d.cards=cards;d.path='steel';msg='Your Blade Masters deck was reset to the tested list.'}
+        else if(ACC.decks.length<MAX_DECKS){d={id:uid(),name:'Blade Masters',path:'steel',cards};ACC.decks.push(d);msg='Added to your decks and set as active.'}
+        else msg='';
+        S.ask=null;S.adminErr=false;
+        if(d){ACC.active=d.id;save();render()}else{render()}
+        const t=document.createElement('div');t.className='narrnote';t.innerHTML=d?'<b>Blade Masters deck</b><span>'+msg+'</span>':'<b>No room for a new deck</b><span>You have '+MAX_DECKS+' decks. Delete one, then enter BMW again.</span>';document.body.appendChild(t);setTimeout(()=>t.remove(),3200);return}
       if(i&&i.value==='Password1!'){ACC.unlocked=[...ORDER];ACC.xp=Math.max(ACC.xp||0,LEVELS[LEVELS.length-1]);ACC.admin=true;ACC.ryo=Math.max(ACC.ryo||0,5000);S.ask=null;S.adminErr=false;save();render();showAdminToast()}else{S.adminErr=true;render();setTimeout(()=>{const j=document.getElementById('f-admin');if(j)j.focus()},50)}return}
     case 'resetok':resetAll();return;
     case 'delok':ACC.decks=ACC.decks.filter(x=>x.id!==S.ask);if(!ACC.decks.some(x=>x.id===ACC.active))ACC.active=ACC.decks[0].id;S.ask=null;save();render();return;
