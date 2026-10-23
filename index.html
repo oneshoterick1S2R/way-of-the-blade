@@ -4589,7 +4589,7 @@ const DUPE_REFUND={C:5,R:15,E:40,L:100};
 const PACKS=[
   {id:'path',n:'Path Pack',k:'道',price:150,size:5,x:'5 cards from one Path (and Neutral), including one you don’t own yet. Pick the Path below.'},
   {id:'warlord',n:'Warlord Pack',k:'将',price:220,size:5,x:'5 cards from any Path, including one you don’t own yet. At least one Rare or better.'},
-  {id:'legend',n:'Legend Chest',k:'宝',price:600,size:3,x:'3 cards, every one Epic or Legendary — new ones first.'}
+  {id:'legend',n:'Legend Chest',k:'宝',price:2000,size:3,x:'3 cards, every one Epic or Legendary — new ones first.'}
 ];
 const MUSIC=[
   {id:'temple',n:'Temple Garden',x:'Calm koto and bamboo flute. The classic dojo theme.',price:0},
@@ -4741,7 +4741,7 @@ const NAME_TITLES=[
   {id:'shadow',n:'Shadow of the Shogun',price:500},{id:'sword',n:'Sword Saint',price:800}
 ];
 const FOIL_PRICE={C:60,R:120,E:250};
-const STALL_PRICE={C:40,R:90,E:250,L:600};
+const STALL_PRICE={C:40,R:90,E:1200,L:3000};
 
 const owns=(key,id)=>!!(ACC&&Array.isArray(ACC[key])&&ACC[key].includes(id));
 const myBack=()=>(ACC&&ACC.cardback)||'classic';
