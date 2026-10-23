@@ -1440,6 +1440,22 @@ button.tface{cursor:pointer}
 .sc-lock{position:absolute;right:16px;bottom:12px;width:28px;height:28px}
 .sc-lock svg{width:100%;height:100%;fill:none;stroke:#c9b894;stroke-width:1.5}
 .stone .stpage{flex:1 0 100%}
+/* chapter intro popup */
+.stpop-bg{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);animation:lsin .2s}
+.stpop{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:31;width:min(480px,calc(100% - 24px));max-height:calc(100% - 40px);overflow:auto;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--tint) 60%,#c9a24e);background:#0d0907;box-shadow:0 20px 60px rgba(0,0,0,.8);animation:stpopin .25s ease-out;color:#ecdcb4}
+@keyframes stpopin{from{opacity:0;transform:translate(-50%,-46%)}to{opacity:1;transform:translate(-50%,-50%)}}
+.stp-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%;opacity:.35}
+.stp-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,9,7,.55),rgba(13,9,7,.92) 60%)}
+.stpop .stkanji{position:absolute;right:10px;bottom:-10px;font-family:var(--f-brush);font-size:160px;line-height:1;color:var(--tint);opacity:.18;pointer-events:none}
+.stp-in{position:relative;padding:22px 20px 20px;display:flex;flex-direction:column;gap:10px}
+.stp-in small{font-family:var(--f-card);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--tint);filter:brightness(1.5)}
+.stp-in h2{margin:0;font-family:var(--f-head);font-size:28px;line-height:1.1;color:#fff3dc}
+.stp-in .stx{margin:0;font-size:17px;line-height:1.5}
+.stp-in .sthear{align-self:flex-start}
+.stp-btns{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.stp-btns .stface{width:100%}
+.stp-x{min-height:44px;border:1px solid rgba(201,162,78,.45);border-radius:8px;color:#e2b860;font-family:var(--f-card)}
+.stp-x{text-align:center;display:flex;align-items:center;justify-content:center}
 /* ===== Store & Ryō ===== */
 .coinpill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 3px;border-radius:99px;background:rgba(0,0,0,.45);border:1px solid rgba(201,162,78,.6);color:#f3e6c6;font-family:var(--f-card);font-weight:700;font-size:13px;line-height:1.4;vertical-align:middle;white-space:nowrap}
 .coinpill i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe7a3,#c9a24e 55%,#7a5a1e);color:#3a2408;font-style:normal;font-family:var(--f-brush);font-size:12px;box-shadow:inset 0 0 0 1.5px rgba(80,50,10,.5)}
@@ -4401,7 +4417,7 @@ function narrProgress(){const n=document.querySelector('#narrpanel .np-bar span'
 function narrAuto(){
   if(!ACC||NARR.on)return;
   let id=null;
-  if(S.screen==='story')id=S.stCh!=null&&CHAPTERS[S.stCh]?'ch'+CHAPTERS[S.stCh].id:'hero';
+  if(S.screen==='story')id=S.stPop!=null&&CHAPTERS[S.stPop]?'ch'+CHAPTERS[S.stPop].id:S.stCh==null?'hero':null;
   else if(S.screen==='boss'&&S.boss)id='b'+S.boss;
   if(!id)return;
   const key=narrKey(id);ACC.heard=ACC.heard||[];if(ACC.heard.includes(key))return;
@@ -4564,8 +4580,7 @@ function chapterPage(ch,ci){
       <div class="stin">
         <div class="sttop"><small>Chapter ${['I','II','III','IV'][ci]} of IV · ${PATH_INFO[ch.path].n}</small>
           <h2>${ch.t}</h2>
-          ${locked?'<p class="stlock">Unlocks after you defeat all 9 bosses in Chapters I–III.</p>':`<p class="stx">${ch.x}</p>
-          <button class="sthear" data-say="ch${ch.id}" data-txt="${esc(ch.x)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Hear the tale</button>`}
+          ${locked?'<p class="stlock">Unlocks after you defeat all 9 bosses in Chapters I–III.</p>':''}
         </div>
         <div class="stcards">${cards}</div>
         ${locked?'':next?`<button class="stface" data-a="boss" data-v="${next.id}">Face ${esc(next.n)}</button>`:done?`<div class="stdone">✓ Chapter complete · all three legends pledged</div>`:''}
@@ -4579,7 +4594,7 @@ function storyHTML(){
       <div class="stpager">${chapterPage(ch,ci)}</div></div>`}
   const cur=CHAPTERS.findIndex(ch=>{const st=chapterState(ch);return !st.locked&&st.next});
   const tiles=CHAPTERS.map((ch,ci)=>{const st=chapterState(ch),tint=ST_TINT[ch.path]||'#c9a24e',hero=st.next||st.bs[st.bs.length-1],done=st.won===3;
-    return `<button class="stchap ${st.locked?'lock':''} ${done?'done':''} ${ci===cur?'cur':''}" data-a="stch" data-v="${ci}" style="--tint:${tint}" ${st.locked?'aria-disabled="true"':''} aria-label="Chapter ${ch.id}: ${esc(ch.t)}${st.locked?', locked':''}">
+    return `<button class="stchap ${st.locked?'lock':''} ${done?'done':''} ${ci===cur?'cur':''}" data-a="stpop" data-v="${ci}" style="--tint:${tint}" aria-label="Chapter ${ch.id}: ${esc(ch.t)}${st.locked?', locked':''}">
       <img class="sc-bg" src="${IMG[hero.card]||''}" alt=""><span class="sc-shade"></span><span class="sc-k" aria-hidden="true">${ch.k}</span>
       <span class="sc-tx"><small>Chapter ${['I','II','III','IV'][ci]} · ${PATH_INFO[ch.path].n.replace(/^Way of (the )?/,'')}</small><b>${ch.t}</b>
         <span class="sc-pr">${st.locked?'Locked · beat Chapters I–III':done?'✓ Complete':ci===cur?`Next: ${esc(st.next.n)}`:`${st.won} of 3 legends`}</span></span>
@@ -4591,6 +4606,14 @@ function storyHTML(){
       <span class="stcount">${n} / 12 legends</span>${sayBtn('hero',STORY_HERO)}</header>
     <div class="stl-in"><div class="stl-title"><small>Story Mode</small><h1>The Road to Honnō-ji</h1></div>
       <div class="stchaps">${tiles}</div></div>
+    ${(()=>{const ci=S.stPop;if(ci==null||!CHAPTERS[ci])return '';const ch=CHAPTERS[ci],st=chapterState(ch),tint=ST_TINT[ch.path]||'#c9a24e',hero=st.next||st.bs[st.bs.length-1];
+      return `<div class="stpop-bg" data-a="stpop" data-v=""></div><div class="stpop" role="dialog" aria-label="Chapter ${ch.id}" style="--tint:${tint}">
+        <img class="stp-bg" src="${IMG[hero.card]||''}" alt=""><span class="stp-shade"></span><span class="stkanji" aria-hidden="true">${ch.k}</span>
+        <div class="stp-in"><small>Chapter ${['I','II','III','IV'][ci]} of IV · ${PATH_INFO[ch.path].n}</small><h2>${ch.t}</h2>
+          ${st.locked?'<p class="stlock">Unlocks after you defeat all 9 bosses in Chapters I–III.</p>':`<p class="stx">${ch.x}</p>
+          <button class="sthear" data-say="ch${ch.id}" data-txt="${esc(ch.x)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Hear the tale</button>`}
+          <div class="stp-btns">${st.locked?'':`<button class="stface" data-a="stch" data-v="${ci}">Enter Chapter ${['I','II','III','IV'][ci]}</button>`}<button class="stp-x" data-a="stpop" data-v="">Close</button></div>
+        </div></div>`})()}
   </div>`;
 }
 function stPager(){
@@ -4960,7 +4983,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
   if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
   const ZOOM_TO={tut:'training',store:'store',decks:'decks',friend:'friend',dojo:'profile',story:'story',feud:'ladder'};
-  if(b&&ZOOM_TO[b.dataset.v]){const v=b.dataset.v,dest=ZOOM_TO[v],w=document.querySelector('.mapwrap'),sp=MAP_SPOTS.find(x=>x.k===v);S.tguide=null;S.packRes=null;if(v==='decks')S.dtab='decks';if(v==='dojo')profileDraft();if(v==='story'){if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.stCh=null}if(v==='feud'){S.mode='ai';S.feudRank=null}if(!w||REDUCED||S.mapZooming){go(dest);return}
+  if(b&&ZOOM_TO[b.dataset.v]){const v=b.dataset.v,dest=ZOOM_TO[v],w=document.querySelector('.mapwrap'),sp=MAP_SPOTS.find(x=>x.k===v);S.tguide=null;S.packRes=null;if(v==='decks')S.dtab='decks';if(v==='dojo')profileDraft();if(v==='story'){if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.stCh=null;S.stPop=null}if(v==='feud'){S.mode='ai';S.feudRank=null}if(!w||REDUCED||S.mapZooming){go(dest);return}
     S.mapZooming=true;document.querySelectorAll('.maptop,.mapmenu,.mpanel').forEach(x=>x.style.opacity='0');
     w.style.transformOrigin=`${sp.x}% ${sp.y}%`;w.style.transition='transform .7s cubic-bezier(.5,0,.3,1),filter .7s';w.style.transform='translate(-50%,-50%) scale(3.2)';w.style.filter='blur(1.5px)';
     setTimeout(()=>{S.mapZooming=false;go(dest)},680);return}
@@ -5708,10 +5731,11 @@ document.addEventListener('click',e=>{
     case 'ladrank':S.mode='ai';S.feudRank=+v;go('prebattle');return;
     case 'skirmish0':return;
     case 'tutorial':startTutorial();return;
-    case 'quest':if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.stCh=null;go('story');return;
+    case 'quest':if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.stCh=null;S.stPop=null;go('story');return;
     case 'storyok':{const i=document.getElementById('f-story');if(i&&i.value===STORY_PW){if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.ask=null;save();go('story')}else{S.storyPwErr=true;render();setTimeout(()=>{const j=document.getElementById('f-story');if(j)j.focus()},50)}return}
     case 'boss':S.boss=v;S.storyErr=null;go('boss');return;
-    case 'stch':{if(v===''){S.stCh=null;render();window.scrollTo(0,0);return}const ch=CHAPTERS[+v];if(!ch||chapterState(ch).locked)return;S.stCh=+v;render();if(typeof narrAuto==='function')narrAuto();return}
+    case 'stpop':{if(typeof narrStop==='function'&&NARR.on)narrStop();if(v===''){S.stPop=null;render();return}const ch=CHAPTERS[+v];if(!ch)return;S.stPop=+v;render();if(typeof narrAuto==='function')narrAuto();return}
+    case 'stch':{if(v===''){S.stCh=null;render();window.scrollTo(0,0);return}const ch=CHAPTERS[+v];if(!ch||chapterState(ch).locked)return;if(typeof narrStop==='function'&&NARR.on)narrStop();S.stPop=null;S.stCh=+v;render();window.scrollTo(0,0);return}
     case 'stback':S.stCh=+v;go('story');return;
     case 'bossgo':startStoryBattle(v);return;
     case 'friend':go('friend');return;
