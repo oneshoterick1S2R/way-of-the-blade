@@ -1456,6 +1456,28 @@ button.tface{cursor:pointer}
 .stp-btns .stface{width:100%}
 .stp-x{min-height:44px;border:1px solid rgba(201,162,78,.45);border-radius:8px;color:#e2b860;font-family:var(--f-card)}
 .stp-x{text-align:center;display:flex;align-items:center;justify-content:center}
+/* selected boss details on the chapter page */
+.stone .stin{padding-bottom:20px;overflow-y:auto}
+.stone .stcards{margin-top:14px}
+.stboss{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:10px;background:rgba(13,9,7,.72);border:1px solid color-mix(in srgb,var(--tint) 40%,#4a3a2c);backdrop-filter:blur(3px);animation:lsin .25s ease-out}
+.sb-h{display:flex;align-items:center;gap:10px}.sb-h>div{flex:1;min-width:0}
+.sb-h b{display:block;font-family:var(--f-card);font-size:19px;color:#f6ead0}
+.sb-h em{font-size:14px;color:var(--tint);filter:brightness(1.5)}
+.sb-h .saybtn{flex:none;width:44px;height:44px;margin:0}
+.sb-story{margin:0;font-size:15px;line-height:1.45;color:#d9c8a6}
+.sb-rule{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:rgba(120,28,18,.35);border:1px solid rgba(200,70,50,.5)}
+.sb-rule .mk{font-family:var(--f-brush);font-size:24px;color:#e8584a;line-height:1}
+.sb-rule small{display:block;font-family:var(--f-card);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#f0a090}
+.sb-rule p{margin:2px 0 0;font-size:14px;line-height:1.4;color:#f3e6c8}
+.sb-rew{display:flex;align-items:center;gap:10px;padding:6px;border-radius:8px;border:1px solid rgba(201,162,78,.35);background:rgba(0,0,0,.35);text-align:left;cursor:pointer}
+.sb-rimg{position:relative;flex:none;width:44px;height:58px;border-radius:4px;overflow:hidden;border:1px solid #c9a24e}
+.sb-rimg>img.abk{display:none}.sb-rimg>img,.sb-rimg>svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sb-rew small{display:block;font-family:var(--f-card);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.sb-rew b{display:block;font-family:var(--f-card);font-size:14px;color:#f3e6c8}.sb-rew em{font-size:13px;color:#c9b894;font-style:normal}
+.stone .scard{height:150px}.stone .scard.cur{height:175px}
+.stface:disabled{opacity:.5}
+.sb-err{margin:8px 0 0;color:#f0a090}
+.stboss{text-align:left}.sb-rew{align-self:stretch;width:100%}.stone .stin{-webkit-overflow-scrolling:touch}
 /* ===== Store & Ryō ===== */
 .coinpill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 3px;border-radius:99px;background:rgba(0,0,0,.45);border:1px solid rgba(201,162,78,.6);color:#f3e6c6;font-family:var(--f-card);font-weight:700;font-size:13px;line-height:1.4;vertical-align:middle;white-space:nowrap}
 .coinpill i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe7a3,#c9a24e 55%,#7a5a1e);color:#3a2408;font-style:normal;font-family:var(--f-brush);font-size:12px;box-shadow:inset 0 0 0 1.5px rgba(80,50,10,.5)}
@@ -4406,7 +4428,7 @@ function narrInfo(id){
 function narrPanel(id){
   let n=document.getElementById('narrpanel');if(n)n.remove();
   /* the text is already on screen in the chapter pop-up or on the boss page: no need to repeat it */
-  if((S.screen==='story'&&S.stPop!=null&&/^ch\d/.test(id))||(S.screen==='boss'&&/^b[^i]/.test(id)))return;
+  if((S.screen==='story'&&S.stPop!=null&&/^ch\d/.test(id))||((S.screen==='boss'||(S.screen==='story'&&S.stCh!=null))&&/^b[^i]/.test(id)))return;
   const I=narrInfo(id);if(!I)return;
   n=document.createElement('div');n.id='narrpanel';n.className='narrpanel';n.setAttribute('role','dialog');n.setAttribute('aria-label','Narration');
   n.innerHTML=`<div class="np-in"><div class="np-h"><span class="np-k">${I.k}</span><div><small>Narration</small><b>${I.t}</b></div><button class="np-x" aria-label="Stop narration"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div><p>${I.x}</p><div class="np-bar"><span></span></div></div>`;
@@ -4570,22 +4592,32 @@ function stStartPage(){
 }
 function chapterPage(ch,ci){
     const bs=BOSSES.filter(b=>b.ch===ch.id),locked=ch.id===4&&!bossOpen(bs[0])&&!storyBeaten(bs[0].id);
-    const next=bs.find(b=>bossOpen(b)&&!storyBeaten(b.id)),done=bs.every(b=>storyBeaten(b.id));
-    const hero=next||bs[bs.length-1],tint=ST_TINT[ch.path]||'#c9a24e';
-    const cards=bs.map(b=>{const won=storyBeaten(b.id),open=bossOpen(b),cur=next&&b.id===next.id;
-      return `<button class="scard ${cur?'cur':''} ${won?'won':open?'open':'lock'}" data-a="boss" data-v="${b.id}" ${open||won?'':'disabled'} aria-label="${esc(b.n)}">
+    const next=bs.find(b=>bossOpen(b)&&!storyBeaten(b.id));
+    let sel=bs.find(b=>b.id===S.stSel&&(bossOpen(b)||storyBeaten(b.id)));if(!sel)sel=next||bs[bs.length-1];
+    const tint=ST_TINT[ch.path]||'#c9a24e',selWon=storyBeaten(sel.id),selOpen=bossOpen(sel)||selWon,d=active(),v=validate(d),rc=C[sel.card];
+    const cards=bs.map(b=>{const won=storyBeaten(b.id),open=bossOpen(b),cur=b.id===sel.id;
+      return `<button class="scard ${cur?'cur':''} ${won?'won':open?'open':'lock'}" data-a="stsel" data-v="${b.id}" ${open||won?'':'disabled'} aria-pressed="${cur}" aria-label="${esc(b.n)}">
         <img src="${IMG[b.card]||''}" alt=""><span class="scg"></span>
         ${won?'<span class="scst won">✓</span>':!open?'<span class="scst"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg></span>':''}
         <span class="sctx"><small>${won?'⚔ Rematch':'Boss '+['I','II','III'][bs.indexOf(b)]+(b.final?' · Final':'')}</small><b>${b.n}</b></span></button>`}).join('');
+    const info=locked?'':`<div class="stboss" aria-live="polite">
+        <div class="sb-h"><div><b>${esc(sel.n)}</b><em>${sel.ti}</em></div>${sayBtn('b'+sel.id,sel.story)}</div>
+        <p class="sb-story">${sel.story}</p>
+        <div class="sb-rule"><span class="mk">掟</span><div><small>Boss Rule · ${sel.rule}</small><p>${sel.rx}</p></div></div>
+        <button class="sb-rew" data-a="peek" data-v="${sel.card}"><span class="sb-rimg">${art(sel.card)}</span><span><small>Reward</small><b>${rc?rc.n:''}</b><em>${selWon?'✓ Earned':rc?RAR[rc.rar]+' card · tap to read':''}</em></span></button>
+      </div>`;
     return `<section class="stpage p-${ch.path}" style="--tint:${tint}" aria-label="Chapter ${ch.id}">
-      <img class="stbg" src="${IMG[hero.card]||''}" alt=""><span class="stshade"></span><span class="stkanji" aria-hidden="true">${ch.k}</span>
+      <img class="stbg" src="${IMG[sel.card]||''}" alt=""><span class="stshade"></span><span class="stkanji" aria-hidden="true">${ch.k}</span>
       <div class="stin">
         <div class="sttop"><small>Chapter ${['I','II','III','IV'][ci]} of IV · ${PATH_INFO[ch.path].n}</small>
           <h2>${ch.t}</h2>
           ${locked?'<p class="stlock">Unlocks after you defeat all 9 bosses in Chapters I–III.</p>':''}
         </div>
+        ${info}
         <div class="stcards">${cards}</div>
-        ${locked?'':next?`<button class="stface" data-a="boss" data-v="${next.id}">Face ${esc(next.n)}</button>`:done?`<div class="stdone">✓ Chapter complete · all three legends pledged</div>`:''}
+        ${S.storyErr?`<p class="why sb-err">${S.storyErr}</p>`:''}
+        ${locked||!selOpen?'':`<button class="stface" data-a="bossgo" data-v="${sel.id}" ${v.ok?'':'disabled'}>${selWon?'Fight '+esc(sel.n)+' again':'Face '+esc(sel.n)}</button>
+          ${v.ok?'':'<p class="why sb-err">Your active deck isn’t valid. Fix it in the Pagoda Library.</p>'}`}
       </div></section>`}
 function chapterState(ch){const bs=BOSSES.filter(b=>b.ch===ch.id);return {bs,won:bs.filter(b=>storyBeaten(b.id)).length,locked:ch.id===4&&!bossOpen(bs[0])&&!storyBeaten(bs[0].id),next:bs.find(b=>bossOpen(b)&&!storyBeaten(b.id))}}
 function storyHTML(){
@@ -5737,7 +5769,8 @@ document.addEventListener('click',e=>{
     case 'storyok':{const i=document.getElementById('f-story');if(i&&i.value===STORY_PW){if(!ACC.story)ACC.story={beaten:{}};ACC.story.unlocked=true;S.ask=null;save();go('story')}else{S.storyPwErr=true;render();setTimeout(()=>{const j=document.getElementById('f-story');if(j)j.focus()},50)}return}
     case 'boss':S.boss=v;S.storyErr=null;go('boss');return;
     case 'stpop':{if(typeof narrStop==='function'&&NARR.on)narrStop();if(v===''){S.stPop=null;render();return}const ch=CHAPTERS[+v];if(!ch)return;S.stPop=+v;render();if(typeof narrAuto==='function')narrAuto();return}
-    case 'stch':{if(v===''){S.stCh=null;render();window.scrollTo(0,0);return}const ch=CHAPTERS[+v];if(!ch||chapterState(ch).locked)return;if(typeof narrStop==='function'&&NARR.on)narrStop();S.stPop=null;S.stCh=+v;render();window.scrollTo(0,0);return}
+    case 'stch':{if(v===''){S.stCh=null;render();window.scrollTo(0,0);return}const ch=CHAPTERS[+v];if(!ch||chapterState(ch).locked)return;if(typeof narrStop==='function'&&NARR.on)narrStop();S.stPop=null;S.stCh=+v;S.stSel=null;S.storyErr=null;render();window.scrollTo(0,0);return}
+    case 'stsel':S.stSel=v;S.storyErr=null;render();if(typeof narrStop==='function'&&NARR.on)narrStop();return;
     case 'stback':S.stCh=+v;go('story');return;
     case 'bossgo':startStoryBattle(v);return;
     case 'friend':go('friend');return;
