@@ -4405,6 +4405,8 @@ function narrInfo(id){
   return null}
 function narrPanel(id){
   let n=document.getElementById('narrpanel');if(n)n.remove();
+  /* the text is already on screen in the chapter pop-up or on the boss page: no need to repeat it */
+  if((S.screen==='story'&&S.stPop!=null&&/^ch\d/.test(id))||(S.screen==='boss'&&/^b[^i]/.test(id)))return;
   const I=narrInfo(id);if(!I)return;
   n=document.createElement('div');n.id='narrpanel';n.className='narrpanel';n.setAttribute('role','dialog');n.setAttribute('aria-label','Narration');
   n.innerHTML=`<div class="np-in"><div class="np-h"><span class="np-k">${I.k}</span><div><small>Narration</small><b>${I.t}</b></div><button class="np-x" aria-label="Stop narration"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div><p>${I.x}</p><div class="np-bar"><span></span></div></div>`;
