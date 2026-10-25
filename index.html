@@ -1124,6 +1124,13 @@ button.tface{cursor:pointer}
 .toast.amb p{font-size:14px;color:#ecdcb4}
 .toast.amb .tcard{width:96px}
 @keyframes ambin{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
+#revealbox{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.reveal{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;border-radius:12px;background:rgba(13,9,7,.92);border:1px solid #c9a24e;box-shadow:0 12px 30px rgba(0,0,0,.7);animation:rvin .3s ease-out;transition:opacity .4s,transform .4s}
+.reveal.out{opacity:0;transform:translateY(-10px)}
+.reveal small{font-family:var(--f-card);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#e2b860}
+.reveal b{font-family:var(--f-card);font-size:14px;color:#f3e6c8}
+.rv-cards{display:flex;gap:8px}.rv-c{width:84px;container-type:inline-size}
+@keyframes rvin{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2460,6 +2467,9 @@ function strongest(p){let b=null;for(const u of units(p))if(hp(u)>0&&(!b||str(u)
 const slotOf=u=>G.pl[u.owner].board.indexOf(u);
 
 const nm=p=>G.duel?G.pl[p].who.name:(p?'They':'You');
+const HID=p=>p===1&&!(G&&G.duel);
+const who=p=>G&&G.duel?(G.pl[p].who&&G.pl[p].who.name||G.pl[p].name):p===0?'You':'The rival';
+function fxReveal(ids,label){if(typeof revealCard==='function')revealCard(Array.isArray(ids)?ids:[ids],label)}
 function log(t){if(!G)return;G.log.push(t);G.logN=(G.logN||0)+1;if(G.log.length>300)G.log.shift()}
 const fx=(id,t,k)=>G.fx.push({id,t,k});
 
@@ -2515,7 +2525,7 @@ function checkOver(){if(!G||G.over)return;if(G.pl[0].honor<=0)G.over='lose';else
 function deathPoem(p,dp){
   switch(dp.k){
     case 'summon':for(let i=0;i<dp.n;i++)summon(p,dp.id,true);break;
-    case 'addSword':addHand(p,pick(NEUTRAL_SWORDS));break;
+    case 'addSword':{const w=pick(NEUTRAL_SWORDS);addHand(p,w);log(HID(p)?`${who(p)} gains a random sword in hand.`:`${who(p)} gains a ${C[w].n} in hand (random sword).`);if(!HID(p))fxReveal(w,'Random sword added to hand');break}
     case 'setAmbush':setTrap(p,dp.id);break;
     case 'draw':draw(p,dp.v);break;
     case 'honor':healHonor(p,dp.v);break;
@@ -2563,17 +2573,17 @@ function arrival(p,src,ar,t){
     case 'healAlly':if(tu)heal(tu,99);break;
     case 'summon':for(let i=0;i<ar.n;i++)summon(p,ar.id,true);break;
     case 'fill':while(summon(p,ar.id,true));break;
-    case 'addSword':addHand(p,pick(NEUTRAL_SWORDS));break;
+    case 'addSword':{const w=pick(NEUTRAL_SWORDS);addHand(p,w);log(HID(p)?`${who(p)} gains a random sword in hand.`:`${who(p)} gains a ${C[w].n} in hand (random sword).`);if(!HID(p))fxReveal(w,'Random sword added to hand');break}
     case 'breakAmbush':if(G.pl[o].traps.length){const c=G.pl[o].traps.shift();log(`${C[c].n} is uncovered and destroyed.`)}break;
     case 'buffOthers':units(p).forEach(u=>{if(u!==src)buff(u,ar.a,ar.h)});break;
     case 'weaponBuff':if(tu)buff(tu,Math.max(1,tu.w.length),0);break;
     case 'collector':{const n=Math.min(5,G.pl[p].wPlayed);if(n)buff(src,n,n);break}
-    case 'equipRandom':src.w.push(pick(NEUTRAL_SWORDS));break;
+    case 'equipRandom':{const w=pick(NEUTRAL_SWORDS);src.w.push(w);log(`${C[src.c].n} equips a ${C[w].n} (random sword).`);fxReveal(w,`${C[src.c].n} equips`);break}
     case 'destroyWeaker':if(tu)destroy(tu);break;
     case 'peek':{const d=G.pl[o].deck;if(d.length)UI.peek(p,d[d.length-1]);break}
-    case 'copyHand':{const h=G.pl[o].hand;if(h.length)addHand(p,pick(h));break}
+    case 'copyHand':{const h=G.pl[o].hand;if(h.length){const c=pick(h);addHand(p,c);log(HID(p)?`${who(p)} copies a card from your hand: ${C[c].n}.`:`${who(p)} copies ${C[c].n} from the rival’s hand.`);fxReveal(c,HID(p)?'Rival copied from your hand':'Copied from the rival’s hand')}break}
     case 'becomeCopy':if(tu){src.c=tu.c;fx(src.uid,'','enter')}break;
-    case 'setAmbush':{const pool=ORDER.filter(id=>C[id].p==='shadow'&&C[id].t==='a');for(let i=0;i<(ar.n||1);i++)setTrap(p,ar.id||pick(pool));break}
+    case 'setAmbush':{const pool=ORDER.filter(id=>C[id].p==='shadow'&&C[id].t==='a');const got=[];for(let i=0;i<(ar.n||1);i++){const c=ar.id||pick(pool);if(setTrap(p,c))got.push(c)}if(got.length){log(HID(p)?`${who(p)} sets ${got.length} face-down ambush${got.length>1?'es':''}.`:`${who(p)} sets ${got.map(c=>C[c].n).join(' and ')} face-down.`);if(!HID(p))fxReveal(got,'Ambush set')}break}
     case 'arrows':for(let i=0;i<ar.v;i++){const tg=units(o).filter(u=>hp(u)>0);const r=rnd(tg.length+1);if(r<tg.length)dmg(tg[r],1);else hurtHonor(o,1)}break;
     case 'drawIfAmbush':if(G.pl[p].traps.length)draw(p,1);break;
     case 'drawHonor':draw(p,1);healHonor(p,1);break;
@@ -2581,7 +2591,7 @@ function arrival(p,src,ar,t){
     case 'discardAW':{const h=G.pl[o].hand;let bi=-1;h.forEach((c,i)=>{if((C[c].t==='a'||C[c].t==='w')&&(bi<0||C[c].ki>C[h[bi]].ki))bi=i});
       if(bi>=0){const c=h.splice(bi,1)[0];log(`${C[src.c].n} reads the enemy’s hand and discards ${o===0?C[c].n:'a card'}.`)}else log(`${C[src.c].n} finds no Ambush or weapon to discard.`);break}
     case 'addCard':addHand(p,ar.id);break;
-    case 'equipTwo':src.w.push(pick(NEUTRAL_SWORDS),pick(NEUTRAL_SWORDS));break;
+    case 'equipTwo':{const a=pick(NEUTRAL_SWORDS),b=pick(NEUTRAL_SWORDS);src.w.push(a,b);log(`${C[src.c].n} equips a ${C[a].n} and a ${C[b].n} (random swords).`);fxReveal([a,b],`${C[src.c].n} equips`);break}
     case 'famBuff':units(p).forEach(u=>{if(u!==src&&fam(u.c,ar.f))buff(u,ar.a,ar.h)});break;
     case 'loneDraw':if(units(p).filter(u=>u!==src).length===0)draw(p,2);break;
     case 'burnTemple':G.pl.forEach((P,q)=>units(q).forEach(u=>{if(u!==src)dmg(u,2)}));log('The temple burns!');break;
@@ -2695,7 +2705,7 @@ function springAmbush(o,u,t){
     case 'spearwall':units(o).forEach(x=>{if(fam(x.c,'ashigaru')&&hp(x)>0)dmg(u,1)});break;
   }
   units(o).forEach(x=>{if(C[x.c].aura==='netDraw'&&hp(x)>0)draw(o,1)});
-  if(units(o).some(x=>C[x.c].aura==='matriarch'&&hp(x)>0)&&P.matR!==G.round){P.matR=G.round;const pool=ORDER.filter(id=>C[id].p==='shadow'&&C[id].t==='a'&&!C[id].story);if(setTrap(o,pick(pool)))log('The Matriarch sets another trap.')}
+  if(units(o).some(x=>C[x.c].aura==='matriarch'&&hp(x)>0)&&P.matR!==G.round){P.matR=G.round;const pool=ORDER.filter(id=>C[id].p==='shadow'&&C[id].t==='a'&&!C[id].story);{const c=pick(pool);if(setTrap(o,c)){log(HID(o)?'The Matriarch sets another face-down trap.':`The Matriarch sets ${C[c].n} face-down.`);if(!HID(o))fxReveal(c,'Matriarch sets an ambush')}}}
   return res;
 }
 function strike(p,s,t){
@@ -3848,6 +3858,14 @@ document.addEventListener('pointermove',e=>{
   el.style.setProperty('--rx',((.5-y)*16).toFixed(1)+'deg');el.style.setProperty('--ry',((x-.5)*20).toFixed(1)+'deg');
   el.style.setProperty('--mx',(x*100).toFixed(0)+'%');el.style.setProperty('--my',(y*100).toFixed(0)+'%');
 },{passive:true});
+/* show the card(s) a random effect produced, so players can see what happened */
+function revealCard(ids,label){
+  if(typeof document==='undefined'||!ids.length)return;
+  let box=document.getElementById('revealbox');if(!box){box=document.createElement('div');box.id='revealbox';box.setAttribute('aria-live','polite');document.body.appendChild(box)}
+  const n=document.createElement('div');n.className='reveal';
+  n.innerHTML=`<small>${label}</small><div class="rv-cards">${ids.map(id=>`<div class="rv-c">${card(id,{mini:true})}</div>`).join('')}</div><b>${ids.map(id=>C[id].n).join(' + ')}</b>`;
+  box.appendChild(n);setTimeout(()=>n.classList.add('out'),REDUCED?1800:2600);setTimeout(()=>n.remove(),REDUCED?2000:3000);
+}
 
 /* ===== Battle flow: intro scroll, dice toss, attack/defend, opening hand ===== */
 let banner=null,bannerTimer=null;
