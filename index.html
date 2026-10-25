@@ -2295,6 +2295,8 @@ S_('scribe','temple',2,'C','Sutra Scribe','Temple — Scribe','写経僧',1,3,{a
 ['recruit','cook','mantlet','vetashi','kashira','yabusame','templearcher','yamabushi','abbot'].forEach(id=>C[id].own=1);
 ['templebell','ofuda','mist','sanctuary'].forEach(id=>C[id].own=0);
 C.yari.ap='78% 50%';C.jumonji.ap='72% 50%';C.nagae.ap='70% 50%';
+/* balance pass: weapons were too costly next to samurai, so every weapon costs 1 Ki less (minimum 1) */
+Object.keys(C).forEach(k=>{if(C[k].t==='w'&&C[k].ki>1)C[k].ki--});
 const ORDER=Object.keys(C).filter(id=>!C[id].tok);
 const TYPE={s:'Samurai',w:'Weapon',a:'Ambush'};
 const wText=d=>[d.a?`+${d.a} Strength`:'',d.h?`+${d.h} Vitality`:''].filter(Boolean).join(', ')||'No stat bonus';
@@ -2644,7 +2646,7 @@ function useTech(p,s,t){
   if(p===1)UI.toast(C[u.c].v,`${C[u.c].n}: ${ab.n}`,ab.x);
   switch(ab.k){
     case 'snipe':dmg(tu,ab.v);break;
-    case 'perWeapon':dmg(tu,ab.v*Math.max(1,u.w.length));break;
+    case 'perWeapon':dmg(tu,ab.v*Math.max(1,weaponCount(u)));break;
     case 'twin':dmg(tu,str(u)*2);break;
     case 'sweep':units(o).forEach(f=>dmg(f,ab.v));break;
     case 'heal':units(p).forEach(a=>heal(a,ab.v));break;
@@ -2758,6 +2760,7 @@ function bestTarget(p,list,ar,src){
       case 'dmg':case 'shot':if(t.i==='h')val=v*(eh<=v?100:eh<=8?1.2:0.7);else val=v>=hp(u)?uval(u)+2:v*0.5;break;
       case 'snipe':val=v>=hp(u)?uval(u)+2:v*0.5;break;
       case 'twin':{const d=str(src)*2;val=d>=hp(u)?uval(u)+2:d*0.4;break}
+      case 'perWeapon':{const d=v*Math.max(1,weaponCount(src));val=d>=hp(u)?uval(u)+2:d*0.5;break}
       case 'buffAlly':val=(canAct(u)?2:1)+str(u)*0.1;break;
       case 'healAlly':val=Math.min(u.dmg,8);break;
       case 'weaponBuff':val=Math.max(1,u.w.length)+(canAct(u)?1:0);break;
@@ -2785,7 +2788,8 @@ function playValue(p,i){
     let bs=-1,bb=-1e9;
     P.board.forEach((u,s)=>{if(!u||hp(u)<=0)return;
       const before=weaponCount(u)>=techNeed(u),after=weaponCount(u)+(d.counts||1)>=Math.max(0,techNeed(u)-(d.techMinus||0));
-      const val=uval(u)*0.2+(canAct(u)||u.sick?1.5:0)+(!before&&after&&C[u.c].ab?3:0)+(d.h&&u.dmg?1:0);
+      const armory=units(p).some(x=>C[x.c].aura==='swordArm')&&fam(u.c,'swordsman')&&u.w.length===1;
+      const val=uval(u)*0.2+(canAct(u)||u.sick?1.5:0)+(!before&&after&&C[u.c].ab?3:0)+(d.h&&u.dmg?1:0)+(armory?3:0)+(C[u.c].ab&&C[u.c].ab.k==='perWeapon'?1.5*(d.counts||1):0);
       if(val>bb){bb=val;bs=s}});
     if(bs<0)return null;o.slot=bs;v+=d.a*0.6+d.h*0.4;
     if(d.arr&&d.arr.tg){const bt=bestTarget(p,targetsFor(p,d.arr.tg,P.board[bs]),d.arr,P.board[bs]);if(bt){o.target=bt.t;v+=Math.min(bt.v,4)}}
@@ -5737,7 +5741,7 @@ document.addEventListener('click',e=>{
     case 'resetask':S.mapMenu=false;S.ask='reset';render();return;
     case 'adminask':S.mapMenu=false;S.ask='admin';S.adminErr=false;render();setTimeout(()=>{const i=document.getElementById('f-admin');if(i)i.focus()},50);return;
     case 'adminok':{const i=document.getElementById('f-admin');if(i&&i.value==='Money$$'){ACC.ryo=(ACC.ryo||0)+1000;S.ask=null;S.adminErr=false;save();render();if(typeof showToast==='function'){}const t=document.createElement('div');t.className='narrnote';t.innerHTML='<b>+1,000 Ryō</b><span>Balance: '+ACC.ryo+'</span>';document.body.appendChild(t);setTimeout(()=>t.remove(),2500);return}
-      if(i&&i.value==='BMW'){const cards={"smithapp":2,"nitoduel":2,"armorymaster":2,"deshi":2,"iaido":2,"wduelist":2,"twinblade":2,"instructor":2,"onna":2,"champion":2,"ironronin":2,"soke":2,"kensei":1,"undefeated":1,"shugyosha":2,"wakazamurai":2,"ronin":2,"hikyaku":1,"farmhand":1,"tsuba":1,"polisher":2,"scavenger":1,"togishi":1,"marksman":1};
+      if(i&&i.value==='BMW'){const cards={"smithapp":2,"nitoduel":2,"armorymaster":2,"deshi":2,"iaido":2,"wduelist":2,"twinblade":2,"instructor":2,"onna":2,"champion":2,"ironronin":2,"soke":2,"kensei":1,"undefeated":1,"shugyosha":2,"wakazamurai":2,"ronin":2,"tsuba":1,"polisher":2,"scavenger":1,"kodachi":2,"daisho":2};
         Object.keys(cards).forEach(id=>{if(!C[id])delete cards[id];else if(!ACC.unlocked.includes(id))ACC.unlocked.push(id)});
         let d=ACC.decks.find(x=>x.name==='Blade Masters'),msg='';
         if(d){d.cards=cards;d.path='steel';msg='Your Blade Masters deck was reset to the tested list.'}
