@@ -1148,13 +1148,21 @@ button.tface{cursor:pointer}
 .endfx.lose .ef-stamp{color:#e04a35;text-shadow:0 0 28px rgba(200,50,30,.6),0 3px 0 #3a0a05}
 @keyframes efstamp{0%{opacity:0;transform:scale(2.4)}100%{opacity:1;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.ef-petals{display:none}.ef-slash{display:none}}
-#drawpop{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:58;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 18px 12px;border-radius:14px;background:rgba(13,9,7,.94);border:1.5px solid #e2b860;box-shadow:0 18px 50px rgba(0,0,0,.8),0 0 30px rgba(226,184,96,.25);animation:dpin .3s cubic-bezier(.2,1.4,.4,1);transition:opacity .35s,transform .35s;cursor:pointer;max-width:calc(100% - 32px)}
-#drawpop.out{opacity:0;transform:translate(-50%,10%) scale(.85)}
-#drawpop small{font-family:var(--f-card);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e2b860}
-#drawpop b{font-family:var(--f-card);font-size:14px;color:#f3e6c8;text-align:center}
-.dp-cards{display:flex;gap:10px}.dp-c{width:118px;container-type:inline-size}
-.dp-cards:has(.dp-c:nth-child(3)) .dp-c{width:92px}
-@keyframes dpin{from{opacity:0;transform:translate(-50%,-30%) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#drawpop{position:fixed;inset:0;z-index:58;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;pointer-events:auto;perspective:900px}
+.dp-glow{position:absolute;left:50%;top:50%;width:min(90vw,420px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(226,184,96,.45),transparent 60%);opacity:0;pointer-events:none;animation:dpglow 2.6s forwards}
+@keyframes dpglow{0%,28%{opacity:0;transform:translate(-50%,-50%) scale(.5)}40%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:.6}100%{opacity:0}}
+.dp-cards{position:relative;display:flex;gap:12px}
+.dp-c{width:min(42vw,170px);aspect-ratio:63/88;container-type:inline-size;opacity:0;animation:dpfly 2.6s var(--d) forwards}
+.dp-cards:has(.dp-c:nth-child(2)) .dp-c{width:min(36vw,140px)}.dp-cards:has(.dp-c:nth-child(3)) .dp-c{width:min(28vw,110px)}
+.dp-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:dpflip 2.6s var(--d) forwards}
+.dp-f,.dp-k{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:6px;overflow:hidden;box-shadow:0 16px 36px rgba(0,0,0,.8)}
+.dp-f .tcg{width:100%;height:100%}
+.dp-k{transform:rotateY(180deg)}.dp-k img{width:100%;height:100%;object-fit:cover;display:block}
+#drawpop>b{position:relative;font-family:var(--f-card);font-size:16px;color:#f3e6c8;text-align:center;text-shadow:0 2px 8px #000;opacity:0;animation:dpname 2.6s .5s forwards;max-width:calc(100% - 32px)}
+@keyframes dpfly{0%{opacity:0;transform:scale(.5)}10%{opacity:1;transform:scale(1)}72%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:.85;transform:translateY(42vh) scale(.3)}}
+@keyframes dpflip{0%,18%{transform:rotateY(180deg)}38%,100%{transform:rotateY(0)}}
+@keyframes dpname{0%{opacity:0}12%,70%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.dp-c,.dp-in,.dp-glow,#drawpop>b{animation:none!important;opacity:1}.dp-in{transform:none}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -3938,11 +3946,12 @@ function showDraw(ids){drawQ.push(...ids);if(!drawBusy)nextDraw()}
 function nextDraw(){
   if(!drawQ.length){drawBusy=false;return}drawBusy=true;
   const ids=drawQ.splice(0,3);let el=document.getElementById('drawpop');if(el)el.remove();
-  el=document.createElement('div');el.id='drawpop';el.setAttribute('role','status');
-  el.innerHTML=`<small>${ids.length>1?'New cards':'New card'}</small><div class="dp-cards">${ids.map(id=>`<div class="dp-c">${card(id,{mini:true})}</div>`).join('')}</div><b>${ids.map(id=>C[id].n).join(' · ')}</b>`;
+  const bk=typeof backHTML==='function'?backHTML(typeof myBack==='function'&&!(G&&G.duel)?myBack():'classic'):BACK;
+  el=document.createElement('div');el.id='drawpop';el.setAttribute('role','status');el.setAttribute('aria-label',(ids.length>1?'New cards: ':'New card: ')+ids.map(id=>C[id].n).join(', '));
+  el.innerHTML=`<span class="dp-glow" aria-hidden="true"></span><div class="dp-cards">${ids.map((id,i)=>`<div class="dp-c" style="--d:${i*.12}s"><div class="dp-in"><div class="dp-f">${card(id,{mini:true})}</div><div class="dp-k">${bk}</div></div></div>`).join('')}</div><b>${ids.map(id=>C[id].n).join(' · ')}</b>`;
   el.onclick=()=>{el.remove();nextDraw()};
   document.body.appendChild(el);
-  const t=REDUCED?900:1500;setTimeout(()=>el.classList.add('out'),t);setTimeout(()=>{if(el.isConnected){el.remove();nextDraw()}},t+350);
+  const t=REDUCED?900:2700;setTimeout(()=>{if(el.isConnected){el.remove();nextDraw()}},t);
 }
 
 /* ===== Battle flow: intro scroll, dice toss, attack/defend, opening hand ===== */
