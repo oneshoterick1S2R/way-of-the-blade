@@ -1713,6 +1713,13 @@ button.tface{cursor:pointer}
 .mt-me.tourhi{border-radius:12px;box-shadow:0 0 0 2px #f3d48a,0 0 18px rgba(255,215,130,.9)}
 .mspot.tourhi{animation:tourpulse 1.2s ease-in-out infinite}@keyframes tourpulse{50%{filter:drop-shadow(0 0 18px rgba(255,225,150,1)) brightness(1.3)}}.mapmenu.tourhi{z-index:41}
 .mt-me.tourhi,.mt-ryo.tourhi{position:relative}
+.mt-cap{display:block!important;text-align:center}
+.mt-cap>small,.mt-cap>b,.mt-cap>p{display:block;width:100%}
+.mt-btns{display:flex!important;flex-direction:row;justify-content:center;gap:10px;margin-top:14px}
+.mt-back,.mt-next{flex:1 1 0;max-width:180px;min-height:46px;border-radius:8px;font-family:var(--f-card);font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center}
+.mt-back{border:1px solid rgba(201,162,78,.6);color:#e2b860;background:rgba(0,0,0,.3)}
+.mt-back:disabled{opacity:.35}
+.mt-skip{display:block;margin:8px auto 0}
 /* ---------- sign-in panel on the title screen ---------- */
 .au-tabs{display:flex;gap:4px;margin:0 0 14px;padding:3px;border:1px solid rgba(201,162,78,.45);border-radius:99px;background:rgba(0,0,0,.35)}
 .au-tabs button{flex:1;min-height:40px;border:0;border-radius:99px;background:none;color:#d9c7a4;font-family:var(--f-card);font-weight:700;font-size:14px;letter-spacing:.04em;cursor:pointer}
@@ -5050,7 +5057,7 @@ function tourHTML(){
   const sp=st.k&&MAP_SPOTS.find(x=>x.k===st.k),low=sp?sp.y>50:st.el==='menu'?false:false,last=i===MAP_TOUR.length-1;
   return `<div class="mtour" data-a="tournext"><div class="mt-cap ${sp&&!low?'bot':sp?'top':st.el==='menu'?'top':st.el?'bot':'mid'}" role="dialog" aria-label="Map tour">
     <small>${i+1} of ${MAP_TOUR.length}</small><b>${sp?sp.n:st.t}</b><p>${st.x}</p>
-    <div class="mt-btns"><button class="mt-skip" data-a="tourskip">Skip tour</button><button class="mt-next" data-a="tournext">${last?'Start playing':'Next'}</button></div></div></div>`;
+    <div class="mt-btns"><button class="mt-back" data-a="tourback" ${i?'':'disabled'}>Back</button><button class="mt-next" data-a="tournext">${last?'Start playing':'Next'}</button></div><button class="mt-skip" data-a="tourskip">Skip tour</button></div></div>`;
 }
 function mapHTML(){
   const a=ACC,sel=MAP_SPOTS.find(s=>s.k===S.mapSel),tst=tourOn()?MAP_TOUR[S.tourI||0]:null,thi=k=>tst&&(tst.k===k||tst.el===k)?' tourhi':'';
@@ -5080,7 +5087,8 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-a="touragain"]')){e.stopImmediatePropagation();ACC.mapTour=0;S.tourI=0;S.mapMenu=false;render();return}
   if(tourOn()&&e.target.closest('.mtour')){e.stopImmediatePropagation();const b=e.target.closest('[data-a]');
     if(b&&b.dataset.a==='tourskip'||((S.tourI||0)>=MAP_TOUR.length-1&&b&&b.dataset.a==='tournext')){ACC.mapTour=1;S.tourI=0;save();render();return}
-    if(b&&b.dataset.a==='tournext'){S.tourI=(S.tourI||0)+1;render()}return}
+    if(b&&b.dataset.a==='tournext'){S.tourI=(S.tourI||0)+1;render()}
+    if(b&&b.dataset.a==='tourback'){S.tourI=Math.max(0,(S.tourI||0)-1);render()}return}
   const b=e.target.closest('[data-a="mapsel"]');
   if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
   if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
