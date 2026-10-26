@@ -3690,7 +3690,7 @@ function renderBattle(){
   const nh=$('#hand');if(nh)nh.scrollLeft=sl;
   let layer=bar+inspectHTML()+(G.phase==='handoff'?handoffHTML():phaseHTML());
   if(G.over&&G.over!=='quit'&&!G.endStage){G.endStage='hold';G.endLast=(G.log||[]).slice(-1)[0]||'';
-    const g0=G,q=REDUCED?.3:1;setTimeout(()=>{if(G===g0){G.endStage='fx';render()}},1500*q);setTimeout(()=>{if(G===g0){G.endStage='done';render()}},3400*q)}
+    const g0=G,q=REDUCED?.3:1;setTimeout(()=>{if(G===g0){G.endStage='fx';render()}},3200*q);setTimeout(()=>{if(G===g0){G.endStage='done';render()}},5300*q)}
   if(G.drawIds&&G.drawIds.length&&!G.over){const ids=G.drawIds;G.drawIds=[];setTimeout(()=>showDraw(ids),G.turn===0?60:0)}
   if(showIntro)layer+=introHTML();else if(G.over&&(G.over==='quit'||G.endStage==='done'))layer+=overHTML();else if(G.over)layer+=endFxHTML();
   if(G.yieldAsk)layer+=`<div class="modal"><div class="scroll" role="dialog"><div class="big">降</div><h2>Yield this battle?</h2><p class="sub">It counts as a loss on your record.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="yieldok">Yield</button><button class="btn ghost-dark" data-act="yieldno">Keep fighting</button></div></div></div>`;
