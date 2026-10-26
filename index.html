@@ -1693,6 +1693,26 @@ button.tface{cursor:pointer}
 .maplive .livepill{min-height:32px;padding:4px 12px;font-size:13px;background:rgba(20,50,20,.75);box-shadow:0 3px 10px rgba(0,0,0,.5);cursor:pointer}
 .maplive .livelist{margin:0}
 .maplive .livelist ul{background:rgba(13,9,7,.92);box-shadow:0 8px 24px rgba(0,0,0,.6);max-height:50vh;overflow:auto}
+/* first-visit map tour */
+.mtour{position:absolute;inset:0;z-index:40;background:rgba(8,5,3,.2)}
+.mt-cap{position:absolute;left:12px;right:12px;max-width:440px;margin:0 auto;padding:14px 16px;border-radius:12px;background:rgba(18,11,7,.96);border:1px solid #c9a24e;box-shadow:0 14px 40px rgba(0,0,0,.75);color:#ecdcb4;animation:lsin .25s ease-out}
+.mt-cap.bot{bottom:calc(20px + env(safe-area-inset-bottom))}.mt-cap.top{top:calc(84px + env(safe-area-inset-top))}.mt-cap.mid{top:50%;transform:translateY(-50%)}
+.mt-cap small{font-family:var(--f-card);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#c9a24e}
+.mt-cap b{display:block;font-family:var(--f-head);font-size:20px;color:#f3d48a;margin:2px 0 4px}
+.mt-cap p{margin:0;font-size:16px;line-height:1.4}
+.mt-btns{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.mt-skip{min-height:44px;padding:0 6px;color:#bfae8c;font-size:15px;text-decoration:underline}
+.mt-next{min-height:44px;padding:0 22px;border-radius:8px;background:#b8321f;color:#fff3e6;font-family:var(--f-card);font-weight:800;font-size:15px}
+.tourhi{z-index:41!important;filter:drop-shadow(0 0 10px rgba(255,215,130,.95))}
+.mspot.tourhi{z-index:41!important}.mspot.tourhi .ms-ring{transform:scale(1.35);border-color:#fff;box-shadow:0 0 30px rgba(255,220,140,1)}
+.mspot.tourhi .ms-l{border-color:var(--gold)}
+
+.maptop:has(.tourhi){z-index:41}
+.mt-ryo{display:inline-flex;border-radius:99px}
+.mt-ryo.tourhi{box-shadow:0 0 0 2px #f3d48a,0 0 18px rgba(255,215,130,.9)}
+.mt-me.tourhi{border-radius:12px;box-shadow:0 0 0 2px #f3d48a,0 0 18px rgba(255,215,130,.9)}
+.mspot.tourhi{animation:tourpulse 1.2s ease-in-out infinite}@keyframes tourpulse{50%{filter:drop-shadow(0 0 18px rgba(255,225,150,1)) brightness(1.3)}}.mapmenu.tourhi{z-index:41}
+.mt-me.tourhi,.mt-ryo.tourhi{position:relative}
 /* ---------- sign-in panel on the title screen ---------- */
 .au-tabs{display:flex;gap:4px;margin:0 0 14px;padding:3px;border:1px solid rgba(201,162,78,.45);border-radius:99px;background:rgba(0,0,0,.35)}
 .au-tabs button{flex:1;min-height:40px;border:0;border-radius:99px;background:none;color:#d9c7a4;font-family:var(--f-card);font-weight:700;font-size:14px;letter-spacing:.04em;cursor:pointer}
@@ -5002,6 +5022,19 @@ document.addEventListener('click',e=>{
     window.__buyOK=true;try{t.click()}finally{window.__buyOK=false;t.remove()}render()}
 },true);
 /* ===== Home screen: painted province map ===== */
+const MAP_TOUR=[
+  {t:'Welcome to your province',x:'A quick look around. Tap Next, or Skip any time.'},
+  {el:'me',t:'Your samurai',x:'Tap your portrait to change your armor, weapons, colors and crest.'},
+  {el:'ryo',t:'Ryō',x:'Coins you earn by winning battles. Spend them in Merchant Town.'},
+  {k:'story',x:'Story Mode. Defeat 12 legendary warriors and win their cards.'},
+  {k:'feud',x:'Clan Feud. Climb the ranks against rival clans.'},
+  {k:'friend',x:'Quick match against a rōnin at your level, or duel a friend online.'},
+  {k:'dojo',x:'Your Dojo. Dress and equip your samurai.'},
+  {k:'tut',x:'Tutorials: how to play, the four Paths and deck strategies.'},
+  {k:'decks',x:'Build and edit your decks and browse your card collection.'},
+  {k:'store',x:'Card packs, the daily stall, card backs, music and more.'},
+  {el:'menu',t:'Menu',x:'Rules, your record, and this tour again if you need it.'}
+];
 const MAP_SPOTS=[
   {k:'story',x:16,al:'l',y:19,n:'Mountain Pass',sub:'Story Mode',kj:'旅',act:'data-a="quest"',x2:()=>`The Road to Honnō-ji · ${storyCount()}/12 legends pledged`},
   {k:'feud',x:76,al:'r',y:31,n:'War Camp',sub:'Clan Feud',kj:'戦',act:'data-a="skirmish"',badge:()=>titleOf(feudWins()),x2:()=>{const nt=nextTitle(feudWins());return `Fight the Unoshotto Clan · Rank ${titleOf(feudWins())}${nt?` · ${nt[0]-feudWins()} more win${nt[0]-feudWins()>1?'s':''} to ${nt[1]}`:''}`}},
@@ -5011,30 +5044,43 @@ const MAP_SPOTS=[
   {k:'decks',x:24,al:'l',y:81,n:'Pagoda Library',sub:'Decks & Collection',kj:'札',act:'data-a="nav" data-v="decks"',badge:()=>{const n=ORDER.filter(isNewCard).length;return n?n+' new':''},x2:()=>`${ACC.decks.length} of ${MAX_DECKS} decks · ${ACC.unlocked.length}/${ORDER.length} cards`},
   {k:'store',x:60,y:88,n:'Merchant Town',sub:'Store',kj:'店',act:'data-a="nav" data-v="store"',x2:()=>`Card packs, gear and music · you have ${ryo()} Ryō`}
 ];
+function tourOn(){return ACC&&!ACC.mapTour&&!showIntro&&S.screen==='dojo'}
+function tourHTML(){
+  if(!tourOn())return '';const i=S.tourI||0,st=MAP_TOUR[i];if(!st)return '';
+  const sp=st.k&&MAP_SPOTS.find(x=>x.k===st.k),low=sp?sp.y>50:st.el==='menu'?false:false,last=i===MAP_TOUR.length-1;
+  return `<div class="mtour" data-a="tournext"><div class="mt-cap ${sp&&!low?'bot':sp?'top':st.el==='menu'?'top':st.el?'bot':'mid'}" role="dialog" aria-label="Map tour">
+    <small>${i+1} of ${MAP_TOUR.length}</small><b>${sp?sp.n:st.t}</b><p>${st.x}</p>
+    <div class="mt-btns"><button class="mt-skip" data-a="tourskip">Skip tour</button><button class="mt-next" data-a="tournext">${last?'Start playing':'Next'}</button></div></div></div>`;
+}
 function mapHTML(){
-  const a=ACC,sel=MAP_SPOTS.find(s=>s.k===S.mapSel);
+  const a=ACC,sel=MAP_SPOTS.find(s=>s.k===S.mapSel),tst=tourOn()?MAP_TOUR[S.tourI||0]:null,thi=k=>tst&&(tst.k===k||tst.el===k)?' tourhi':'';
   const spots=MAP_SPOTS.map(s=>{const bd=s.badge?s.badge():'';
-    return `<button class="mspot ms-${s.k} ${s.al?'al-'+s.al:''} ${S.mapSel===s.k?'on':''}" style="left:${s.x}%;top:${s.y}%" data-a="mapsel" data-v="${s.k}" aria-label="${s.n}: ${s.sub}">
+    return `<button class="mspot ms-${s.k} ${s.al?'al-'+s.al:''} ${S.mapSel===s.k?'on':''}${thi(s.k)}" style="left:${s.x}%;top:${s.y}%" data-a="mapsel" data-v="${s.k}" aria-label="${s.n}: ${s.sub}">
       <span class="ms-ring"></span><span class="ms-k">${s.kj}</span>${bd?`<span class="ms-b">${bd}</span>`:''}<span class="ms-l"><b>${s.n}</b><small>${s.sub}</small></span></button>`}).join('');
   return `<div class="mapscreen" style="--mapbg:url(${IMG.worldmap})">
     <div class="mapwrap"><img class="mapimg" src="${IMG.worldmap}" alt="A map of your province">${spots}</div>
     <span class="mapfog f1"></span><span class="mapfog f2"></span>
     <header class="maptop">
-      <button class="mt-me" data-a="editprofile" aria-label="Your samurai"><span class="mt-av">${figureHTML(a.look,accentOf(a),a.mon,{bg:false})}<span class="mt-mon">${monIcon(a.mon)}</span></span>
+      <button class="mt-me${thi('me')}" data-a="editprofile" aria-label="Your samurai"><span class="mt-av">${figureHTML(a.look,accentOf(a),a.mon,{bg:false})}<span class="mt-mon">${monIcon(a.mon)}</span></span>
         <span class="mt-tx"><b>${esc(a.name)}</b><small>${myTitle()?`<i class="mt-title">${myTitle()}</i> · `:`${esc(a.clan)} · `}Lv ${levelOf(a.xp||0)}</small></span></button>
-      <span class="mt-r">${coinPill(ryo())}${sfxBtnHTML()}</span>
+      <span class="mt-r"><span class="mt-ryo${thi('ryo')}">${coinPill(ryo())}</span>${sfxBtnHTML()}</span>
     </header>
     ${PRES.started?`<div class="maplive">${liveHTML()}${liveListHTML()}</div>`:''}
-    <button class="mapmenu" data-a="mapmenu" aria-label="Menu" aria-expanded="${!!S.mapMenu}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-    ${S.mapMenu?`<div class="mmenu" role="menu"><button class="mm-i" data-a="rules">How to play</button><button class="mm-i" data-a="nav" data-v="grounds">Record &amp; card unlocks</button>
+    <button class="mapmenu${thi('menu')}" data-a="mapmenu" aria-label="Menu" aria-expanded="${!!S.mapMenu}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    ${S.mapMenu?`<div class="mmenu" role="menu"><button class="mm-i" data-a="rules">How to play</button><button class="mm-i" data-a="touragain">Map tour</button><button class="mm-i" data-a="nav" data-v="grounds">Record &amp; card unlocks</button>
       ${AUTH.on&&AUTH.user?`<button class="mm-i" data-a="signout">Sign out <small>(${esc(authName())})</small></button>`:''}<div class="mm-test"><small>Testing</small><button class="btn danger" data-a="resetask">Reset everything</button><button class="btn danger" data-a="adminask">Admin</button></div></div>`:''}
     ${sel?`<div class="mpanel" role="dialog" aria-label="${sel.n}"><span class="mp-k">${sel.kj}</span><div class="mp-tx"><b>${sel.n}</b><small>${sel.sub} · ${sel.x2()}</small></div>
       <button class="mp-go" ${sel.act}>Enter</button><button class="mp-x" data-a="mapsel" data-v="" aria-label="Close"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>`
       :''}
+    ${tourHTML()}
   </div>`;
 }
 document.addEventListener('click',e=>{
   if(!ACC||S.screen!=='dojo'||S.ask)return;
+  if(e.target.closest('[data-a="touragain"]')){e.stopImmediatePropagation();ACC.mapTour=0;S.tourI=0;S.mapMenu=false;render();return}
+  if(tourOn()){e.stopImmediatePropagation();const b=e.target.closest('[data-a]');
+    if(b&&b.dataset.a==='tourskip'||((S.tourI||0)>=MAP_TOUR.length-1&&b&&b.dataset.a==='tournext')){ACC.mapTour=1;S.tourI=0;save();render();return}
+    if(b&&b.dataset.a==='tournext'){S.tourI=(S.tourI||0)+1;render()}return}
   const b=e.target.closest('[data-a="mapsel"]');
   if(e.target.closest('[data-a="mapmenu"]')){S.mapMenu=!S.mapMenu;S.mapSel=null;render();return}
   if(S.mapMenu&&!e.target.closest('.mmenu')){S.mapMenu=false;render();if(!b)return}
@@ -5265,6 +5311,7 @@ function migrate(a){
   if(a.ryo==null)a.ryo=300+Math.min(1200,10*((a.stats&&a.stats.wins)||0));
   if(!Array.isArray(a.seenCards))a.seenCards=(a.unlocked||[]).filter(id=>C[id]&&!C[id].extra);
   BASE_UNLOCKED.forEach(id=>{if(!a.unlocked.includes(id))a.unlocked.push(id)});
+  if(a.mapTour==null&&a.stats&&a.stats.played>0)a.mapTour=1;
   if(typeof migrateBackdrops==='function')migrateBackdrops(a);
   a.decks.forEach(d=>{if(!PATHS4.includes(d.path))d.path=a.path;for(const k in d.cards)if(!C[k])delete d.cards[k]});
   /* decks grew from 30 to 40 cards: top up complete old decks with cards the player owns */
