@@ -1148,6 +1148,13 @@ button.tface{cursor:pointer}
 .endfx.lose .ef-stamp{color:#e04a35;text-shadow:0 0 28px rgba(200,50,30,.6),0 3px 0 #3a0a05}
 @keyframes efstamp{0%{opacity:0;transform:scale(2.4)}100%{opacity:1;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.ef-petals{display:none}.ef-slash{display:none}}
+#drawpop{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:58;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 18px 12px;border-radius:14px;background:rgba(13,9,7,.94);border:1.5px solid #e2b860;box-shadow:0 18px 50px rgba(0,0,0,.8),0 0 30px rgba(226,184,96,.25);animation:dpin .3s cubic-bezier(.2,1.4,.4,1);transition:opacity .35s,transform .35s;cursor:pointer;max-width:calc(100% - 32px)}
+#drawpop.out{opacity:0;transform:translate(-50%,10%) scale(.85)}
+#drawpop small{font-family:var(--f-card);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e2b860}
+#drawpop b{font-family:var(--f-card);font-size:14px;color:#f3e6c8;text-align:center}
+.dp-cards{display:flex;gap:10px}.dp-c{width:118px;container-type:inline-size}
+.dp-cards:has(.dp-c:nth-child(3)) .dp-c{width:92px}
+@keyframes dpin{from{opacity:0;transform:translate(-50%,-30%) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -2528,10 +2535,12 @@ function drawOne(p,turnDraw){
   }
   if(!c)c=P.deck.pop();
   if(P.hand.length>=HAND_MAX){log(`${G.duel?G.pl[p].who.name+'’s':p?'Their':'Your'} hand is full. ${C[c].n} is discarded.`);return}
-  P.hand.push(c);if(p===0)G.drawn=(G.drawn||0)+1;
+  P.hand.push(c);if(p===0)G.drawn=(G.drawn||0)+1;noteDraw(p,c);
 }
 function draw(p,n,turnDraw){for(let i=0;i<n;i++)drawOne(p,turnDraw)}
-function addHand(p,c){const P=G.pl[p];if(P.hand.length<HAND_MAX){P.hand.push(c);if(p===0)G.drawn=(G.drawn||0)+1}}
+function addHand(p,c){const P=G.pl[p];if(P.hand.length<HAND_MAX){P.hand.push(c);if(p===0)G.drawn=(G.drawn||0)+1;noteDraw(p,c)}}
+/* remember the cards the player on screen just received, so they can be shown big in the middle */
+function noteDraw(p,c){if(!G||G.phase!=='play')return;const me=G.duel||G.online?p===G.turn&&!(G.online&&p!==0):p===0;if(me)(G.drawIds=G.drawIds||[]).push(c)}
 function hurtHonor(o,n,fatigue){
   if(n<=0)return;const P=G.pl[o];
   const floor=!fatigue&&units(o).some(u=>C[u.c].aura==='honorFloor'&&hp(u)>0)?1:0;
@@ -2569,7 +2578,7 @@ function checkOver(){if(!G||G.over)return;if(G.pl[0].honor<=0)G.over='lose';else
 function deathPoem(p,dp){
   switch(dp.k){
     case 'summon':for(let i=0;i<dp.n;i++)summon(p,dp.id,true);break;
-    case 'addSword':{const w=pick(NEUTRAL_SWORDS);addHand(p,w);log(HID(p)?`${who(p)} gains a random sword in hand.`:`${who(p)} gains a ${C[w].n} in hand (random sword).`);if(!HID(p))fxReveal(w,'Random sword added to hand');break}
+    case 'addSword':{const w=pick(NEUTRAL_SWORDS);addHand(p,w);log(HID(p)?`${who(p)} gains a random sword in hand.`:`${who(p)} gains a ${C[w].n} in hand (random sword).`);break}
     case 'setAmbush':setTrap(p,dp.id);break;
     case 'draw':draw(p,dp.v);break;
     case 'honor':healHonor(p,dp.v);break;
@@ -2617,7 +2626,7 @@ function arrival(p,src,ar,t){
     case 'healAlly':if(tu)heal(tu,99);break;
     case 'summon':for(let i=0;i<ar.n;i++)summon(p,ar.id,true);break;
     case 'fill':while(summon(p,ar.id,true));break;
-    case 'addSword':{const w=pick(NEUTRAL_SWORDS);addHand(p,w);log(HID(p)?`${who(p)} gains a random sword in hand.`:`${who(p)} gains a ${C[w].n} in hand (random sword).`);if(!HID(p))fxReveal(w,'Random sword added to hand');break}
+    case 'addSword':{const w=pick(NEUTRAL_SWORDS);addHand(p,w);log(HID(p)?`${who(p)} gains a random sword in hand.`:`${who(p)} gains a ${C[w].n} in hand (random sword).`);break}
     case 'breakAmbush':if(G.pl[o].traps.length){const c=G.pl[o].traps.shift();log(`${C[c].n} is uncovered and destroyed.`)}break;
     case 'buffOthers':units(p).forEach(u=>{if(u!==src)buff(u,ar.a,ar.h)});break;
     case 'weaponBuff':if(tu)buff(tu,Math.max(1,tu.w.length),0);break;
@@ -2625,7 +2634,7 @@ function arrival(p,src,ar,t){
     case 'equipRandom':{const w=pick(NEUTRAL_SWORDS);src.w.push(w);log(`${C[src.c].n} equips a ${C[w].n} (random sword).`);fxReveal(w,`${C[src.c].n} equips`);break}
     case 'destroyWeaker':if(tu)destroy(tu);break;
     case 'peek':{const d=G.pl[o].deck;if(d.length)UI.peek(p,d[d.length-1]);break}
-    case 'copyHand':{const h=G.pl[o].hand;if(h.length){const c=pick(h);addHand(p,c);log(HID(p)?`${who(p)} copies a card from your hand: ${C[c].n}.`:`${who(p)} copies ${C[c].n} from the rival’s hand.`);fxReveal(c,HID(p)?'Rival copied from your hand':'Copied from the rival’s hand')}break}
+    case 'copyHand':{const h=G.pl[o].hand;if(h.length){const c=pick(h);addHand(p,c);log(HID(p)?`${who(p)} copies a card from your hand: ${C[c].n}.`:`${who(p)} copies ${C[c].n} from the rival’s hand.`);if(HID(p))fxReveal(c,'Rival copied from your hand')}break}
     case 'becomeCopy':if(tu){src.c=tu.c;fx(src.uid,'','enter')}break;
     case 'setAmbush':{const pool=ORDER.filter(id=>C[id].p==='shadow'&&C[id].t==='a');const got=[];for(let i=0;i<(ar.n||1);i++){const c=ar.id||pick(pool);if(setTrap(p,c))got.push(c)}if(got.length){log(HID(p)?`${who(p)} sets ${got.length} face-down ambush${got.length>1?'es':''}.`:`${who(p)} sets ${got.map(c=>C[c].n).join(' and ')} face-down.`);if(!HID(p))fxReveal(got,'Ambush set')}break}
     case 'arrows':for(let i=0;i<ar.v;i++){const tg=units(o).filter(u=>hp(u)>0);const r=rnd(tg.length+1);if(r<tg.length)dmg(tg[r],1);else hurtHonor(o,1)}break;
@@ -3674,6 +3683,7 @@ function renderBattle(){
   let layer=bar+inspectHTML()+(G.phase==='handoff'?handoffHTML():phaseHTML());
   if(G.over&&G.over!=='quit'&&!G.endStage){G.endStage='hold';G.endLast=(G.log||[]).slice(-1)[0]||'';
     const g0=G,q=REDUCED?.3:1;setTimeout(()=>{if(G===g0){G.endStage='fx';render()}},1500*q);setTimeout(()=>{if(G===g0){G.endStage='done';render()}},3400*q)}
+  if(G.drawIds&&G.drawIds.length&&!G.over){const ids=G.drawIds;G.drawIds=[];setTimeout(()=>showDraw(ids),G.turn===0?60:0)}
   if(showIntro)layer+=introHTML();else if(G.over&&(G.over==='quit'||G.endStage==='done'))layer+=overHTML();else if(G.over)layer+=endFxHTML();
   if(G.yieldAsk)layer+=`<div class="modal"><div class="scroll" role="dialog"><div class="big">降</div><h2>Yield this battle?</h2><p class="sub">It counts as a loss on your record.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="yieldok">Yield</button><button class="btn ghost-dark" data-act="yieldno">Keep fighting</button></div></div></div>`;
   layer+=bannerHTML()+`<button class="qbtn" data-act="menu" aria-label="Battle menu"><span class="mk">退</span><small>Menu</small></button>`+(G.menu?menuHTML():'');
@@ -3920,6 +3930,19 @@ function endFxHTML(){
   const petals=G.endPetals||(G.endPetals=win?Array.from({length:70},(_,i)=>`<i style="left:${(Math.random()*110-5).toFixed(1)}%;animation-delay:${(Math.random()*1.4).toFixed(2)}s;animation-duration:${(2.2+Math.random()*1.6).toFixed(2)}s;--dx:${Math.round(Math.random()*160-110)}px;--s:${(.7+Math.random()*.8).toFixed(2)}"></i>`).join(''):'');
   return `<div class="endfx ${win?'win':'lose'}"><span class="ef-slash"></span><span class="ef-petals">${petals}</span>
     <div class="ef-stamp">${win?'勝':'敗'}<small>${win?'Victory':'Defeat'}</small></div></div>`;
+}
+
+/* new cards in hand pop up in the middle of the screen */
+let drawQ=[],drawBusy=false;
+function showDraw(ids){drawQ.push(...ids);if(!drawBusy)nextDraw()}
+function nextDraw(){
+  if(!drawQ.length){drawBusy=false;return}drawBusy=true;
+  const ids=drawQ.splice(0,3);let el=document.getElementById('drawpop');if(el)el.remove();
+  el=document.createElement('div');el.id='drawpop';el.setAttribute('role','status');
+  el.innerHTML=`<small>${ids.length>1?'New cards':'New card'}</small><div class="dp-cards">${ids.map(id=>`<div class="dp-c">${card(id,{mini:true})}</div>`).join('')}</div><b>${ids.map(id=>C[id].n).join(' · ')}</b>`;
+  el.onclick=()=>{el.remove();nextDraw()};
+  document.body.appendChild(el);
+  const t=REDUCED?900:1500;setTimeout(()=>el.classList.add('out'),t);setTimeout(()=>{if(el.isConnected){el.remove();nextDraw()}},t+350);
 }
 
 /* ===== Battle flow: intro scroll, dice toss, attack/defend, opening hand ===== */
