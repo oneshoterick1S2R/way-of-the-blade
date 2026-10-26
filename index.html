@@ -1131,6 +1131,23 @@ button.tface{cursor:pointer}
 .reveal b{font-family:var(--f-card);font-size:14px;color:#f3e6c8}
 .rv-cards{display:flex;gap:8px}.rv-c{width:84px;container-type:inline-size}
 @keyframes rvin{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+/* battle ending */
+.endfx{position:fixed;inset:0;z-index:55;pointer-events:none;overflow:hidden}
+.endfx.hold{display:flex;align-items:flex-start;justify-content:center;padding-top:calc(30vh + env(safe-area-inset-top))}
+.ef-last{max-width:min(420px,calc(100% - 32px));padding:10px 16px;border-radius:10px;background:rgba(13,9,7,.92);border:1px solid #e2b860;box-shadow:0 10px 30px rgba(0,0,0,.7);text-align:center;color:#f3e6c8;font-size:16px;animation:rvin .3s ease-out}
+.ef-last b{display:block;font-family:var(--f-card);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e2b860;margin-bottom:2px}
+.endfx.win,.endfx.lose{background:rgba(8,5,3,.35);animation:efdim .8s ease forwards}
+@keyframes efdim{from{background:rgba(8,5,3,0)}to{background:rgba(8,5,3,.55)}}
+.ef-slash{position:absolute;left:-20%;right:-20%;top:46%;height:5px;background:linear-gradient(90deg,transparent,#fff 40%,#fff 60%,transparent);box-shadow:0 0 22px #fff,0 0 6px #fff;transform:rotate(-24deg) scaleX(0);animation:efslash .4s ease-out forwards}
+@keyframes efslash{0%{opacity:1;transform:rotate(-24deg) scaleX(0)}60%{opacity:1;transform:rotate(-24deg) scaleX(1)}100%{opacity:0;transform:rotate(-24deg) scaleX(1)}}
+.ef-petals i{position:absolute;top:-16px;width:calc(11px * var(--s));height:calc(8px * var(--s));border-radius:70% 0 70% 0;background:radial-gradient(circle at 30% 30%,#ffd0dc,#e8869d);opacity:0;animation-name:efpetal;animation-timing-function:linear;animation-fill-mode:forwards}
+@keyframes efpetal{0%{opacity:0;transform:translate(0,0) rotate(0)}8%{opacity:.95}85%{opacity:.9}100%{opacity:0;transform:translate(var(--dx),105vh) rotate(620deg)}}
+.ef-stamp{position:absolute;left:0;right:0;top:34%;text-align:center;font-family:var(--f-brush);font-size:110px;line-height:1;opacity:0;animation:efstamp .6s .45s cubic-bezier(.2,1.6,.4,1) forwards}
+.ef-stamp small{display:block;font-family:var(--f-head);font-size:22px;letter-spacing:.24em;text-transform:uppercase;margin-top:6px}
+.endfx.win .ef-stamp{color:#f3d48a;text-shadow:0 0 28px rgba(226,184,96,.75),0 3px 0 #4a2a08}
+.endfx.lose .ef-stamp{color:#e04a35;text-shadow:0 0 28px rgba(200,50,30,.6),0 3px 0 #3a0a05}
+@keyframes efstamp{0%{opacity:0;transform:scale(2.4)}100%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.ef-petals{display:none}.ef-slash{display:none}}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -3655,7 +3672,9 @@ function renderBattle(){
   G.drawn=0;
   const nh=$('#hand');if(nh)nh.scrollLeft=sl;
   let layer=bar+inspectHTML()+(G.phase==='handoff'?handoffHTML():phaseHTML());
-  if(showIntro)layer+=introHTML();else if(G.over)layer+=overHTML();
+  if(G.over&&G.over!=='quit'&&!G.endStage){G.endStage='hold';G.endLast=(G.log||[]).slice(-1)[0]||'';
+    const g0=G,q=REDUCED?.3:1;setTimeout(()=>{if(G===g0){G.endStage='fx';render()}},1500*q);setTimeout(()=>{if(G===g0){G.endStage='done';render()}},3400*q)}
+  if(showIntro)layer+=introHTML();else if(G.over&&(G.over==='quit'||G.endStage==='done'))layer+=overHTML();else if(G.over)layer+=endFxHTML();
   if(G.yieldAsk)layer+=`<div class="modal"><div class="scroll" role="dialog"><div class="big">降</div><h2>Yield this battle?</h2><p class="sub">It counts as a loss on your record.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="yieldok">Yield</button><button class="btn ghost-dark" data-act="yieldno">Keep fighting</button></div></div></div>`;
   layer+=bannerHTML()+`<button class="qbtn" data-act="menu" aria-label="Battle menu"><span class="mk">退</span><small>Menu</small></button>`+(G.menu?menuHTML():'');
   layer+=aiCallHTML()+historyHTML();
@@ -3892,6 +3911,15 @@ function revealCard(ids,label){
   const n=document.createElement('div');n.className='reveal';
   n.innerHTML=`<small>${label}</small><div class="rv-cards">${ids.map(id=>`<div class="rv-c">${card(id,{mini:true})}</div>`).join('')}</div><b>${ids.map(id=>C[id].n).join(' + ')}</b>`;
   box.appendChild(n);setTimeout(()=>n.classList.add('out'),REDUCED?1800:2600);setTimeout(()=>n.remove(),REDUCED?2000:3000);
+}
+
+/* battle ending: hold on the final move, then a sword slash (+ petals on a win) and the result stamp */
+function endFxHTML(){
+  const win=G.over==='win',st=G.endStage;
+  if(st==='hold')return `<div class="endfx hold"><div class="ef-last"><b>Final move</b>${G.endLast}</div></div>`;
+  const petals=G.endPetals||(G.endPetals=win?Array.from({length:70},(_,i)=>`<i style="left:${(Math.random()*110-5).toFixed(1)}%;animation-delay:${(Math.random()*1.4).toFixed(2)}s;animation-duration:${(2.2+Math.random()*1.6).toFixed(2)}s;--dx:${Math.round(Math.random()*160-110)}px;--s:${(.7+Math.random()*.8).toFixed(2)}"></i>`).join(''):'');
+  return `<div class="endfx ${win?'win':'lose'}"><span class="ef-slash"></span><span class="ef-petals">${petals}</span>
+    <div class="ef-stamp">${win?'勝':'敗'}<small>${win?'Victory':'Defeat'}</small></div></div>`;
 }
 
 /* ===== Battle flow: intro scroll, dice toss, attack/defend, opening hand ===== */
