@@ -5044,7 +5044,7 @@ const MAP_SPOTS=[
   {k:'decks',x:24,al:'l',y:81,n:'Pagoda Library',sub:'Decks & Collection',kj:'札',act:'data-a="nav" data-v="decks"',badge:()=>{const n=ORDER.filter(isNewCard).length;return n?n+' new':''},x2:()=>`${ACC.decks.length} of ${MAX_DECKS} decks · ${ACC.unlocked.length}/${ORDER.length} cards`},
   {k:'store',x:60,y:88,n:'Merchant Town',sub:'Store',kj:'店',act:'data-a="nav" data-v="store"',x2:()=>`Card packs, gear and music · you have ${ryo()} Ryō`}
 ];
-function tourOn(){return ACC&&!ACC.mapTour&&!showIntro&&S.screen==='dojo'}
+function tourOn(){return ACC&&!ACC.mapTour&&!showIntro&&!S.splash&&!S.ask&&!S.peek&&S.screen==='dojo'}
 function tourHTML(){
   if(!tourOn())return '';const i=S.tourI||0,st=MAP_TOUR[i];if(!st)return '';
   const sp=st.k&&MAP_SPOTS.find(x=>x.k===st.k),low=sp?sp.y>50:st.el==='menu'?false:false,last=i===MAP_TOUR.length-1;
@@ -5078,7 +5078,7 @@ function mapHTML(){
 document.addEventListener('click',e=>{
   if(!ACC||S.screen!=='dojo'||S.ask)return;
   if(e.target.closest('[data-a="touragain"]')){e.stopImmediatePropagation();ACC.mapTour=0;S.tourI=0;S.mapMenu=false;render();return}
-  if(tourOn()){e.stopImmediatePropagation();const b=e.target.closest('[data-a]');
+  if(tourOn()&&e.target.closest('.mtour')){e.stopImmediatePropagation();const b=e.target.closest('[data-a]');
     if(b&&b.dataset.a==='tourskip'||((S.tourI||0)>=MAP_TOUR.length-1&&b&&b.dataset.a==='tournext')){ACC.mapTour=1;S.tourI=0;save();render();return}
     if(b&&b.dataset.a==='tournext'){S.tourI=(S.tourI||0)+1;render()}return}
   const b=e.target.closest('[data-a="mapsel"]');
