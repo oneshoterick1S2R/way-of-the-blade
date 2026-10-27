@@ -2398,6 +2398,21 @@ S_('scribe','temple',2,'C','Sutra Scribe','Temple — Scribe','写経僧',1,3,{a
 ['recruit','cook','mantlet','vetashi','kashira','yabusame','templearcher','yamabushi','abbot'].forEach(id=>C[id].own=1);
 ['templebell','ofuda','mist','sanctuary'].forEach(id=>C[id].own=0);
 C.yari.ap='78% 50%';C.jumonji.ap='72% 50%';C.nagae.ap='70% 50%';
+/* Legendary pass: each Legendary is strong enough to build a deck around */
+(()=>{const L=(id,o)=>{if(C[id])Object.assign(C[id],o)};
+  L('kensei',{a:5,h:5});if(C.kensei)C.kensei.ab=Object.assign({},C.kensei.ab,{c:1});
+  L('undefeated',{kw:['swift'],x:'Swift. Arrival: destroy an enemy samurai with less Strength than him.'});
+  if(C.daimyo){C.daimyo.ab=Object.assign({},C.daimyo.ab,{c:0,x:'Each of your samurai gains +1 Strength.'});C.daimyo.h=7}
+  if(C.shogun){C.shogun.arr=Object.assign({},C.shogun.arr,{v:3});C.shogun.x='Arrival: deal 3 damage to every enemy samurai.'}
+  if(C.master10k){C.master10k.ki=7;C.master10k.arr=Object.assign({},C.master10k.arr,{v:10});C.master10k.x='Arrival: fire 10 arrows. Each deals 1 damage to a random enemy samurai or their Honor.'}
+  L('heirloom',{a:4,h:3,counts:2,x:'Counts as 2 weapons for techniques.'});
+  L('irongate',{a:5,h:8});
+  L('general',{ki:6});
+  L('thousand',{ki:5,kw:['sneak'],x:'Strikes past Guardians. Arrival: become a copy of an enemy samurai.'});
+  if(C.jonin){C.jonin.h=6;C.jonin.arr=Object.assign({},C.jonin.arr,{n:3});C.jonin.x='Arrival: set 3 random Shadow ambushes.'}
+  if(C.enlightened){C.enlightened.arr={k:'honor',v:4};C.enlightened.x='Arrival: restore 4 Honor. While he stands, your Honor can’t drop below 1.'}
+  L('thousandsteps',{h:8});
+})();
 /* balance pass: weapons were too costly next to samurai, so every weapon costs 1 Ki less (minimum 1) */
 Object.keys(C).forEach(k=>{if(C[k].t==='w'&&C[k].ki>1)C[k].ki--});
 const ORDER=Object.keys(C).filter(id=>!C[id].tok);
@@ -5400,7 +5415,14 @@ const limitOf=id=>C[id].rar==='L'?1:2;
 /* Commons, Rares and Path Epics are open from the start. Legendaries and Neutral Epics unlock through victories. */
 const LOCKABLE=ORDER.filter(id=>!C[id].story&&(C[id].rar==='L'||(C[id].p==='n'&&C[id].rar==='E')));
 const BASE_UNLOCKED=ORDER.filter(id=>!LOCKABLE.includes(id)&&!C[id].story);
-const UNLOCK_RULE='Each victory unlocks a random Epic or Legendary card.';
+const UNLOCK_RULE='Win battles, level up, open packs or visit the stall to unlock cards. Legendaries come at Levels 10, 20 and 30, from the Legend Chest and the stall.';
+/* a new samurai starts with the Commons of their Path, its cheaper Rares, and the Neutral Commons */
+function startPool(path){const rs=ORDER.filter(id=>C[id].p===path&&C[id].rar==='R'&&!C[id].story).sort((a,b)=>C[a].ki-C[b].ki);
+  return ORDER.filter(id=>{const c=C[id];if(c.story||c.tok)return false;return (c.rar==='C'&&(c.p===path||c.p==='n'))}).concat(rs.slice(0,Math.ceil(rs.length/2)))}
+/* unlock one random locked card; rarer cards are less likely, the active Path is favoured */
+function unlockRandom(opts={}){const lockd=ORDER.filter(id=>!C[id].story&&!C[id].tok&&!ACC.unlocked.includes(id)&&(opts.leg?C[id].rar==='L':C[id].rar!=='L'));if(!lockd.length)return null;
+  const p=(active()||{}).path,w=id=>(opts.leg?1:({C:6,R:4,E:2}[C[id].rar]||1))*(C[id].p===p?3:C[id].p==='n'?1.5:1);
+  let t=lockd.reduce((s,id)=>s+w(id),0)*Math.random();for(const id of lockd){t-=w(id);if(t<=0){ACC.unlocked.push(id);return id}}const id=lockd[0];ACC.unlocked.push(id);return id}
 const MONS=['桜','竜','虎','月','鷹','波','炎','雷'];
 const COLORS={shu:['Vermilion','#d0513a'],ai:['Indigo','#5f86c4'],kin:['Gold','#c9a24e'],matsu:['Pine','#7fa05a'],fuji:['Wisteria','#9b7fc9'],yuki:['Snow','#d8d0bf']};
 /* rank progress: Admin testing unlocks every Clan Feud rank */
@@ -5428,11 +5450,12 @@ function validate(d){
   if(s<MIN_SAMURAI)errs.push(`Needs at least ${MIN_SAMURAI} samurai (has ${s}).`);
   return {ok:!errs.length,errs,total,s,w,a};
 }
-const starterFor=path=>({id:uid(),name:PATH_INFO[path].n,path,cards:starterDeck(path,false)});
+const starterFor=(path,owned)=>({id:uid(),name:PATH_INFO[path].n,path,cards:owned?ownedStarter(path,owned):starterDeck(path,false)});
+function ownedStarter(path,owned){const ok=id=>owned.includes(id);const d={};ORDER.forEach(id=>{const c=C[id];if(c.p===path&&ok(id)&&!c.arch)d[id]=1});['katana','waki','tanto'].forEach(k=>{if(ok(k))d[k]=1});return fillDeck(d,path,ok)}
 function newAccount(dr){
-  const decks=[starterFor(dr.path)];
-  return {v:2,name:dr.name.trim()||'Nameless',clan:dr.clan.trim()||'House of the Blade',look:clone(dr.look),xp:0,mon:dr.mon,color:dr.color,path:dr.path,
-    stats:{wins:0,losses:0,played:0},unlocked:[...BASE_UNLOCKED],seenCards:[...BASE_UNLOCKED],ryo:300,lv30:1,decks,active:decks.find(d=>d.path===dr.path).id,seenRules:false,story:{unlocked:false,beaten:{}},created:Date.now(),updated:Date.now()};
+  const own=startPool(dr.path),decks=[starterFor(dr.path,own)];
+  return {v:2,col2:1,name:dr.name.trim()||'Nameless',clan:dr.clan.trim()||'House of the Blade',look:clone(dr.look),xp:0,mon:dr.mon,color:dr.color,path:dr.path,
+    stats:{wins:0,losses:0,played:0},unlocked:[...own],seenCards:[...own],ryo:300,lv30:1,decks,active:decks.find(d=>d.path===dr.path).id,seenRules:false,story:{unlocked:false,beaten:{}},created:Date.now(),updated:Date.now()};
 }
 function recordResult(r){
   const st=ACC.stats;st.played++;if(r==='win')st.wins++;else st.losses++;
@@ -5442,12 +5465,8 @@ function recordResult(r){
   G.xpRes={gain,before,after,gear};
   if(!G.story)G.coin=rewardFeud(r);
   G.lvBonus=after>before?addRyo((after-before)*LEVEL_UP_RYO):0;
-  if(r==='win'&&!G.ronin){
-    const locked=LOCKABLE.filter(id=>!ACC.unlocked.includes(id));
-    const mine=locked.filter(id=>C[id].p===G.pl[0].path||C[id].p==='n');
-    const pool=mine.length?mine:locked;
-    if(pool.length){const id=pick(pool);ACC.unlocked.push(id);G.unl.push(id)}
-  }
+  if(r==='win'){const id=unlockRandom();if(id)G.unl.push(id)}
+  for(let l=before+1;l<=after;l++){if(l%10===0){const id=unlockRandom({leg:true});if(id)G.unl.push(id)}else for(let k=0;k<2;k++){const id=unlockRandom();if(id)G.unl.push(id)}}
   save();
 }
 function migrate(a){
@@ -5467,7 +5486,7 @@ function migrate(a){
     a.gearOwned=a.gearOwned||[];GEAR_SLOTS.forEach(sl=>GEAR[sl].items.forEach(it=>{if((inv[it.lv]||1)<=ol&&!a.gearOwned.includes(sl+':'+it.id))a.gearOwned.push(sl+':'+it.id)}));a.lv30=1}
   if(a.ryo==null)a.ryo=300+Math.min(1200,10*((a.stats&&a.stats.wins)||0));
   if(!Array.isArray(a.seenCards))a.seenCards=(a.unlocked||[]).filter(id=>C[id]&&!C[id].extra);
-  BASE_UNLOCKED.forEach(id=>{if(!a.unlocked.includes(id))a.unlocked.push(id)});
+  if(!a.col2)BASE_UNLOCKED.forEach(id=>{if(!a.unlocked.includes(id))a.unlocked.push(id)});/* older accounts keep everything they had */
   if(a.mapTour==null&&a.stats&&a.stats.played>0)a.mapTour=1;
   if(typeof migrateBackdrops==='function')migrateBackdrops(a);
   a.decks.forEach(d=>{if(!PATHS4.includes(d.path))d.path=a.path;for(const k in d.cards)if(!C[k])delete d.cards[k]});
@@ -5911,7 +5930,7 @@ function roninFoe(){const lv=levelOf(ACC.xp||0),path=pick(PATHS4);
   /* same card pool as you: only cards you have unlocked, legendaries only once you hold rank */
   const d={};const legs=ORDER.filter(id=>C[id].p===path&&C[id].rar==='L'&&!C[id].story&&ACC.unlocked.includes(id));
   if(feudWins()>=10&&legs.length)d[pick(legs)]=1;
-  fillDeck(d,path,id=>ACC.unlocked.includes(id));
+  const sp=startPool(path);fillDeck(d,path,id=>ACC.unlocked.includes(id)||sp.includes(id));
   return {name:pick(RONIN_NAMES),path,mon:pick(MONS),look:Object.assign(randomLook(lv),{banner:'none'}),accent:pick(Object.values(COLORS).map(c=>c[1])),deck:d,lv}}
 function startBattle(deckId){
   const d=ACC.decks.find(x=>x.id===deckId);if(!d||!validate(d).ok){go('prebattle');return}
@@ -5977,7 +5996,7 @@ document.addEventListener('click',e=>{
     case 'resetok':resetAll();return;
     case 'delok':ACC.decks=ACC.decks.filter(x=>x.id!==S.ask);if(!ACC.decks.some(x=>x.id===ACC.active))ACC.active=ACC.decks[0].id;S.ask=null;save();render();return;
     case 'newpath':S.newPath=v;render();return;
-    case 'newdeck':{if(ACC.decks.length>=MAX_DECKS||!S.newPath)return;const p=S.newPath;const nd={id:uid(),name:v==='empty'?'New '+PATH_INFO[p].n.replace(/^Way of (the )?/,'')+' deck':PATH_INFO[p].n,path:p,cards:v==='empty'?{}:starterDeck(p,false)};ACC.decks.push(nd);S.newPath=null;save();S.editId=nd.id;S.filter='all';S.bpage=0;S.bdeck=false;S.bfilt=false;go('build');return}
+    case 'newdeck':{if(ACC.decks.length>=MAX_DECKS||!S.newPath)return;const p=S.newPath;const nd={id:uid(),name:v==='empty'?'New '+PATH_INFO[p].n.replace(/^Way of (the )?/,'')+' deck':PATH_INFO[p].n,path:p,cards:v==='empty'?{}:ownedStarter(p,ACC.unlocked)};ACC.decks.push(nd);S.newPath=null;save();S.editId=nd.id;S.filter='all';S.bpage=0;S.bdeck=false;S.bfilt=false;go('build');return}
     case 'filter':S.filter=v;S.bpage=0;S.bfilt=false;S.bdir='';if(S.screen==='build'&&S.bdeck)S.bdeck=false;render();return;
     case 'bfilt':S.bfilt=!S.bfilt;render();return;
     case 'bdeck':S.bdeck=!S.bdeck;S.bfilt=false;render();return;
