@@ -1983,6 +1983,10 @@ body.hasbbg::before{content:"";position:fixed;inset:-8px;z-index:-1;pointer-even
 .ba-pack{display:block;height:130px;margin:0 auto 10px}
 .stc .buy.owned{opacity:.45;filter:grayscale(1);cursor:default;justify-content:center;flex-direction:column;gap:2px;min-height:auto;padding:4px 8px;background:#3a2c22;box-shadow:none}
 .stc .buy.owned small{font-size:11px;color:#e9dcc0}
+.sell-all{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;border-radius:23px;margin:8px 0 4px}
+.sf-card{position:relative}.dup-n{position:absolute;top:4px;right:4px;padding:1px 7px;border-radius:9px;background:#b8321f;color:#fff;font-family:var(--f-card);font-weight:800;font-size:12px}
+.wonc{position:relative;width:110px;container-type:inline-size}.wonc .newbadge,.wonc .po-ref{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%)}
+.wnew{color:#8fd09e}.wdup{color:#e2b860}
 /* ---------- Battle Loadout ---------- */
 .screen.loscr{padding-top:0}
 .lo-hero{position:relative;height:min(440px,52vh);margin:0 -16px;background:radial-gradient(ellipse at 50% 70%,#3a1f12,#0f0a07 70%) center/cover;overflow:hidden}
@@ -3717,7 +3721,8 @@ function overHTML(){
       <div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="again">${G.online?'New online match':'Rematch'}</button><button class="btn ghost-dark" data-act="dojo">Return to dojo</button></div></div></div>`}
   const win=G.over==='win';
   if(G.practice)return `<div class="modal"><div class="scroll" role="dialog"><div class="big">${win?'勝':'敗'}</div><h2>${win?'Victory':'Defeat'}</h2><p class="sub">Practice battle complete. It doesn\u2019t count toward your record. Ready for the real thing? Try <b>Clan Feud</b>.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" data-act="dojo">Return to dojo</button><button class="btn ghost-dark" data-act="tutagain">Replay tutorial</button></div></div></div>`;
-  const un=G.unl.length?`<p class="sub" style="margin-top:4px">New card unlocked:</p><div class="fan">${G.unl.map(id=>card(id,{mini:true})).join('')}</div>`:'';
+  const wn=G.won?`<p class="sub" style="margin-top:4px">Spoils of battle: ${G.won.isNew?'<b class="wnew">a new card!</b>':'<b class="wdup">a duplicate</b> (sell it in Merchant Town)'}</p><div class="fan"><div class="wonc">${card(G.won.id,{mini:true})}<span class="${G.won.isNew?'newbadge':'po-ref'}">${G.won.isNew?'New':'Duplicate'}</span></div></div>`:'';
+  const un=wn+(G.unl.length?`<p class="sub" style="margin-top:4px">Level-up reward${G.unl.length>1?'s':''}:</p><div class="fan">${G.unl.map(id=>card(id,{mini:true})).join('')}</div>`:'');
   const xr=G.xpRes||{gain:0,gear:[]};
   const xpBlock=`<div class="xpres"><b>+${xr.gain} XP</b>${xr.after>xr.before?`<span class="lvup">Level ${xr.after}!</span>`:''}</div>${xpBar(ACC.xp)}
     ${xr.gear.length?`<div class="newgear"><small>New gear in your armory:</small>${xr.gear.map(g=>`<span>${GEAR[g.slot].label}: <b>${g.n}</b></span>`).join('')}</div>`:''}`;
@@ -4854,7 +4859,10 @@ function bossIntroHTML(){
 const RYO_K='両';
 const LEVEL_UP_RYO=50;
 const EARN={roninWin:30,roninLoss:8,feudWin:50,feudLoss:10,dailyFirst:25,storyFirst:150,storyWin:40,storyLoss:10,duelWin:40,duelLoss:10};
-const DUPE_REFUND={C:5,R:15,E:40,L:100};
+const DUPE_REFUND={C:3,R:8,E:25,L:60};/* what a duplicate sells for */
+function addDupe(id){ACC.dupes=ACC.dupes||{};ACC.dupes[id]=(ACC.dupes[id]||0)+1}
+const dupeCount=()=>Object.values((ACC&&ACC.dupes)||{}).reduce((a,b)=>a+b,0);
+const dupeValue=()=>Object.entries((ACC&&ACC.dupes)||{}).reduce((s,[id,n])=>s+(C[id]?(DUPE_REFUND[C[id].rar]||3)*n:0),0);
 const PACKS=[
   {id:'path',n:'Path Pack',k:'道',price:150,size:5,x:'5 cards from one Path (and Neutral), including one you don’t own yet. Pick the Path below.'},
   {id:'warlord',n:'Warlord Pack',k:'将',price:220,size:5,x:'5 cards from any Path, including one you don’t own yet. At least one Rare or better.'},
@@ -4912,13 +4920,13 @@ function rollPack(pk,path){
     got.add(id);out.push(id);
   }
   for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}
-  return out.map(id=>{const isNew=!ACC.unlocked.includes(id);if(isNew)ACC.unlocked.push(id);const refund=isNew?0:DUPE_REFUND[C[id].rar]||5;if(refund)addRyo(refund);return {id,isNew,refund,shown:false}});
+  return out.map(id=>{const isNew=!ACC.unlocked.includes(id);if(isNew)ACC.unlocked.push(id);else addDupe(id);const refund=0;return {id,isNew,refund,shown:false}});
 }
 
 /* ---- screen ---- */
 function storeHTML(){
   const tab=S.stab||'packs',bal=ryo();
-  const tabs=[['packs','Cards'],['foil','Foil'],['backs','Card Backs'],['bd','Battlefields'],['titles','Titles'],['gear','Gear'],['music','Music']].map(([k,l])=>`<button class="seg ${tab===k?'on':''}" data-a="stab" data-v="${k}">${l}</button>`).join('');
+  const tabs=[['packs','Cards'],['foil','Foil'],['backs','Card Backs'],['bd','Battlefields'],['titles','Titles'],['gear','Gear'],['music','Music'],['sell','Sell'+(dupeCount()?` <small>${dupeCount()}</small>`:'')]].map(([k,l])=>`<button class="seg ${tab===k?'on':''}" data-a="stab" data-v="${k}">${l}</button>`).join('');
   let body='';
   if(tab==='packs'){
     const pp=S.packPath||(ACC.decks.find(d=>d.id===ACC.active)||{}).path||'banner';
@@ -4927,9 +4935,10 @@ function storeHTML(){
         <div class="sp-tx"><b>${pk.n}</b><small>${pk.x}</small>
         ${pk.id==='path'?`<div class="sp-paths">${PATHS4.map(p=>`<button class="chip ${pp===p?'on':''}" data-a="ppath" data-v="${p}">${PATH_INFO[p].k} ${PATH_INFO[p].n.replace(/^Way of (the )?/,'')}</button>`).join('')}</div>`:''}
         <button class="buy ${can?'':'no'}" data-a="buypack" data-v="${pk.id}" ${can?'':'disabled'}>${coinPill(pk.price)}${can?'Buy':`Need ${pk.price-bal} more`}</button></div></section>`}).join('')+
-      `<p class="muted center">New cards join your collection. A card you already own is traded in for Ryō: Common ${DUPE_REFUND.C}, Rare ${DUPE_REFUND.R}, Epic ${DUPE_REFUND.E}, Legendary ${DUPE_REFUND.L}.</p>`;
+      `<p class="muted center">New cards join your collection. A card you already own becomes a duplicate you can sell in the Sell tab: Common ${DUPE_REFUND.C}, Rare ${DUPE_REFUND.R}, Epic ${DUPE_REFUND.E}, Legendary ${DUPE_REFUND.L}.</p>`;
   }else if(tab==='foil'){body=foilHTML();
   }else if(tab==='backs'||tab==='bd'||tab==='titles'){body=styleHTML(tab);
+  }else if(tab==='sell'){body=sellHTML();
   }else if(tab==='gear'){
     const lv=levelOf(ACC.xp||0),items=[];
     GEAR_SLOTS.forEach(slot=>GEAR[slot].items.forEach(it=>{if(it.lv>1)items.push({slot,it})}));
@@ -4964,7 +4973,7 @@ function packOverlayHTML(){
       </button></div></div>`}
   return `<div class="packov ${art?'fresh':''}"><div class="po-in"><h2>${pk.n}</h2><p class="sub">${all?'Here’s what you pulled.':'Tap each card to reveal it.'}</p>
     <div class="po-cards">${r.map((x,i)=>`<button class="po-c ${x.shown?'shown r-'+C[x.id].rar:''}" data-a="packflip" data-v="${i}" aria-label="${x.shown?C[x.id].n:'Reveal card '+(i+1)}">
-      ${x.shown?card(x.id,{mini:true})+(x.isNew?'<span class="newbadge">New</span>':`<span class="po-ref">+${x.refund} ${RYO_K}</span>`):`<span class="po-back">${backHTML(myBack())}</span>`}</button>`).join('')}</div>
+      ${x.shown?card(x.id,{mini:true})+(x.isNew?'<span class="newbadge">New</span>':`<span class="po-ref">Duplicate</span>`):`<span class="po-back">${backHTML(myBack())}</span>`}</button>`).join('')}</div>
     <div class="btns">${all?'<button class="btn pri" data-a="packclose">Done</button>':'<button class="btn pri" data-a="packall">Reveal all</button>'}</div></div></div>`;
 }
 document.addEventListener('click',e=>{
@@ -5111,10 +5120,11 @@ document.addEventListener('click',e=>{
 });
 
 /* ---- "Are you sure?" before every purchase ---- */
-const BUY_ACTS=['buypack','buygear','buymusic','buystall','buystallall','buyfoil','buycb','buybd','buyti'];
+const BUY_ACTS=['sellall','buypack','buygear','buymusic','buystall','buystallall','buyfoil','buycb','buybd','buyti'];
 function buyInfo(q){
   const {a,v,k}=q,bal=ryo();let what='',price=0,pic='';
-  if(a==='buypack'){const pk=PACKS.find(p=>p.id===v);if(pk){price=pk.price;what=pk.n+(v==='path'?` (${PATH_INFO[S.packPath||(ACC.decks.find(d=>d.id===ACC.active)||{}).path||'banner'].n.replace(/^Way of (the )?/,'')})`:'');if(IMG['pack_'+v])pic=`<img class="ba-pack" src="${IMG['pack_'+v]}" alt="">`}}
+  if(a==='sellall'){price=-dupeValue();what='';}
+  else if(a==='buypack'){const pk=PACKS.find(p=>p.id===v);if(pk){price=pk.price;what=pk.n+(v==='path'?` (${PATH_INFO[S.packPath||(ACC.decks.find(d=>d.id===ACC.active)||{}).path||'banner'].n.replace(/^Way of (the )?/,'')})`:'');if(IMG['pack_'+v])pic=`<img class="ba-pack" src="${IMG['pack_'+v]}" alt="">`}}
   else if(a==='buygear'){const it=(GEAR[k]||{items:[]}).items.find(x=>x.id===v);if(it){price=gearPrice(it);what=`${it.n} (${GEAR[k].label})`}}
   else if(a==='buymusic'){const m=MUSIC.find(x=>x.id===v);if(m){price=m.price;what=`${m.n} music`}}
   else if(a==='buystall'){const st=stallToday(),it=st.items.find(x=>x.id===v);if(it){price=stallPrice(it);what=(it.k==='foil'?'Foil ':'')+C[v].n+` (${RAR[C[v].rar]})`;pic=`<div class="ba-card">${card(v,{mini:true,foil:it.k==='foil'})}</div>`}}
@@ -5128,8 +5138,8 @@ function buyInfo(q){
 function buyAskHTML(){
   const q=S.buyAsk;if(!q)return '';const I=buyInfo(q);
   return `<div class="modal buyask" data-a="buyno"><div class="scroll" role="dialog" aria-label="Confirm purchase">${I.pic}
-    <h2>Buy ${esc(I.what)}?</h2><p class="sub">${coinPill(I.price)} · you’ll have ${I.after} Ryō left.</p>
-    <div class="btns"><button class="btn pri" data-a="buyyes">Yes, buy it</button><button class="btn ghost-dark" data-a="buyno">Cancel</button></div></div></div>`;
+    ${q.a==='sellall'?`<h2>Sell all ${dupeCount()} duplicates?</h2><p class="sub">You get ${coinPill(-I.price)} · you’ll have ${I.after} Ryō. Your collection keeps one copy of each.</p>`:`<h2>Buy ${esc(I.what)}?</h2><p class="sub">${coinPill(I.price)} · you’ll have ${I.after} Ryō left.</p>`}
+    <div class="btns"><button class="btn pri" data-a="buyyes">${q.a==='sellall'?'Yes, sell them':'Yes, buy it'}</button><button class="btn ghost-dark" data-a="buyno">Cancel</button></div></div></div>`;
 }
 document.addEventListener('click',e=>{
   if(!ACC||S.screen!=='store')return;
@@ -5191,6 +5201,23 @@ document.addEventListener('click',e=>{
     case 'loseti':if(!v||owns('titlesOwned',v)){ACC.title=v||null;done()}break;
     case 'lofoil':{ACC.foilOff=ACC.foilOff||[];const i=ACC.foilOff.indexOf(v);if(i>=0)ACC.foilOff.splice(i,1);else ACC.foilOff.push(v);done();break}
   }
+});
+
+/* ===== Sell duplicate cards for a little Ryō ===== */
+function sellHTML(){
+  const D=ACC.dupes||{},ids=sortIds(Object.keys(D).filter(id=>C[id]&&D[id]>0));
+  if(!ids.length)return `<p class="muted center">No duplicates yet. Win battles and open packs: when you get a card you already own, the spare copy lands here.</p>`;
+  return `<p class="muted">Spare copies of cards you already own. Your collection keeps one of each; these are extras. Common ${DUPE_REFUND.C} · Rare ${DUPE_REFUND.R} · Epic ${DUPE_REFUND.E} · Legendary ${DUPE_REFUND.L} Ryō each.</p>
+    <button class="buy sell-all" data-a="sellall">Sell all ${dupeCount()} duplicates · ${coinPill(dupeValue())}</button>
+    <div class="sfoil">${ids.map(id=>{const n=D[id],pr=DUPE_REFUND[C[id].rar]||3;
+      return `<div class="sf"><button class="sf-card" data-a="peek" data-v="${id}" aria-label="Read ${esc(C[id].n)}">${card(id,{mini:true})}<span class="dup-n">×${n}</span></button>
+        <button class="buy" data-a="sellone" data-v="${id}">${coinPill(pr)}Sell</button></div>`}).join('')}</div>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b||!ACC||S.screen!=='store')return;
+  const a=b.dataset.a,v=b.dataset.v;
+  if(a==='sellone'){const D=ACC.dupes||{};if(!D[v])return;D[v]--;if(!D[v])delete D[v];addRyo(DUPE_REFUND[C[v].rar]||3);if(typeof SFX!=='undefined')SFX.play('tap');save();render()}
+  if(a==='sellall'&&window.__buyOK){const n=dupeValue();if(!n)return;addRyo(n);ACC.dupes={};if(typeof SFX!=='undefined')SFX.play('power');save();render()}
 });
 /* ===== Home screen: painted province map ===== */
 const MAP_TOUR=[
@@ -5415,10 +5442,14 @@ const limitOf=id=>C[id].rar==='L'?1:2;
 /* Commons, Rares and Path Epics are open from the start. Legendaries and Neutral Epics unlock through victories. */
 const LOCKABLE=ORDER.filter(id=>!C[id].story&&(C[id].rar==='L'||(C[id].p==='n'&&C[id].rar==='E')));
 const BASE_UNLOCKED=ORDER.filter(id=>!LOCKABLE.includes(id)&&!C[id].story);
-const UNLOCK_RULE='Win battles, level up, open packs or visit the stall to unlock cards. Legendaries come at Levels 10, 20 and 30, from the Legend Chest and the stall.';
+const UNLOCK_RULE='Every win earns a random card (new or a duplicate to sell). Level-ups, packs and the stall unlock more. Legendaries come at Levels 10, 20 and 30, from the Legend Chest and the stall.';
 /* a new samurai starts with the Commons of their Path, its cheaper Rares, and the Neutral Commons */
 function startPool(path){const rs=ORDER.filter(id=>C[id].p===path&&C[id].rar==='R'&&!C[id].story).sort((a,b)=>C[a].ki-C[b].ki);
   return ORDER.filter(id=>{const c=C[id];if(c.story||c.tok)return false;return (c.rar==='C'&&(c.p===path||c.p==='n'))}).concat(rs.slice(0,Math.ceil(rs.length/2)))}
+/* every win earns one random card (never Legendary): a new one or a duplicate to sell */
+function winCard(){const pool=ORDER.filter(id=>!C[id].story&&!C[id].tok&&C[id].rar!=='L'),p=(active()||{}).path,w=id=>({C:6,R:3,E:1}[C[id].rar]||1)*(C[id].p===p?2.5:C[id].p==='n'?1.5:1);
+  let t=pool.reduce((s,id)=>s+w(id),0)*Math.random(),id=pool[0];for(const x of pool){t-=w(x);if(t<=0){id=x;break}}
+  const isNew=!ACC.unlocked.includes(id);if(isNew)ACC.unlocked.push(id);else addDupe(id);return {id,isNew}}
 /* unlock one random locked card; rarer cards are less likely, the active Path is favoured */
 function unlockRandom(opts={}){const lockd=ORDER.filter(id=>!C[id].story&&!C[id].tok&&!ACC.unlocked.includes(id)&&(opts.leg?C[id].rar==='L':C[id].rar!=='L'));if(!lockd.length)return null;
   const p=(active()||{}).path,w=id=>(opts.leg?1:({C:6,R:4,E:2}[C[id].rar]||1))*(C[id].p===p?3:C[id].p==='n'?1.5:1);
@@ -5459,13 +5490,13 @@ function newAccount(dr){
 }
 function recordResult(r){
   const st=ACC.stats;st.played++;if(r==='win')st.wins++;else st.losses++;
-  G.unl=[];
+  G.unl=[];G.won=null;
   const before=levelOf(ACC.xp||0),gain=r==='win'?XP_WIN:XP_LOSS;ACC.xp=(ACC.xp||0)+gain;const after=levelOf(ACC.xp);
   const gear=[];for(let l=before+1;l<=after;l++)gear.push(...gearAt(l));
   G.xpRes={gain,before,after,gear};
   if(!G.story)G.coin=rewardFeud(r);
   G.lvBonus=after>before?addRyo((after-before)*LEVEL_UP_RYO):0;
-  if(r==='win'){const id=unlockRandom();if(id)G.unl.push(id)}
+  if(r==='win'){G.won=winCard()}
   for(let l=before+1;l<=after;l++){if(l%10===0){const id=unlockRandom({leg:true});if(id)G.unl.push(id)}else for(let k=0;k<2;k++){const id=unlockRandom();if(id)G.unl.push(id)}}
   save();
 }
