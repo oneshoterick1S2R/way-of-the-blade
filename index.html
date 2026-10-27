@@ -1,5 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>window.BUILD='1793132091'</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1983,6 +1984,7 @@ body.hasbbg::before{content:"";position:fixed;inset:-8px;z-index:-1;pointer-even
 .ba-pack{display:block;height:130px;margin:0 auto 10px}
 .stc .buy.owned{opacity:.45;filter:grayscale(1);cursor:default;justify-content:center;flex-direction:column;gap:2px;min-height:auto;padding:4px 8px;background:#3a2c22;box-shadow:none}
 .stc .buy.owned small{font-size:11px;color:#e9dcc0}
+.ss-secret{opacity:.8;font-size:12px}
 .sell-all{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;border-radius:23px;margin:8px 0 4px}
 .sf-card{position:relative}.dup-n{position:absolute;top:4px;right:4px;padding:1px 7px;border-radius:9px;background:#b8321f;color:#fff;font-family:var(--f-card);font-weight:800;font-size:12px}
 .wonc{position:relative;width:110px;container-type:inline-size}.wonc .newbadge,.wonc .po-ref{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%)}
@@ -5091,8 +5093,8 @@ function styleHTML(sec){
   const act=(own,using,buyA,useA,id,pr)=>own?(using?'<span class="sg-own">In use</span>':`<button class="buy" data-a="${useA}" data-v="${id}">Use</button>`)
     :`<button class="buy ${bal>=pr?'':'no'}" data-a="${buyA}" data-v="${id}" ${bal>=pr?'':'disabled'}>${coinPill(pr)}${bal>=pr?'Buy':'Not enough'}</button>`;
   let body='';
-  if(sec==='backs')body=`<p class="muted">The back of your cards: on your face-down ambushes, your deck boxes, pack openings, and what online rivals see.</p><div class="sstyle">${CARDBACKS.filter(b=>!b.secret||owns('cbOwned',b.id)).map(b=>{const own=b.secret?owns('cbOwned',b.id):(!b.price||owns('cbOwned',b.id));
-    return `<div class="ss ${myBack()===b.id?'on':''}"><div class="ss-back">${backHTML(b.id)}</div><b>${b.n}</b><small>${b.x}</small>${act(own,myBack()===b.id,'buycb','usecb',b.id,b.price)}</div>`}).join('')}</div>`;
+  if(sec==='backs')body=`<p class="muted">The back of your cards: on your face-down ambushes, your deck boxes, pack openings, and what online rivals see.</p><div class="sstyle">${CARDBACKS.map(b=>{const own=b.secret?owns('cbOwned',b.id):(!b.price||owns('cbOwned',b.id));
+    return `<div class="ss ${myBack()===b.id?'on':''}"><div class="ss-back">${backHTML(b.id)}</div><b>${b.n}</b><small>${b.x}</small>${b.secret&&!own?'<span class="sg-own ss-secret">🔒 Secret code</span>':act(own,myBack()===b.id,'buycb','usecb',b.id,b.price)}</div>`}).join('')}</div>`;
   else if(sec==='bd'){const cur=(ACC.backdrop||'none');body=`<p class="muted">The scene behind the battlefield in every fight.</p><div class="sstyle">${BACKDROPS.map(b=>{const own=!b.price||owns('bdOwned',b.id);
     return `<div class="ss ${cur===b.id?'on':''}"><div class="ss-bd" ${b.id!=='none'&&IMG[b.id]?`style="background-image:url(${IMG[b.id]})"`:''}></div><b>${b.n}</b>${b.x?`<small>${b.x}</small>`:''}${act(own,cur===b.id,'buybd','usebd',b.id,b.price)}</div>`}).join('')}</div>`}
   else{const cur=ACC.title||'';body=`<p class="muted">A title shown under your name on the map, in the Armory and in battle.</p><div class="stitles">
@@ -6104,6 +6106,11 @@ async function resetAll(){
   document.addEventListener('touchend',e=>{if(sx===null)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;sx=null;
     if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.3)return;const b=document.querySelector(`.bpg[data-v="${(S.bpage||0)+(dx<0?1:-1)}"]:not([disabled])`);if(b)b.click()},{passive:true});
 })();
+/* website: if a newer version has been published, load it (phones often keep an old copy) */
+function checkUpdate(){if(window.claude?.use||!window.BUILD||location.protocol!=='https:')return;
+  fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/window\.BUILD='(\d+)'/);
+    if(m&&m[1]!==window.BUILD&&!(S.screen==='battle'&&G&&!G.over)){try{if(sessionStorage.getItem('wotb-upd')===m[1])return;sessionStorage.setItem('wotb-upd',m[1])}catch(e){}location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{})}
+setTimeout(checkUpdate,1500);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
 /* ===== Boot ===== */
 function boot(data){
   if(authInit()){ACC=null;S.screen='login';S.splash=true;showIntro=false;render();connect();return}
