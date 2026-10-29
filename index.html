@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>window.BUILD='1793287326';window.ACCOUNTS_ON=1</script>
+<script>window.BUILD='1793287688';window.ACCOUNTS_ON=1</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -4385,7 +4385,8 @@ function onMatchSnap(snap){
   const d=snap.data();
   if(d.status==='cancelled'&&d.quitBy!==ON.seat&&(d.quitBy!=null||ON.seat===1)){
     const who=(G&&G.online&&G.pl[1].who&&G.pl[1].who.name)||(ON.seat===0?(d.guest&&d.guest.name):(d.host&&d.host.name))||'Your opponent';
-    stopOnline();clearMatch();if(G&&G.online)G=null;S.on={step:'menu',err:`${who} left the match before it started.`};go('online');return}
+    stopOnline();clearMatch();if(G&&G.online)G=null;S.on={step:'menu'};go('friend');
+    const t=document.createElement('div');t.className='narrnote';t.innerHTML=`<b>${esc(who)} left the match</b><span>They quit before the duel started. Tap Find a Match to look for another opponent.</span>`;document.body.appendChild(t);setTimeout(()=>t.remove(),4500);return}
   ON.oppHb=Math.max(ON.oppHb||0,d['hb'+(1-ON.seat)]||0);
   if(ON.seat===0&&d.status==='ready'&&!d.state&&d.guest){if(!ON.started){ON.started=true;clearInterval(ON.beat);S.on={step:'found'};startOnlineGame(d)}return}
   if(!d.state||d.writer===ON.seat)return;
