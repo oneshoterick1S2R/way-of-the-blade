@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>window.BUILD='1793132091'</script>
+<script>window.BUILD='1793279789'</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1888,6 +1888,20 @@ button.tface{cursor:pointer}
 @media (min-width:700px){.rb-sec{left:max(20px,calc(50% - 260px))}}
 @media (max-height:640px){.rb-sec h2{font-size:24px}}
 @media (prefers-reduced-motion:reduce){.rb-slash{animation:none}}
+.rb-find{flex:1}.rb-code{flex:0 1 auto;padding:0 14px}
+/* matchmaking */
+.mmgo{width:100%;margin:12px 0}
+.mmfriend{margin:6px 0 10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:rgba(0,0,0,.25)}
+.mmfriend summary{cursor:pointer;min-height:36px;display:flex;align-items:center;color:#e2b860;font-size:15px}
+.mmbox{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:26px 16px;margin:14px 0;border:1px solid rgba(201,162,78,.45);border-radius:14px;background:rgba(13,9,7,.7)}
+.mmbox b{font-family:var(--f-head);font-size:20px;color:#f3d48a}
+.mm-ring{position:relative;width:110px;height:110px;border-radius:50%;display:grid;place-items:center;border:2px solid rgba(226,184,96,.35);margin-bottom:6px}
+.mm-ring::before{content:"";position:absolute;inset:-2px;border-radius:50%;border:3px solid transparent;border-top-color:#e2b860;animation:mmspin 1.1s linear infinite}
+.mm-ring.found::before{border-color:#8fd09e;animation:none}
+.mm-ring span{font-family:var(--f-brush);font-size:46px;color:#e2b860}
+.mm-t{font-family:var(--f-card);font-size:22px;color:#f3e6c8;margin:0;font-variant-numeric:tabular-nums}
+@keyframes mmspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.mm-ring::before{animation:none}}
 /* ---------- Pagoda Library (deck list) ---------- */
 .libbg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center 35%;animation:lsin .45s ease-out}
 .libbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,9,7,.3),rgba(13,9,7,.6) 22%,rgba(13,9,7,.9) 50%)}
@@ -4271,6 +4285,55 @@ async function joinMatch(raw){
     ON.unsubs.push(ref.onSnapshot(snap=>onMatchSnap(snap),onErr));
   }catch(e){onErr(e)}
 }
+/* ----- automatic matchmaking: find anyone else who is searching right now ----- */
+const MM_FRESH=25000;
+async function findMatch(){
+  if(!DBH){S.on={step:'menu',err:'Online play isn’t available in this copy of the game. Play it at the website link.'};render();return}
+  const d=active();if(!validate(d).ok){S.on={step:'menu',err:'Your active deck isn’t valid. Fix it in the Pagoda Library first.'};render();return}
+  stopOnline();S.on={step:'search',since:Date.now()};render();
+  try{if(await tryJoinOpen())return;
+    let code,ref;
+    for(let i=0;i<6;i++){code=genCode();ref=DBH.doc('matches/'+code);const s=await ref.get();if(!s.exists||(Date.now()-(s.data().created||0))>864e5)break}
+    if(!S.on||S.on.step!=='search')return;
+    const now=Date.now();
+    await ref.set({status:'waiting',q:'open',created:now,seen:now,pid:presenceId(),host:meInfo(),guest:null,state:'',rev:0,writer:-1});
+    ON={code,seat:0,ref,rev:0,chain:Promise.resolve(),unsubs:[],last:'',mm:true,created:now};saveMatch();
+    ON.unsubs.push(ref.onSnapshot(snap=>onMatchSnap(snap),onErr));
+    ON.beat=setInterval(mmTick,4000);
+  }catch(e){onErr(e)}
+}
+/* look for an open search by someone else; join the oldest one */
+async function tryJoinOpen(olderThan){
+  const q=await DBH.collection('matches').where('q','==','open').get();
+  const me=presenceId(),now=Date.now(),list=[];
+  q.forEach(s=>{const v=s.data();if(v.pid!==me&&v.status==='waiting'&&now-(v.seen||0)<MM_FRESH&&(olderThan==null||(v.created||0)<olderThan||((v.created||0)===olderThan&&s.id<ON.code)))list.push({id:s.id,c:v.created||0})});
+  list.sort((a,b)=>a.c-b.c);
+  for(const m of list){
+    const ref=DBH.doc('matches/'+m.id);let ok=false;
+    try{await DBH.runTransaction(async t=>{const s=await t.get(ref);const v=s.exists&&s.data();
+      if(!v||v.status!=='waiting'||v.q!=='open'||Date.now()-(v.seen||0)>=MM_FRESH){ok=false;return}
+      t.update(ref,{guest:meInfo(),status:'ready',q:'taken'});ok=true})}catch(e){ok=false}
+    if(ok){if(ON&&ON.mm&&ON.seat===0)mmClose();
+      ON={code:m.id,seat:1,ref,rev:0,chain:Promise.resolve(),unsubs:[],last:''};saveMatch();
+      S.on={step:'found'};render();
+      ON.unsubs.push(ref.onSnapshot(snap=>onMatchSnap(snap),onErr));return true}
+  }
+  return false;
+}
+let mmBusy=false;
+async function mmTick(){
+  if(!ON||!ON.mm||ON.started||mmBusy)return;mmBusy=true;
+  try{ON.ref.update({seen:Date.now()}).catch(()=>{});
+    /* two players who started searching at the same moment: the newer search joins the older one */
+    await tryJoinOpen(ON.created);
+  }catch(e){}finally{mmBusy=false}
+  if(S.screen==='online'&&S.on&&S.on.step==='search'){const el=document.getElementById('mm-t');if(el)el.textContent=mmTime()}
+}
+const mmTime=()=>{const s=Math.floor((Date.now()-((S.on&&S.on.since)||Date.now()))/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function mmClose(){if(!ON)return;clearInterval(ON.beat);if(ON.seat===0&&ON.ref&&!ON.started)ON.ref.update({status:'cancelled',q:'closed'}).catch(()=>{});stopOnline()}
+function cancelSearch(){mmClose();clearMatch();S.on={step:'menu'};render()}
+setInterval(()=>{const el=document.getElementById('mm-t');if(el)el.textContent=mmTime()},1000);
+window.addEventListener('pagehide',()=>{if(ON&&ON.mm&&!ON.started&&ON.ref)ON.ref.update({status:'cancelled',q:'closed'}).catch(()=>{})});
 function cancelHost(){if(ON&&ON.seat===0&&ON.ref)ON.ref.update({status:'cancelled'}).catch(()=>{});stopOnline();clearMatch();S.on={step:'menu'};render()}
 
 /* host builds the game once a guest joins */
@@ -4319,7 +4382,7 @@ function onMatchSnap(snap){
   if(!ON||!snap.exists)return;
   const d=snap.data();
   if(d.status==='cancelled'&&ON.seat===1){stopOnline();clearMatch();S.on={step:'menu',err:'The host cancelled the match.'};if(S.screen!=='battle')render();return}
-  if(ON.seat===0&&d.status==='ready'&&!d.state&&d.guest){if(!ON.started){ON.started=true;startOnlineGame(d)}return}
+  if(ON.seat===0&&d.status==='ready'&&!d.state&&d.guest){if(!ON.started){ON.started=true;clearInterval(ON.beat);S.on={step:'found'};startOnlineGame(d)}return}
   if(!d.state||d.writer===ON.seat)return;
   if(d.rev<=ON.rev&&!(d.status==='over'&&G&&G.online&&!G.over))return;
   ON.rev=Math.max(ON.rev,d.rev);
@@ -4385,15 +4448,19 @@ async function rejoinMatch(){
 function onlineHTML(){
   const o=S.on||{step:'menu'},d=active(),v=validate(d),sm=storedMatch();
   let body='';
-  if(o.step==='hosting')body=o.code?`<div class="codebox"><small>Your match code</small><b>${o.code}</b><p class="muted">Send this code to your friend. They open Way of the Blade, tap <b>Battle a Friend → Online</b> and enter it.</p><p class="waitln"><span class="dots"></span>Waiting for your opponent to join…</p></div>
+  if(o.step==='search')body=`<div class="mmbox"><div class="mm-ring" aria-hidden="true"><span>対</span></div><b>Searching for an opponent</b><p class="muted">Looking for another samurai who is searching right now. Keep this screen open.</p><p class="mm-t" id="mm-t">${mmTime()}</p><button class="btn" data-a="mmcancel">Cancel search</button></div>`;
+  else if(o.step==='found')body=`<div class="mmbox"><div class="mm-ring found" aria-hidden="true"><span>戦</span></div><b>Opponent found!</b><p class="muted">Preparing the duel…</p></div>`;
+  else if(o.step==='hosting')body=o.code?`<div class="codebox"><small>Your match code</small><b>${o.code}</b><p class="muted">Send this code to your friend. They open Way of the Blade, tap <b>Battle a Friend → Online</b> and enter it.</p><p class="waitln"><span class="dots"></span>Waiting for your opponent to join…</p></div>
       <div class="btns left"><button class="btn" data-a="oncancel">Cancel match</button></div>`:'<p class="muted">Creating a match…</p>';
   else if(o.step==='joining')body=`<div class="codebox"><small>Joining</small><b>${o.code}</b><p class="waitln"><span class="dots"></span>${o.wait?'Joined. Waiting for the host to start…':'Connecting…'}</p></div>`;
   else body=`
     ${sm?`<button class="battle" data-a="onrejoin"><span class="mk">再</span><span><b>Rejoin match ${sm.code}</b><small>Continue the duel you left</small></span></button>`:''}
+    <button class="battle mmgo" data-a="mmfind" ${v.ok?'':'disabled'}><span class="mk">対</span><span><b>Find a match</b><small>Get matched with another player who is searching now</small></span></button>
+    <details class="mmfriend" ${o.code||S.onFriend?'open':''}><summary>Play a specific friend with a code</summary>
     <section class="sect"><h2>Host a match</h2><p class="muted">Get a 4-letter code to send to your friend.</p>
       <div class="btns left"><button class="btn pri" data-a="onhost" ${v.ok?'':'disabled'}>Create match</button></div></section>
     <section class="sect"><h2>Join a match</h2><p class="muted">Enter the code your friend sent you.</p>
-      <div class="joinrow"><input id="f-code" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD" value="${esc(o.code||'')}"><button class="btn pri" data-a="onjoin" ${v.ok?'':'disabled'}>Join</button></div></section>`;
+      <div class="joinrow"><input id="f-code" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD" value="${esc(o.code||'')}"><button class="btn pri" data-a="onjoin" ${v.ok?'':'disabled'}>Join</button></div></section></details>`;
   return `<div class="screen">
     <header class="topbar"><button class="back" data-a="onback">← Back</button><h1>Online duel</h1></header>
     <div class="activedeck"><span class="mk dp-k p-${d.path}">${PATH_INFO[d.path].k}</span><div><b>${esc(d.name)}</b><small>Your active deck · ${PATH_INFO[d.path].n}</small></div><span class="pill ${v.ok?'ok':'bad'}">${v.ok?'Valid':'Invalid'}</span></div>
@@ -4417,9 +4484,9 @@ function friendHTML(){
     </section>
     <section class="rb-sec rb-s2">
       <small class="rb-k blue">Online duel</small>
-      <h2>Challenge a Friend</h2>
-      <p>Each samurai on their own phone.${n>1?` ${n} warriors on the road now.`:''}</p>
-      <div class="rb-row"><button class="rb-alt" data-a="frhost">Create a duel</button><button class="rb-alt" data-a="frjoin">Join with code</button></div>
+      <h2>Online Duel</h2>
+      <p>Get matched with a real player searching right now.${n>1?` ${n} warriors on the road now.`:''}</p>
+      <div class="rb-row"><button class="rb-go rb-find" data-a="frfind">Find a Match</button><button class="rb-alt rb-code" data-a="frcode">Friend code</button></div>
     </section>
   </div>`;
 }
@@ -6058,6 +6125,10 @@ document.addEventListener('click',e=>{
     case 'bossgo':startStoryBattle(v);return;
     case 'friend':go('friend');return;
     case 'fronline':S.on={step:'menu'};go('online');return;
+    case 'frfind':S.on={step:'menu'};go('online');findMatch();return;
+    case 'frcode':S.on={step:'menu'};S.onFriend=1;go('online');return;
+    case 'mmfind':findMatch();return;
+    case 'mmcancel':cancelSearch();return;
     case 'frhost':S.on={step:'menu'};go('online');setTimeout(()=>{const h=document.querySelector('[data-a="onhost"]:not([disabled])');if(h)h.click()},0);return;
     case 'frjoin':S.on={step:'menu'};go('online');setTimeout(()=>{const c=document.getElementById('f-code');if(c)c.focus()},60);return;
     case 'sfx':SFX.toggle();render();return;
@@ -6068,7 +6139,7 @@ document.addEventListener('click',e=>{
     case 'onjoin':{const i=document.getElementById('f-code');joinMatch(i?i.value:'');return}
     case 'oncancel':cancelHost();return;
     case 'onrejoin':rejoinMatch();return;
-    case 'onback':if(S.on&&S.on.step==='hosting')cancelHost();else if(S.on&&S.on.step==='joining'){stopOnline();clearMatch()}S.on={step:'menu'};go('friend');return;
+    case 'onback':S.onFriend=0;if(S.on&&S.on.step==='search'){cancelSearch()}else if(S.on&&S.on.step==='hosting')cancelHost();else if(S.on&&S.on.step==='joining'){stopOnline();clearMatch()}S.on={step:'menu'};go('friend');return;
     case 'frronin':S.mode='ronin';S.feudRank=null;go('prebattle');return;
     case 'frlocal':S.mode='duel';if(!S.p2)S.p2={name:'Player 2',path:pick(PATHS4),mon:pick(MONS),look:randomLook(10)};go('prebattle');return;
     case 'lnew':S.newDeck=true;S.newPath=null;S.dmenu=null;render();return;
