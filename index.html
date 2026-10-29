@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>window.BUILD='1793287688';window.ACCOUNTS_ON=1</script>
+<script>window.BUILD='1793287981';window.ACCOUNTS_ON=1</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1134,7 +1134,7 @@ button.tface{cursor:pointer}
 @keyframes rvin{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
 /* battle ending */
 .endfx{position:fixed;inset:0;z-index:55;pointer-events:none;overflow:hidden}
-.endfx.hold{display:flex;align-items:flex-start;justify-content:center;padding-top:calc(30vh + env(safe-area-inset-top))}
+.endfx.hold{display:flex;align-items:center;justify-content:center}
 .ef-last{max-width:min(420px,calc(100% - 32px));padding:10px 16px;border-radius:10px;background:rgba(13,9,7,.92);border:1px solid #e2b860;box-shadow:0 10px 30px rgba(0,0,0,.7);text-align:center;color:#f3e6c8;font-size:16px;animation:rvin .3s ease-out}
 .ef-last b{display:block;font-family:var(--f-card);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e2b860;margin-bottom:2px}
 .endfx.win,.endfx.lose{background:rgba(8,5,3,.35);animation:efdim .8s ease forwards}
@@ -3790,10 +3790,10 @@ function menuHTML(){
   const started=G.phase==='play'&&!G.over;
   if(G.menu==='confirm')return `<div class="modal"><div class="scroll menu" role="alertdialog" aria-label="Confirm Seppuku">
     <div class="big">切腹</div><h2>Are you sure?</h2>
-    <p class="sub">${!started?'You\u2019ll leave before the battle begins.':G.duel?`${esc(G.pl[1].who.name)} will win this duel.`:'This battle will count as a loss.'}</p>
+    <p class="sub">${G.online?`It counts as a loss. ${esc(G.pl[1].who.name)} wins this duel.`:!started?'You\u2019ll leave before the battle begins.':G.duel?`${esc(G.pl[1].who.name)} will win this duel.`:'This battle will count as a loss.'}</p>
     <div class="btns left"><button class="btn pri" data-act="sepyes">Yes, commit Seppuku</button><button class="btn ghost-dark" data-act="sepno">No, keep fighting</button></div>
   </div></div>`;
-  const what=!started?'Leave before the battle begins. Nothing is recorded.':G.duel?`${esc(G.pl[1].who.name)} will be declared the winner.`:'You forfeit this battle. It counts as a loss, and you still earn XP for a loss.';
+  const what=G.online?`It counts as a loss and ${esc(G.pl[1].who.name)} wins.`:!started?'Leave before the battle begins. Nothing is recorded.':G.duel?`${esc(G.pl[1].who.name)} will be declared the winner.`:'You forfeit this battle. It counts as a loss, and you still earn XP for a loss.';
   return `<div class="modal" data-act="menuclose"><div class="scroll menu" role="dialog" aria-label="Battle menu">
     <div class="big">退</div><h2>Battle menu</h2>
     <button class="sepbtn" data-act="seppuku"><span class="mk">切腹</span><span><b>Seppuku</b><small>${what} Returns you to the dojo.</small></span></button>
@@ -4010,7 +4010,7 @@ function revealCard(ids,label){
 /* battle ending: hold on the final move, then a sword slash (+ petals on a win) and the result stamp */
 function endFxHTML(){
   const win=G.over==='win',st=G.endStage;
-  if(st==='hold')return `<div class="endfx hold"><div class="ef-last"><b>Final move</b>${G.endLast}</div></div>`;
+  if(st==='hold')return `<div class="endfx hold"><div class="ef-last"><b>${G.oppLeft||/left the duel\.$/.test(G.endLast)?'Opponent left':'Final move'}</b>${G.endLast}${G.oppLeft||/left the duel\.$/.test(G.endLast)?'<br>Victory is yours.':''}</div></div>`;
   const petals=G.endPetals||(G.endPetals=win?Array.from({length:70},(_,i)=>`<i style="left:${(Math.random()*110-5).toFixed(1)}%;animation-delay:${(Math.random()*1.4).toFixed(2)}s;animation-duration:${(2.2+Math.random()*1.6).toFixed(2)}s;--dx:${Math.round(Math.random()*160-110)}px;--s:${(.7+Math.random()*.8).toFixed(2)}"></i>`).join(''):'');
   return `<div class="endfx ${win?'win':'lose'}"><span class="ef-slash"></span><span class="ef-petals">${petals}</span>
     <div class="ef-stamp">${win?'勝':'敗'}<small>${win?'Victory':'Defeat'}</small></div></div>`;
@@ -4385,8 +4385,8 @@ function onMatchSnap(snap){
   const d=snap.data();
   if(d.status==='cancelled'&&d.quitBy!==ON.seat&&(d.quitBy!=null||ON.seat===1)){
     const who=(G&&G.online&&G.pl[1].who&&G.pl[1].who.name)||(ON.seat===0?(d.guest&&d.guest.name):(d.host&&d.host.name))||'Your opponent';
-    stopOnline();clearMatch();if(G&&G.online)G=null;S.on={step:'menu'};go('friend');
-    const t=document.createElement('div');t.className='narrnote';t.innerHTML=`<b>${esc(who)} left the match</b><span>They quit before the duel started. Tap Find a Match to look for another opponent.</span>`;document.body.appendChild(t);setTimeout(()=>t.remove(),4500);return}
+    if(G&&G.online&&!G.over){G.phase='play';G.mull=null;G.mode=null;G.sel=null;G.menu=false;log(`${who} left the duel.`);G.oppLeft=true;G.over='win';onlineRecord();stopOnline();clearMatch();S.screen='battle';render();return}
+    stopOnline();clearMatch();S.on={step:'menu'};go('friend');return}
   ON.oppHb=Math.max(ON.oppHb||0,d['hb'+(1-ON.seat)]||0);
   if(ON.seat===0&&d.status==='ready'&&!d.state&&d.guest){if(!ON.started){ON.started=true;clearInterval(ON.beat);S.on={step:'found'};startOnlineGame(d)}return}
   if(!d.state||d.writer===ON.seat)return;
@@ -4436,8 +4436,9 @@ function endOnlineTurn(){
   showBanner(`${oppName()}’s turn`,'Waiting for their move');render();
 }
 function onlineSeppuku(){
-  if(G.phase==='play'&&!G.over){G.over='lose';onlineRecord();pushState(true)}
-  else if(ON&&ON.ref)ON.chain=ON.chain.then(()=>ON.ref.update({status:'cancelled',quitBy:ON.seat})).catch(()=>{});
+  /* leaving an online duel always counts as a loss; the other player gets the win */
+  if(G.phase==='play'&&!G.over){log(`${G.pl[0].who?G.pl[0].who.name:'Your opponent'} left the duel.`);G.over='lose';onlineRecord();pushState(true)}
+  else{if(G&&!G.over){G.over='lose';onlineRecord()}if(ON&&ON.ref)ON.chain=ON.chain.then(()=>ON.ref.update({status:'cancelled',quitBy:ON.seat})).catch(()=>{})}
   clearMatch();setTimeout(stopOnline,1500);
 }
 async function rejoinMatch(){
