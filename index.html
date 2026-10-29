@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>window.BUILD='1793290466';window.ACCOUNTS_ON=1</script>
+<script>window.BUILD='1793291060';window.ACCOUNTS_ON=1</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -4012,7 +4012,7 @@ function revealCard(ids,label){
 /* battle ending: hold on the final move, then a sword slash (+ petals on a win) and the result stamp */
 function endFxHTML(){
   const win=G.over==='win',st=G.endStage;
-  if(st==='hold')return `<div class="endfx hold"><div class="ef-last"><b>${G.oppLeft||/left the duel\.$/.test(G.endLast)?'Opponent left':'Final move'}</b>${G.endLast}${G.oppLeft||/left the duel\.$/.test(G.endLast)?'<br>Victory is yours.':''}</div></div>`;
+  if(st==='hold')return `<div class="endfx hold"><div class="ef-last"><b>${G.selfQuit?'You left':G.oppLeft||/left the duel\.$/.test(G.endLast)?'Opponent left':'Final move'}</b>${G.selfQuit?'You committed seppuku.<br>It counts as a loss.':G.endLast+(G.oppLeft||/left the duel\.$/.test(G.endLast)?'<br>Victory is yours.':'')}</div></div>`;
   const petals=G.endPetals||(G.endPetals=win?Array.from({length:70},(_,i)=>`<i style="left:${(Math.random()*110-5).toFixed(1)}%;animation-delay:${(Math.random()*1.4).toFixed(2)}s;animation-duration:${(2.2+Math.random()*1.6).toFixed(2)}s;--dx:${Math.round(Math.random()*160-110)}px;--s:${(.7+Math.random()*.8).toFixed(2)}"></i>`).join(''):'');
   return `<div class="endfx ${win?'win':'lose'}"><span class="ef-slash"></span><span class="ef-petals">${petals}</span>
     <div class="ef-stamp">${win?'勝':'敗'}<small>${win?'Victory':'Defeat'}</small></div></div>`;
@@ -4236,7 +4236,7 @@ setInterval(()=>{
 /* ===== Online duel across two devices (shared database, turn by turn) ===== */
 let DBH=null,USERH=null,ON=null;
 const MATCH_KEY='wotb-online-match';
-const VOL=['sel','mode','fx','busy','drawn','mull','menu','yieldAsk','handoff','idleAt','rec','unl','xpRes','showHist','histCard','_tc','aiCall','aiFocus','pendAct'];
+const VOL=['sel','mode','fx','busy','drawn','mull','menu','yieldAsk','handoff','idleAt','rec','unl','xpRes','showHist','histCard','_tc','aiCall','aiFocus','pendAct','endStage','endLast','selfQuit'];
 function swapState(c){
   c.pl.reverse();c.pl.forEach((P,i)=>P.board.forEach(u=>{if(u)u.owner=i}));
   c.turn=1-c.turn;c.first=1-c.first;
@@ -4400,6 +4400,7 @@ function onMatchSnap(snap){
   const me=ON;me.snapQ=(me.snapQ||Promise.resolve()).then(()=>ON===me&&applyRemote(d)).catch(e=>console.warn(e));
 }
 async function applyRemote(d){
+  if(G&&G.online&&G.over)return; /* this duel already ended here: keep the ending on screen */
   const c=JSON.parse(d.state);
   const mine=fromCanon(c),fresh=(mine.feed||[]).filter(e=>e.n>(ON.feedSeen||0));
   ON.feedSeen=Math.max(ON.feedSeen||0,...(mine.feed||[]).map(e=>e.n));
@@ -4453,7 +4454,7 @@ function endOnlineTurn(){
 }
 function onlineSeppuku(){
   /* leaving an online duel always counts as a loss; the other player gets the win */
-  if(G.phase==='play'&&!G.over){log(`${G.pl[0].who?G.pl[0].who.name:'Your opponent'} left the duel.`);G.over='lose';onlineRecord();pushState(true)}
+  if(G.phase==='play'&&!G.over){log(`${G.pl[0].who?G.pl[0].who.name:'Your opponent'} left the duel.`);G.over='lose';onlineRecord();pushState(true);G.selfQuit=true}
   else{if(G&&!G.over){G.over='lose';onlineRecord()}if(ON&&ON.ref)ON.chain=ON.chain.then(()=>ON.ref.update({status:'cancelled',quitBy:ON.seat})).catch(()=>{})}
   clearMatch();setTimeout(stopOnline,1500);
 }
