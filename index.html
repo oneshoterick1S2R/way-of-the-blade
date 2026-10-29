@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>window.BUILD='1793282322';window.ACCOUNTS_ON=1</script>
+<script>window.BUILD='1793287326';window.ACCOUNTS_ON=1</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1164,6 +1164,8 @@ button.tface{cursor:pointer}
 @keyframes dpflip{0%,18%{transform:rotateY(180deg)}38%,100%{transform:rotateY(0)}}
 @keyframes dpname{0%{opacity:0}12%,70%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.dp-c,.dp-in,.dp-glow,#drawpop>b{animation:none!important;opacity:1}.dp-in{transform:none}}
+#oppgone{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:70;width:min(360px,calc(100% - 32px));padding:16px;border-radius:12px;background:rgba(13,9,7,.97);border:1.5px solid #e2b860;box-shadow:0 20px 50px rgba(0,0,0,.8);text-align:center;color:#ecdcb4}
+#oppgone b{font-family:var(--f-head);font-size:18px;color:#f3d48a}#oppgone p{margin:6px 0 12px;font-size:15px}#oppgone div{display:flex;gap:8px;justify-content:center}
 /* ---------- parchment character creator ---------- */
 #root.wide{max-width:960px;padding-bottom:150px}
 .creator{--pp:#ecdcb4;--pp2:#d9c08a;--ppink:#2a1a10;--ppline:#5a3f22;
@@ -4254,7 +4256,7 @@ function onErr(e){
 function saveMatch(){try{localStorage.setItem(MATCH_KEY,JSON.stringify({code:ON.code,seat:ON.seat}))}catch(e){}}
 function clearMatch(){try{localStorage.removeItem(MATCH_KEY)}catch(e){}}
 function storedMatch(){try{return JSON.parse(localStorage.getItem(MATCH_KEY)||'null')}catch(e){return null}}
-function stopOnline(){if(ON){(ON.unsubs||[]).forEach(f=>{try{f()}catch(e){}});}ON=null}
+function stopOnline(){gonePanel(false);if(ON){clearInterval(ON.beat);(ON.unsubs||[]).forEach(f=>{try{f()}catch(e){}});}ON=null}
 
 /* ----- lobby ----- */
 async function hostMatch(){
@@ -4381,7 +4383,10 @@ function onlineAfterRender(){
 function onMatchSnap(snap){
   if(!ON||!snap.exists)return;
   const d=snap.data();
-  if(d.status==='cancelled'&&ON.seat===1){stopOnline();clearMatch();S.on={step:'menu',err:'The host cancelled the match.'};if(S.screen!=='battle')render();return}
+  if(d.status==='cancelled'&&d.quitBy!==ON.seat&&(d.quitBy!=null||ON.seat===1)){
+    const who=(G&&G.online&&G.pl[1].who&&G.pl[1].who.name)||(ON.seat===0?(d.guest&&d.guest.name):(d.host&&d.host.name))||'Your opponent';
+    stopOnline();clearMatch();if(G&&G.online)G=null;S.on={step:'menu',err:`${who} left the match before it started.`};go('online');return}
+  ON.oppHb=Math.max(ON.oppHb||0,d['hb'+(1-ON.seat)]||0);
   if(ON.seat===0&&d.status==='ready'&&!d.state&&d.guest){if(!ON.started){ON.started=true;clearInterval(ON.beat);S.on={step:'found'};startOnlineGame(d)}return}
   if(!d.state||d.writer===ON.seat)return;
   if(d.rev<=ON.rev&&!(d.status==='over'&&G&&G.online&&!G.over))return;
@@ -4431,7 +4436,7 @@ function endOnlineTurn(){
 }
 function onlineSeppuku(){
   if(G.phase==='play'&&!G.over){G.over='lose';onlineRecord();pushState(true)}
-  else if(ON&&ON.ref)ON.chain=ON.chain.then(()=>ON.ref.update({status:'cancelled'})).catch(()=>{});
+  else if(ON&&ON.ref)ON.chain=ON.chain.then(()=>ON.ref.update({status:'cancelled',quitBy:ON.seat})).catch(()=>{});
   clearMatch();setTimeout(stopOnline,1500);
 }
 async function rejoinMatch(){
@@ -4523,6 +4528,25 @@ function liveListHTML(){
   const rows=[...PRES.list].sort((a,b)=>(a.id===me?-1:b.id===me?1:0)).map(p=>`<li><i></i><b>${esc(p.name)}${p.id===me?' (you)':''}</b><small>${st[p.status]||''}</small></li>`).join('');
   return `<div class="livelist"><ul>${rows||'<li><small>Only you right now.</small></li>'}</ul></div>`;
 }
+
+/* ----- connection check: each player pings every 10 s; if the other goes quiet, offer the win ----- */
+function onlineHeartbeat(){
+  if(!ON||!ON.ref||!G||!G.online)return;
+  ON.ref.update({['hb'+ON.seat]:Date.now()}).catch(()=>{});
+  if(!ON.oppHb)ON.oppHb=Date.now();
+  const quiet=Date.now()-ON.oppHb;
+  gonePanel(!G.over&&quiet>45000,quiet);
+}
+setInterval(onlineHeartbeat,10000);
+function gonePanel(show,quiet){
+  let el=document.getElementById('oppgone');
+  if(!show){if(el)el.remove();return}
+  if(!el){el=document.createElement('div');el.id='oppgone';el.setAttribute('role','alertdialog');document.body.appendChild(el)}
+  el.innerHTML=`<b>${esc(oppName())} isn’t responding</b><p>They may have closed the game or lost connection (${Math.round(quiet/1000)} s).</p><div><button class="btn pri" data-gone="win">Claim victory</button><button class="btn" data-gone="wait" style="color:#e2b860;border:1px solid #e2b860">Keep waiting</button></div>`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-gone]');if(!b)return;
+  if(b.dataset.gone==='win'&&G&&G.online&&!G.over){G.over='win';G.phase=G.phase==='play'?'play':'play';onlineRecord();pushState(true);gonePanel(false);render()}
+  else{if(ON)ON.oppHb=Date.now();gonePanel(false)}});
 
 /* ===== Guided tutorial: a staged battle with a spotlight tour (Back / Next / Skip) ===== */
 let TUT=null;
