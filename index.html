@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>window.BUILD='1793288193';window.ACCOUNTS_ON=1</script>
+<script>window.BUILD='1793290466';window.ACCOUNTS_ON=1</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -3775,6 +3775,8 @@ function renderBattle(){
   if(toast)layer+=`<div class="toast ${toast.amb?'amb':''}" role="status">${toast.c?`<div class="tcard">${card(toast.c,{mini:true})}</div>`:`<div class="tk">${toast.k}</div>`}<div><b>${toast.t}</b><p>${toast.x}</p></div></div>`;
   $('#layer').innerHTML=layer;
   const fxs=G.fx;G.fx=[];
+  /* online: share what just happened so the other player sees the same animation */
+  if(G.online&&ON&&!ON.applying&&(fxs.length||G.pendAct)&&G.phase==='play'){G.feedN=(G.feedN||0)+1;G.feed=(G.feed||[]).concat([{n:G.feedN,a:G.pendAct||null,fx:fxs.map(f=>({id:f.id,t:f.t,k:f.k}))}]).slice(-8);G.pendAct=null;ON.feedSeen=G.feedN}
   if(fxs.length&&!showIntro){const has=(k,t)=>fxs.some(f=>f.k===k&&(t==null||t(f)));
     const snd=has('dmg',f=>f.t==='\u2715')?'death':has('dmg',f=>String(f.id).startsWith('h'))?'honor':has('dmg')?'hit':has('enter')?'summon':has('buff')?'buff':has('heal')?'heal':null;
     if(snd)SFX.play(snd);}
@@ -4176,10 +4178,10 @@ async function cast(p,s){
   const u=G.pl[p].board[s];if(!u||REDUCED)return;const a=fxEl(u.uid);if(!a||!a.animate)return;
   try{await a.animate([{filter:'brightness(1)',transform:'none'},{filter:'brightness(1.7) drop-shadow(0 0 14px #ffd27a)',transform:'translateY(-8px) scale(1.06)'},{filter:'brightness(1)',transform:'none'}],{duration:620,easing:'ease-in-out'}).finished}catch(e){}
 }
-async function doStrike(p,s,t){const before=G.ambushHit||0;await lunge(p,s,t);strike(p,s,t);render();await sleep(950);
+async function doStrike(p,s,t){const before=G.ambushHit||0;await lunge(p,s,t);if(G.online)G.pendAct={k:'strike',p,s,t:t?{s:t.s,i:t.i}:null};strike(p,s,t);render();await sleep(950);
   /* an ambush sprang: hold so the reveal can be read */
   if((G.ambushHit||0)>before)await sleep(2600);render()}
-async function doAbility(p,s,t){await cast(p,s);useTech(p,s,t);render();await sleep(1000);render()}
+async function doAbility(p,s,t){await cast(p,s);if(G.online)G.pendAct={k:'tech',p,s,t:t?{s:t.s,i:t.i}:null};useTech(p,s,t);render();await sleep(1000);render()}
 function bannerHTML(){if(!banner)return '';return `<div class="tbanner" key="${banner.id}"><div class="tb-in"><b>${banner.t}</b>${banner.sub?`<small>${banner.sub}</small>`:''}</div></div>`}
 
 /* ===== Two-player duel on one device + turn timer ===== */
@@ -4234,10 +4236,12 @@ setInterval(()=>{
 /* ===== Online duel across two devices (shared database, turn by turn) ===== */
 let DBH=null,USERH=null,ON=null;
 const MATCH_KEY='wotb-online-match';
-const VOL=['sel','mode','fx','busy','drawn','mull','menu','yieldAsk','handoff','idleAt','rec','unl','xpRes','showHist','histCard','_tc','aiCall','aiFocus'];
+const VOL=['sel','mode','fx','busy','drawn','mull','menu','yieldAsk','handoff','idleAt','rec','unl','xpRes','showHist','histCard','_tc','aiCall','aiFocus','pendAct'];
 function swapState(c){
   c.pl.reverse();c.pl.forEach((P,i)=>P.board.forEach(u=>{if(u)u.owner=i}));
   c.turn=1-c.turn;c.first=1-c.first;
+  (c.feed||[]).forEach(e=>{if(e.a){e.a.p=1-e.a.p;if(e.a.t&&e.a.t.s!=null)e.a.t.s=1-e.a.t.s}
+    (e.fx||[]).forEach(f=>{if(typeof f.id==='string'&&/^[ht][01]$/.test(f.id))f.id=f.id[0]+(1-+f.id[1])})});
   if(c.over==='win'||c.over==='lose')c.over=c.over==='win'?'lose':'win';
   return c;
 }
@@ -4392,7 +4396,17 @@ function onMatchSnap(snap){
   if(!d.state||d.writer===ON.seat)return;
   if(d.rev<=ON.rev&&!(d.status==='over'&&G&&G.online&&!G.over))return;
   ON.rev=Math.max(ON.rev,d.rev);
+  /* play each update in order, so the opponent's strikes animate on this screen too */
+  const me=ON;me.snapQ=(me.snapQ||Promise.resolve()).then(()=>ON===me&&applyRemote(d)).catch(e=>console.warn(e));
+}
+async function applyRemote(d){
   const c=JSON.parse(d.state);
+  const mine=fromCanon(c),fresh=(mine.feed||[]).filter(e=>e.n>(ON.feedSeen||0));
+  ON.feedSeen=Math.max(ON.feedSeen||0,...(mine.feed||[]).map(e=>e.n));
+  const play=G&&G.online&&G.phase==='play'&&S.screen==='battle'?fresh:[];
+  for(const e of play){if(!e.a)continue;
+    try{if(e.a.k==='strike')await lunge(e.a.p,e.a.s,e.a.t);else await cast(e.a.p,e.a.s)}catch(err){}
+  }
   const old=G&&G.online?G:null,oldN=old?(old.logN||old.log.length):0,wasMine=old&&old.turn===0,keepHist=old&&old.showHist;
   const keepMull=old&&old.mull&&c.phase==='mull'?old.mull:null;
   G=fromCanon(c);
@@ -4407,7 +4421,9 @@ function onMatchSnap(snap){
   }
   if(keepHist)G.showHist=true;
   if(G.over)clearMatch();
-  render();
+  G.fx=play.flatMap(e=>e.fx||[]);ON.applying=true;
+  try{render()}finally{if(ON)ON.applying=false}
+  if(play.some(e=>e.a))await sleep(700);
 }
 
 /* ----- opening hands: each player writes their own result; the host merges ----- */
