@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>window.BUILD='1793279789'</script>
+<script>window.BUILD='1793282017';window.ACCOUNTS_ON=1</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -5409,7 +5409,7 @@ const authName=()=>AUTH.user?(AUTH.user.displayName||(AUTH.user.email||'').split
 const freshDraft=name=>({name:name||'',clan:'',look:clone(DEFAULT_LOOK),xp:0,mon:'桜',color:'shu',path:'banner'});
 
 function authInit(){
-  if(window.claude?.use||!window.firebase||!firebase.auth||!window.FB_CFG||!FB_CFG.accounts||!FB_CFG.projectId||/PASTE/.test(FB_CFG.projectId))return false;
+  if(window.claude?.use||!window.firebase||!firebase.auth||!window.FB_CFG||!(FB_CFG.accounts||window.ACCOUNTS_ON)||!FB_CFG.projectId||/PASTE/.test(FB_CFG.projectId))return false;
   try{if(!firebase.apps.length)firebase.initializeApp(FB_CFG)}catch(e){return false}
   AUTH.on=true;AUTH.local=lsGet(); /* progress saved on this device before accounts existed */
   firebase.auth().onAuthStateChanged(u=>{
