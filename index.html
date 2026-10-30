@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Way of the Blade</title><meta name="theme-color" content="#1a1210">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>window.BUILD='1793291060';window.ACCOUNTS_ON=1</script>
+<script>window.BUILD='1793361571';window.ACCOUNTS_ON=1</script>
 <script src="firebase-config.js"></script></head><body>
 <title>Way of the Blade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -3945,7 +3945,7 @@ document.addEventListener('click',e=>{
     case 'backdrop':if(e.target===b){G.sel=null;render()}return;
     case 'start':showIntro=false;if(!ACC.seenRules){ACC.seenRules=true;save()}render();return;
     case 'rules':showIntro=true;render();return;
-    case 'again':if(G&&G.online){stopOnline();G=null;S.on={step:'menu'};go('online');return}startBattle(active().id);return;
+    case 'again':if(G&&G.online){stopOnline();G=null;S.on={step:'menu'};go('friend');return}startBattle(active().id);return;
     case 'tutagain':startTutorial();return;
     case 'storyretry':startStoryBattle(G.boss);return;
     case 'storymap':G=null;go('story');return;
@@ -4337,7 +4337,7 @@ async function mmTick(){
 }
 const mmTime=()=>{const s=Math.floor((Date.now()-((S.on&&S.on.since)||Date.now()))/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function mmClose(){if(!ON)return;clearInterval(ON.beat);if(ON.seat===0&&ON.ref&&!ON.started)ON.ref.update({status:'cancelled',q:'closed'}).catch(()=>{});stopOnline()}
-function cancelSearch(){mmClose();clearMatch();S.on={step:'menu'};render()}
+function cancelSearch(){mmClose();clearMatch();S.on={step:'menu'};S.onFriend=0;if(S.screen==='online')go('friend');else render()}
 setInterval(()=>{const el=document.getElementById('mm-t');if(el)el.textContent=mmTime()},1000);
 window.addEventListener('pagehide',()=>{if(ON&&ON.mm&&!ON.started&&ON.ref)ON.ref.update({status:'cancelled',q:'closed'}).catch(()=>{})});
 function cancelHost(){if(ON&&ON.seat===0&&ON.ref)ON.ref.update({status:'cancelled'}).catch(()=>{});stopOnline();clearMatch();S.on={step:'menu'};render()}
